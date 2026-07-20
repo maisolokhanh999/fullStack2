@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./configs/db.js";
 import cloudinary from "./configs/cloudinary.js";
+import routes from "./router/index.js";
 dotenv.config();
 
 if (!process.env.JWT_SECRET) {
@@ -17,7 +18,7 @@ app.use(express.json());
 await cloudinary.config();
 await connectDB();
 
-// app.use("/api", routes);
+app.use("/", routes);
 
 app.get("/", (req, res) => {
   res.json({ message: "Server running..." });
