@@ -10,7 +10,7 @@ const createToken = (userId) => {
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, phone, address } = req.body;
+    const { name, email, password, phone, address} = req.body;
 
     if (!name || !email || !password || !phone || !address) {
       return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
@@ -34,7 +34,6 @@ export const register = async (req, res) => {
       password: hashedPassword,
       phone,
       address,
-      role: "user",
     });
 
     const token = createToken(user._id);
