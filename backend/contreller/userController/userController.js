@@ -1,6 +1,6 @@
 import User from "../../model/User.js";
 import bcrypt from "bcrypt";
-
+import handleError from "../../middlewares/handleError/handleError.js";
 
 // Lấy tất cả user
 export const getUsers = async (req, res) => {
@@ -32,9 +32,7 @@ export const getUserById = async (req, res) => {
 
     res.status(200).json(user);
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+   handleError(res, error);
   }
 };
 
@@ -42,7 +40,7 @@ export const getUserById = async (req, res) => {
 // Cập nhật thông tin user
 export const updateUser = async (req, res) => {
   try {
-    const { name, email, phone, address } = req.body;
+    const { name, email, phone, address, status } = req.body;
 
     const user = await User.findByIdAndUpdate(
       req.params.id,
@@ -51,6 +49,7 @@ export const updateUser = async (req, res) => {
         email,
         phone,
         address,
+        status,
       },
       {
         new: true,
@@ -69,9 +68,7 @@ export const updateUser = async (req, res) => {
       user,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -106,9 +103,7 @@ export const updateRole = async (req, res) => {
       user,
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -149,9 +144,7 @@ export const updatePassword = async (req, res) => {
       message: "Đổi mật khẩu thành công",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+   handleError(res, error);
   }
 };
 
@@ -173,8 +166,6 @@ export const deleteUser = async (req, res) => {
       message: "Xóa người dùng thành công",
     });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+   handleError(res, error);
   }
 };
