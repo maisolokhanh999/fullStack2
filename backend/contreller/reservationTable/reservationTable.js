@@ -1,6 +1,7 @@
 import ReservationTable from "../../model/reservationTable.js"; // chỉnh lại path cho đúng
 import Reservation from "../../model/reservation.js";
 import Table from "../../model/table.js";
+import handleError from "../../middlewares/handleError/handleError.js";
 
 // @desc    Gán bàn cho một đặt bàn
 // @route   POST /api/reservation-tables
@@ -52,10 +53,7 @@ export const assignTableToReservation = async (req, res) => {
       data: reservationTable,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -81,10 +79,7 @@ export const getReservationTables = async (req, res) => {
       data: reservationTables,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -108,10 +103,7 @@ export const getReservationTableById = async (req, res) => {
       data: reservationTable,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -130,10 +122,7 @@ export const getTablesByReservation = async (req, res) => {
       data: reservationTables,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -171,10 +160,7 @@ export const releaseTable = async (req, res) => {
       data: reservationTable,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -201,10 +187,7 @@ export const blockReservationTable = async (req, res) => {
       data: reservationTable,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -228,9 +211,6 @@ export const deleteReservationTable = async (req, res) => {
       message: "Xoá bản ghi gán bàn thành công",
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };

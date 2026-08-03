@@ -1,5 +1,6 @@
 import Invoice from "../../model/invoice.js"; // chỉnh lại path cho đúng
 import Reservation from "../../model/reservation.js";
+import handleError from "../../middlewares/handleError/handleError.js";
 
 // @desc    Tạo hoá đơn mới
 // @route   POST /api/invoices
@@ -78,10 +79,7 @@ export const createInvoice = async (req, res) => {
       data: invoice,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -116,10 +114,7 @@ export const getInvoices = async (req, res) => {
       data: invoices,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -143,10 +138,7 @@ export const getInvoiceById = async (req, res) => {
       data: invoice,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -221,10 +213,7 @@ export const updateInvoice = async (req, res) => {
       data: invoice,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -258,10 +247,7 @@ export const payInvoice = async (req, res) => {
       data: invoice,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -294,10 +280,7 @@ export const cancelInvoice = async (req, res) => {
       data: invoice,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -330,10 +313,7 @@ export const refundInvoice = async (req, res) => {
       data: invoice,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -355,9 +335,6 @@ export const deleteInvoice = async (req, res) => {
       message: "Xoá hoá đơn thành công",
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };

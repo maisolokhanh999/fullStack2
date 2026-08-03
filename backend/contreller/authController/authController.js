@@ -1,6 +1,7 @@
 import User from "../../model/User.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import handleError from "../../middlewares/handleError/handleError.js";
 
 const createToken = (userId) => {
   return jwt.sign({ id: userId }, process.env.JWT_SECRET, {
@@ -51,7 +52,7 @@ export const register = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    handleError(res, error);
   }
 };
 
@@ -90,7 +91,7 @@ export const login = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    handleError(res, error);
   }
 };
 

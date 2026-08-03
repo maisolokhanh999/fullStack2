@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import InvoiceDetail from "../../model/invoiceDetail.js"; // chỉnh lại path cho đúng
 import Invoice from "../../model/invoice.js";
 import Menu from "../../model/menu.js"; // chỉnh lại path nếu tên khác
+import handleError from "../../middlewares/handleError/handleError.js";
 
 // Helper: tính lại totalAmount của Invoice dựa trên tổng các InvoiceDetail
 const recalculateInvoiceTotal = async (invoiceId) => {
@@ -76,10 +77,7 @@ export const createInvoiceDetail = async (req, res) => {
       data: detail,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -150,10 +148,7 @@ export const createInvoiceDetailsBulk = async (req, res) => {
       data: details,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -171,10 +166,7 @@ export const getInvoiceDetailsByInvoice = async (req, res) => {
       data: details,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -198,10 +190,7 @@ export const getInvoiceDetailById = async (req, res) => {
       data: detail,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -246,10 +235,7 @@ export const updateInvoiceDetail = async (req, res) => {
       data: detail,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -283,9 +269,6 @@ export const deleteInvoiceDetail = async (req, res) => {
       message: "Xoá món khỏi hoá đơn thành công",
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };

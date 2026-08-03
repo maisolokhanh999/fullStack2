@@ -1,11 +1,12 @@
 import Category from "../../model/category.js";
+import handleError from "../../middlewares/handleError/handleError.js";
 
 export const getCategories = async (req, res) => {
   try {
     const categories = await Category.find().sort({ createdAt: -1 });
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    handleError(res, error);
   }
 };
 
@@ -19,7 +20,7 @@ export const getCategoryById = async (req, res) => {
 
     res.json(category);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    handleError(res, error);
   }
 };
 
@@ -34,7 +35,7 @@ export const createCategory = async (req, res) => {
     const category = await Category.create({ name, description });
     res.status(201).json(category);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    handleError(res, error);
   }
 };
 
@@ -51,7 +52,7 @@ export const updateCategory = async (req, res) => {
 
     res.json(category);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    handleError(res, error);
   }
 };
 
@@ -65,6 +66,6 @@ export const deleteCategory = async (req, res) => {
 
     res.json({ message: "Xóa danh mục thành công" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    handleError(res, error);
   }
 };

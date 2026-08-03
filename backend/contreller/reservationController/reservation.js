@@ -1,4 +1,5 @@
 import Reservation from "../../model/reservation.js"; // chỉnh lại path cho đúng
+import handleError from "../../middlewares/handleError/handleError.js";
 
 // @desc    Tạo đặt bàn mới
 // @route   POST /api/reservations
@@ -28,10 +29,7 @@ export const createReservation = async (req, res) => {
       data: reservation,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -64,10 +62,7 @@ export const getReservations = async (req, res) => {
       data: reservations,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -89,10 +84,7 @@ export const getReservationById = async (req, res) => {
       data: reservation,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -119,10 +111,7 @@ export const updateReservation = async (req, res) => {
       data: reservation,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -155,10 +144,7 @@ export const confirmReservation = async (req, res) => {
       data: reservation,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -192,10 +178,7 @@ export const checkInReservation = async (req, res) => {
       data: reservation,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -228,10 +211,7 @@ export const completeReservation = async (req, res) => {
       data: reservation,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -264,10 +244,7 @@ export const cancelReservation = async (req, res) => {
       data: reservation,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -300,10 +277,7 @@ export const markNoShow = async (req, res) => {
       data: reservation,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -325,9 +299,6 @@ export const deleteReservation = async (req, res) => {
       message: "Xoá đặt bàn thành công",
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };

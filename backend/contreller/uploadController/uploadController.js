@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import handleError from '../../middlewares/handleError/handleError.js';
 
 export const uploadFile = async (req, res) => {
   try {
@@ -28,6 +29,6 @@ export const uploadFile = async (req, res) => {
 
   } catch (error) {
     console.error('Lỗi upload:', error);
-    return res.status(500).json({ error: 'Có lỗi xảy ra trong quá trình upload.' });
+    return handleError(res, error);
   }
 };

@@ -1,4 +1,5 @@
 import Table from "../../model/table.js"; // chỉnh lại path cho đúng
+import handleError from "../../middlewares/handleError/handleError.js";
 
 // @desc    Tạo bàn mới
 // @route   POST /api/tables
@@ -28,10 +29,7 @@ export const createTable = async (req, res) => {
       data: table,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -50,10 +48,7 @@ export const getTables = async (req, res) => {
       data: tables,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -75,10 +70,7 @@ export const getTableById = async (req, res) => {
       data: table,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -120,10 +112,7 @@ export const updateTable = async (req, res) => {
       data: table,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -160,10 +149,7 @@ export const updateTableStatus = async (req, res) => {
       data: table,
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
 
@@ -185,9 +171,6 @@ export const deleteTable = async (req, res) => {
       message: "Xoá bàn thành công",
     });
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    handleError(res, error);
   }
 };
