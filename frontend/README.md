@@ -37,22 +37,31 @@ Sau khi đăng nhập hoặc đăng ký:
 
 ## Trạng thái tích hợp API
 
-Đang sử dụng API thật:
+Base URL lấy từ `VITE_API_BASE_URL`, mặc định là `https://fullstack2-sdtf.onrender.com`. Các path dưới đây được nối trực tiếp vào base URL, **không thêm tiền tố `/api`**.
 
-- POST /auth/register
-- POST /auth/login
-- GET /auth/me
-- GET /dishes?limit=100
+### API contract cho frontend
 
-Backend chưa có endpoint cho:
+- Auth: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`.
+- Users: `GET /users`, `GET|PUT|DELETE /users/:id`, `PUT /users/:id/role`, `PUT /users/:id/password`.
+- Categories: `GET|POST /categories`, `GET|PUT|DELETE /categories/:id`.
+- Dishes: `GET|POST /dishes`, `GET|PUT|DELETE /dishes/:id`, `PATCH /dishes/:id/restore`.
+- Menus: `GET|POST /menus`, `GET|PUT|DELETE /menus/:id`, `PATCH /menus/:id/restore`, `POST /menus/:id/items`, `DELETE /menus/:id/items/:dishId`, `PUT /menus/:id/items/reorder`.
+- Tables: `GET|POST /tables`, `GET|PUT|DELETE /tables/:id`, `PATCH /tables/:id/status`.
+- Reservations: `GET|POST /reservations`, `GET|PUT|DELETE /reservations/:id`, `PATCH /reservations/:id/confirm|checkin|complete|cancel|no-show`.
+- Reservation Tables: `GET|POST /reservation-tables`, `GET|DELETE /reservation-tables/:id`, `GET /reservation-tables/reservations/:reservationId/tables`, `PATCH /reservation-tables/:id/release|block`.
+- Invoices: `GET|POST /invoices`, `GET|PUT|DELETE /invoices/:id`, `PATCH /invoices/:id/pay|cancel|refund`.
+- Invoice Details: `POST /invoice-details`, `POST /invoice-details/bulk`, `GET|PUT|DELETE /invoice-details/:id`.
+- Upload: `POST /upload`.
 
-- danh sách/thông tin nhà hàng;
-- kiểm tra bàn trống và tạo đặt bàn;
-- thanh toán cọc;
-- lịch sử đặt bàn;
-- tra cứu và check-in khách.
+### Phạm vi đã nối an toàn
 
-Vì vậy frontend chỉ lưu bản nháp đặt bàn trong sessionStorage, không tạo mã đặt bàn, không báo thanh toán/check-in thành công giả. Khoản cọc 20% chỉ là ước tính:
+Frontend hiện sử dụng API thật cho đăng ký, đăng nhập, xác thực phiên (`/auth`) và đọc danh sách món (`GET /dishes?limit=100`). Dữ liệu món hỗ trợ các trường `categoryId`, `code`, `name`, `type`, `description`, `servingUnit`, `price`, `discount`, `stock`, `image`, `status` và `isFeatured`.
+
+### Luồng đang chờ backend xác nhận contract
+
+Các luồng tạo/tra cứu lịch sử đặt bàn, tìm đặt bàn theo mã hoặc số điện thoại, cọc theo phần trăm, đặt món trước và nhân viên check-in vẫn được giới hạn theo khả năng backend. Danh sách endpoint mới chỉ xác định URL; backend chưa cung cấp/chạy ổn định DTO mutation, quy tắc chủ sở hữu và phân quyền, cách gắn bàn/món/cọc, cùng response thành công mẫu để frontend gửi dữ liệu mà không đoán sai.
+
+Vì vậy frontend chỉ lưu bản nháp đặt bàn trong `sessionStorage`, không tạo mã đặt bàn, không báo thanh toán/check-in thành công giả. Khoản cọc 20% hiện chỉ là ước tính giao diện:
 
     Mức tối thiểu = số khách × 100.000đ
     Cơ sở tính cọc = max(tổng món đặt trước, mức tối thiểu)

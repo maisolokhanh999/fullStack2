@@ -609,9 +609,22 @@
   font-size: 14px;
 }
 
+.dish-card__price {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .dish-card__footer del {
   color: #9ba39f;
   font-size: 10px;
+}
+
+.dish-card__inventory {
+  color: #7a8881;
+  font-size: 9px;
+  font-weight: 700;
+  text-align: right;
 }
 
 .menu-state {

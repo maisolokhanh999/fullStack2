@@ -9,8 +9,11 @@ import { reservationApiNotice } from '../services/reservationService.js'
 import {
   calculateBookingEstimate,
   formatCurrency,
+  getDishCategoryLabel,
   getDishId,
   getDishPrice,
+  getDishQuantityLimit,
+  getDishServingUnit,
   getTodayString,
   isDishAvailable,
 } from '../utils/booking.js'
@@ -121,7 +124,10 @@ function BookingPage() {
     draft.items.find((item) => item.dishId === getDishId(dish))?.quantity || 0
 
   const changeQuantity = (dish, delta) => {
-    const nextQuantity = Math.max(0, Math.min(20, quantityFor(dish) + delta))
+    const nextQuantity = Math.max(
+      0,
+      Math.min(getDishQuantityLimit(dish), quantityFor(dish) + delta),
+    )
     setItemQuantity(dish, nextQuantity)
   }
 
@@ -251,12 +257,19 @@ function BookingPage() {
                 {dishes.map((dish) => {
                   const available = isDishAvailable(dish)
                   const quantity = quantityFor(dish)
+                  const categoryLabel = getDishCategoryLabel(dish)
+                  const servingUnit = getDishServingUnit(dish)
+                  const quantityLimit = getDishQuantityLimit(dish)
 
                   return (
                     <article className={'booking-dish' + (!available ? ' is-unavailable' : '')} key={getDishId(dish)}>
                       <DishVisual dish={dish} compact />
                       <div className="booking-dish__copy">
-                        <span>{dish.categoryId?.name || 'Thực đơn'}</span>
+                        <span>
+                          {dish.isFeatured && '★ Nổi bật · '}
+                          {categoryLabel}
+                          {servingUnit && ` · ${servingUnit}`}
+                        </span>
                         <h3>{dish.name}</h3>
                         <strong>{formatCurrency(getDishPrice(dish))}</strong>
                       </div>
@@ -274,6 +287,7 @@ function BookingPage() {
                           <button
                             type="button"
                             onClick={() => changeQuantity(dish, 1)}
+                            disabled={quantity >= quantityLimit}
                             aria-label={'Thêm ' + dish.name}
                           >
                             +

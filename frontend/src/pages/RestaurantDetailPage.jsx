@@ -6,8 +6,11 @@ import { DEFAULT_RESTAURANT, isDefaultRestaurant } from '../config/restaurant.js
 import { useDishes } from '../hooks/useDishes.js'
 import {
   formatCurrency,
+  getDishCategoryLabel,
   getDishId,
   getDishPrice,
+  getDishServingUnit,
+  getDishStock,
   isDishAvailable,
 } from '../utils/booking.js'
 
@@ -70,14 +73,16 @@ function RestaurantDetailPage() {
             {dishes.map((dish) => {
               const available = isDishAvailable(dish)
               const price = getDishPrice(dish)
-              const categoryName = dish.categoryId?.name || 'Món của nhà hàng'
+              const categoryName = getDishCategoryLabel(dish)
+              const servingUnit = getDishServingUnit(dish)
+              const stock = getDishStock(dish)
 
               return (
                 <article className={'dish-card' + (!available ? ' dish-card--unavailable' : '')} key={getDishId(dish)}>
                   <DishVisual dish={dish} />
                   <div className="dish-card__body">
                     <div className="dish-card__topline">
-                      <span>{categoryName}</span>
+                      <span>{dish.isFeatured ? `★ Nổi bật · ${categoryName}` : categoryName}</span>
                       <span className={'dish-status dish-status--' + (available ? 'available' : 'unavailable')}>
                         {available ? 'Có thể đặt trước' : 'Tạm hết'}
                       </span>
@@ -85,9 +90,18 @@ function RestaurantDetailPage() {
                     <h3>{dish.name}</h3>
                     <p>{dish.description || 'Mô tả món ăn đang được cập nhật.'}</p>
                     <div className="dish-card__footer">
-                      <strong>{formatCurrency(price)}</strong>
-                      {Number(dish.discount) > 0 && Number(dish.price) !== price && (
-                        <del>{formatCurrency(dish.price)}</del>
+                      <div className="dish-card__price">
+                        <strong>{formatCurrency(price)}</strong>
+                        {Number(dish.discount) > 0 && Number(dish.price) !== price && (
+                          <del>{formatCurrency(dish.price)}</del>
+                        )}
+                      </div>
+                      {(servingUnit || stock !== null) && (
+                        <span className="dish-card__inventory">
+                          {servingUnit && `Theo ${servingUnit.toLowerCase()}`}
+                          {servingUnit && stock !== null && ' · '}
+                          {stock !== null && `Còn ${stock}`}
+                        </span>
                       )}
                     </div>
                   </div>

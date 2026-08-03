@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useReducer } from 'react'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { getDishId, getDishPrice, isDishAvailable } from '../utils/booking.js'
+import {
+  getDishId,
+  getDishPrice,
+  getDishQuantityLimit,
+  isDishAvailable,
+} from '../utils/booking.js'
 import { BookingDraftContext } from './bookingDraftStore.js'
 
 const STORAGE_PREFIX = 'ban-viet-booking-draft:'
@@ -109,12 +114,14 @@ const draftChangedByDishes = (items, dishes) => {
       ...item,
       name: normalizeText(dish.name, 160).trim() || item.name,
       price: getDishPrice(dish),
+      quantity: Math.min(item.quantity, getDishQuantityLimit(dish)),
       status: normalizeText(dish.status, 40),
     }
 
     if (
       nextItem.name !== item.name ||
       nextItem.price !== item.price ||
+      nextItem.quantity !== item.quantity ||
       nextItem.status !== item.status
     ) {
       changed = true
@@ -145,13 +152,17 @@ function bookingDraftReducer(state, action) {
       if (!dishId) return state
 
       const nextItems = state.draft.items.filter((item) => item.dishId !== dishId)
+      const nextQuantity = Math.min(
+        getDishQuantityLimit(dish),
+        Math.max(1, Math.round(Number(quantity) || 1)),
+      )
 
-      if (quantity > 0) {
+      if (quantity > 0 && nextQuantity > 0) {
         nextItems.push({
           dishId,
           name: normalizeText(dish.name, 160).trim() || 'Món ăn',
           price: getDishPrice(dish),
-          quantity: Math.min(20, Math.max(1, Math.round(Number(quantity) || 1))),
+          quantity: nextQuantity,
           status: normalizeText(dish.status, 40),
         })
       }

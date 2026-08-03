@@ -657,14 +657,30 @@
   }
 
   .booking-dish {
-    grid-template-columns: 62px minmax(0, 1fr) auto;
+    grid-template-columns: 62px minmax(0, 1fr);
     gap: 10px;
   }
 
   .dish-visual--compact {
+    grid-row: 1 / span 2;
     width: 62px;
     height: 62px;
     min-height: 62px;
+  }
+
+  .booking-dish .quantity-control {
+    width: 100%;
+    grid-column: 2;
+    grid-template-columns: minmax(44px, 1fr) 28px minmax(44px, 1fr);
+  }
+
+  .booking-dish .quantity-control button {
+    width: 100%;
+    height: 38px;
+  }
+
+  .booking-dish .unavailable-label {
+    grid-column: 2;
   }
 
   .deposit-estimate__heading {
