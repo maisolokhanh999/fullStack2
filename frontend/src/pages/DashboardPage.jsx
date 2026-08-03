@@ -1,12 +1,7 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
-import { getMe } from '../services/authService.js'
-import {
-  clearStoredSession,
-  getStoredToken,
-  updateStoredUser,
-} from '../utils/authStorage.js'
+import { useAuth } from '../hooks/useAuth.js'
+import { getLandingPath, isStaffRole } from '../utils/roleNavigation.js'
 
 const roleLabels = {
   admin: 'Quản lý',
@@ -22,49 +17,17 @@ const statusLabels = {
 
 function DashboardPage() {
   const navigate = useNavigate()
-  const [user, setUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [retryCount, setRetryCount] = useState(0)
-
-  useEffect(() => {
-    const controller = new AbortController()
-    const token = getStoredToken()
-
-    const verifySession = async () => {
-      try {
-        setError('')
-        const data = await getMe(token, controller.signal)
-        setUser(data.user)
-        updateStoredUser(data.user)
-      } catch (requestError) {
-        if (requestError.name === 'AbortError') return
-
-        if (requestError.status === 401 || requestError.status === 403) {
-          clearStoredSession()
-          navigate('/login', { replace: true, state: { sessionExpired: true } })
-          return
-        }
-
-        setUser(null)
-        setError(requestError.message)
-      } finally {
-        if (!controller.signal.aborted) setIsLoading(false)
-      }
-    }
-
-    verifySession()
-    return () => controller.abort()
-  }, [navigate, retryCount])
+  const {
+    user,
+    isLoading,
+    verificationError: error,
+    retryVerification,
+    endSession,
+  } = useAuth()
 
   const logout = () => {
-    clearStoredSession()
+    endSession()
     navigate('/login', { replace: true })
-  }
-
-  const retryVerification = () => {
-    setIsLoading(true)
-    setRetryCount((current) => current + 1)
   }
 
   const accountStatus = user?.status || 'Active'
@@ -114,6 +77,10 @@ function DashboardPage() {
               </dd>
             </div>
           </dl>
+          <Link className="primary-button link-button" to={getLandingPath(user)}>
+            {isStaffRole(user?.role) ? 'Mở màn hình check-in' : 'Khám phá nhà hàng'}
+            <span className="button-arrow" aria-hidden="true">↗</span>
+          </Link>
           <button className="secondary-button" type="button" onClick={logout}>
             Đăng xuất
           </button>

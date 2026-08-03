@@ -2,14 +2,16 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
 import { FieldIcon, GoogleMark } from '../components/AuthIcons.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 import { login } from '../services/authService.js'
-import { getStoredToken, saveSession } from '../utils/authStorage.js'
+import { getPostAuthPath } from '../utils/roleNavigation.js'
 
 const initialForm = { email: '', password: '' }
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user, isLoading: isSessionLoading, startSession } = useAuth()
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
@@ -21,8 +23,10 @@ function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true)
 
   useEffect(() => {
-    if (getStoredToken()) navigate('/dashboard', { replace: true })
-  }, [navigate])
+    if (user) {
+      navigate(getPostAuthPath(location.state?.from, user), { replace: true })
+    }
+  }, [location.state?.from, navigate, user])
 
   const updateField = (event) => {
     const { name, value } = event.target
@@ -57,9 +61,8 @@ function LoginPage() {
 
     try {
       const data = await login(form)
-      saveSession({ token: data.token, user: data.user, remember: rememberMe })
-      const nextPath = location.state?.from?.pathname || '/dashboard'
-      navigate(nextPath, { replace: true })
+      startSession({ token: data.token, user: data.user, remember: rememberMe })
+      navigate(getPostAuthPath(location.state?.from, data.user), { replace: true })
     } catch (error) {
       setSubmitError(error.message)
     } finally {
@@ -175,7 +178,7 @@ function LoginPage() {
           </div>
         )}
 
-        <button className="primary-button" type="submit" disabled={isLoading}>
+        <button className="primary-button" type="submit" disabled={isLoading || isSessionLoading}>
           {isLoading && <span className="spinner spinner--light" aria-hidden="true" />}
           <span>{isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
           {!isLoading && <span className="button-arrow" aria-hidden="true">↗</span>}
@@ -183,7 +186,10 @@ function LoginPage() {
       </form>
 
       <p className="register-note">
-        Chưa có tài khoản? <Link to="/register">Tạo tài khoản</Link>
+        Chưa có tài khoản?{' '}
+        <Link to="/register" state={{ from: location.state?.from }}>
+          Tạo tài khoản
+        </Link>
       </p>
     </AuthLayout>
   )

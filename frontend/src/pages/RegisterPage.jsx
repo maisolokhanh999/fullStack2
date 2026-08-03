@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
 import { FieldIcon } from '../components/AuthIcons.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 import { register } from '../services/authService.js'
-import { getStoredToken, saveSession } from '../utils/authStorage.js'
+import { getPostAuthPath } from '../utils/roleNavigation.js'
 
 const initialForm = {
   name: '',
@@ -16,6 +17,8 @@ const initialForm = {
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { user, isLoading: isSessionLoading, startSession } = useAuth()
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
@@ -23,8 +26,10 @@ function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
-    if (getStoredToken()) navigate('/dashboard', { replace: true })
-  }, [navigate])
+    if (user) {
+      navigate(getPostAuthPath(location.state?.from, user), { replace: true })
+    }
+  }, [location.state?.from, navigate, user])
 
   const updateField = (event) => {
     const { name } = event.target
@@ -73,8 +78,8 @@ function RegisterPage() {
 
     try {
       const data = await register(form)
-      saveSession({ token: data.token, user: data.user, remember: true })
-      navigate('/dashboard', { replace: true })
+      startSession({ token: data.token, user: data.user, remember: true })
+      navigate(getPostAuthPath(location.state?.from, data.user), { replace: true })
     } catch (error) {
       setSubmitError(error.message)
     } finally {
@@ -188,7 +193,7 @@ function RegisterPage() {
           </div>
         )}
 
-        <button className="primary-button" type="submit" disabled={isLoading}>
+        <button className="primary-button" type="submit" disabled={isLoading || isSessionLoading}>
           {isLoading && <span className="spinner spinner--light" aria-hidden="true" />}
           <span>{isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}</span>
           {!isLoading && <span className="button-arrow" aria-hidden="true">↗</span>}
@@ -196,7 +201,10 @@ function RegisterPage() {
       </form>
 
       <p className="register-note">
-        Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
+        Đã có tài khoản?{' '}
+        <Link to="/login" state={{ from: location.state?.from }}>
+          Đăng nhập
+        </Link>
       </p>
     </AuthLayout>
   )
