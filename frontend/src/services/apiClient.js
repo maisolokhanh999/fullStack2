@@ -13,7 +13,7 @@ const readJson = async (response) => {
 }
 
 const looksLikeBrokenEncoding = (message) =>
-  typeof message === 'string' && /Ã|Ä|Æ|áº|á»|Â/.test(message)
+  typeof message === 'string' && /Ã|Ä|Æ|áº|á»|Â|\uFFFD/.test(message)
 
 export async function apiRequest(
   path,

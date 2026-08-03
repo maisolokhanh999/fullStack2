@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import DishGridState from '../components/customer/DishGridState.jsx'
 import DishVisual from '../components/customer/DishVisual.jsx'
+import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT, isDefaultRestaurant } from '../config/restaurant.js'
 import { useBookingDraft } from '../context/bookingDraftStore.js'
 import { useDishes } from '../hooks/useDishes.js'
@@ -21,7 +22,7 @@ import {
 const steps = [
   { number: 1, label: 'Thông tin bàn' },
   { number: 2, label: 'Chọn món' },
-  { number: 3, label: 'Xem lại & cọc' },
+  { number: 3, label: 'Xem lại và đặt cọc' },
 ]
 
 const OPENING_TIME = '10:00'
@@ -136,12 +137,13 @@ function BookingPage() {
       <div className="booking-heading">
         <div>
           <Link className="back-link" to={'/restaurants/' + DEFAULT_RESTAURANT.id}>
-            ← Quay lại thực đơn
+            <UiIcon name="arrow-left" />
+            Quay lại thực đơn
           </Link>
           <span className="customer-kicker">Đặt bàn tại {DEFAULT_RESTAURANT.name}</span>
           <h1>Chuẩn bị trước, thảnh thơi khi đến.</h1>
         </div>
-        <p>Bản nháp được lưu trong phiên trình duyệt này cho đến khi bạn xóa.</p>
+        <p>Bản nháp được lưu trên trình duyệt này cho đến khi bạn xóa.</p>
       </div>
 
       <ol className="booking-steps" aria-label="Các bước đặt bàn">
@@ -155,7 +157,7 @@ function BookingPage() {
               (step > item.number ? 'is-complete' : '')
             }
           >
-            <span>{step > item.number ? '✓' : item.number}</span>
+            <span>{step > item.number ? <UiIcon name="check" /> : item.number}</span>
             <strong>{item.label}</strong>
           </li>
         ))}
@@ -226,7 +228,7 @@ function BookingPage() {
               <Link className="customer-secondary-link" to="/restaurants">Hủy</Link>
               <button className="customer-primary-button" type="submit">
                 Tiếp tục chọn món
-                <span aria-hidden="true">→</span>
+                <UiIcon name="arrow-right" />
               </button>
             </div>
           </form>
@@ -238,7 +240,7 @@ function BookingPage() {
               <div>
                 <span className="customer-kicker">Bước 2 · Tùy chọn</span>
                 <h2>Bạn muốn đặt trước món nào?</h2>
-                <p>Không bắt buộc chọn món. Món chỉ được chuyển bếp sau khi nhân viên check-in.</p>
+                <p>Không bắt buộc chọn món. Món chỉ được chuyển xuống bếp sau khi nhân viên xác nhận bạn đã đến.</p>
               </div>
               <button className="skip-button" type="button" onClick={() => setStep(3)}>
                 Bỏ qua chọn món
@@ -266,7 +268,8 @@ function BookingPage() {
                       <DishVisual dish={dish} compact />
                       <div className="booking-dish__copy">
                         <span>
-                          {dish.isFeatured && '★ Nổi bật · '}
+                          {dish.isFeatured && <UiIcon name="star" />}
+                          {dish.isFeatured && <span>Nổi bật ·</span>}
                           {categoryLabel}
                           {servingUnit && ` · ${servingUnit}`}
                         </span>
@@ -303,7 +306,7 @@ function BookingPage() {
             )}
 
             <div className="booking-menu-summary">
-              <span>{draft.items.reduce((total, item) => total + item.quantity, 0)} món đã chọn</span>
+              <span>Tổng số lượng: {draft.items.reduce((total, item) => total + item.quantity, 0)}</span>
               <strong>{formatCurrency(estimate.dishTotal)}</strong>
             </div>
 
@@ -313,7 +316,7 @@ function BookingPage() {
               </button>
               <button className="customer-primary-button" type="button" onClick={() => setStep(3)}>
                 Xem lại đặt bàn
-                <span aria-hidden="true">→</span>
+                <UiIcon name="arrow-right" />
               </button>
             </div>
           </div>
@@ -324,12 +327,12 @@ function BookingPage() {
             <header>
               <span className="customer-kicker">Bước 3</span>
               <h2>Xem lại bản nháp đặt bàn</h2>
-              <p>Thông tin dưới đây chưa phải một đơn đặt bàn đã xác nhận.</p>
+              <p>Thông tin dưới đây chưa phải là yêu cầu đặt bàn đã được xác nhận.</p>
             </header>
 
             <div className="review-grid">
               <div className="review-card">
-                <span>Thời gian & bàn</span>
+                <span>Thông tin đặt bàn</span>
                 <dl>
                   <div><dt>Nhà hàng</dt><dd>{DEFAULT_RESTAURANT.name}</dd></div>
                   <div><dt>Ngày đến</dt><dd>{draft.visitDate || 'Chưa chọn'}</dd></div>
@@ -367,18 +370,18 @@ function BookingPage() {
               <dl>
                 <div><dt>Tiền món đã chọn</dt><dd>{formatCurrency(estimate.dishTotal)}</dd></div>
                 <div><dt>Mức tối thiểu ({draft.guests} × 100.000đ)</dt><dd>{formatCurrency(estimate.guestMinimum)}</dd></div>
-                <div><dt>Cơ sở tính cọc (mức cao hơn)</dt><dd>{formatCurrency(estimate.depositBase)}</dd></div>
+                <div><dt>Số tiền dùng để tính cọc</dt><dd>{formatCurrency(estimate.depositBase)}</dd></div>
               </dl>
               <p>
-                Đây chỉ là số tiền ước tính trên frontend. Tỷ lệ, bàn còn trống và số tiền
-                cọc chính thức phải được backend kiểm tra trước khi thanh toán.
+                Đây chỉ là số tiền tạm tính. Nhà hàng sẽ kiểm tra tình trạng bàn và xác nhận
+                số tiền cọc trước khi thanh toán.
               </p>
             </div>
 
             <div className="api-pending-notice" role="status">
-              <span aria-hidden="true">!</span>
+              <span><UiIcon name="info" /></span>
               <div>
-                <strong>Chưa thể gửi đặt bàn hoặc thu tiền cọc</strong>
+                <strong>Chưa thể gửi yêu cầu đặt bàn</strong>
                 <p>{reservationApiNotice} Bản nháp của bạn vẫn được lưu trên thiết bị này.</p>
               </div>
             </div>
@@ -389,7 +392,7 @@ function BookingPage() {
               </button>
               <Link className="customer-secondary-link" to="/bookings">Xem bản nháp</Link>
               <button className="customer-primary-button" type="button" disabled>
-                Đang chờ API đặt bàn & cọc
+                Chưa thể gửi đặt bàn
               </button>
             </div>
           </div>

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useBookingDraft } from '../context/bookingDraftStore.js'
 import { reservationApiNotice } from '../services/reservationService.js'
@@ -13,9 +14,9 @@ function BookingsPage() {
     <main className="customer-main bookings-page">
       <div className="page-title-row">
         <div>
-          <span className="customer-kicker">Không bỏ lỡ kế hoạch</span>
+          <span className="customer-kicker">Lịch hẹn của bạn</span>
           <h1>Đặt bàn của tôi</h1>
-          <p>Lịch sử xác nhận sẽ xuất hiện tại đây khi backend hoàn thiện API đặt bàn.</p>
+          <p>Các lượt đặt bàn đã được xác nhận sẽ xuất hiện tại đây khi hệ thống hoàn tất kết nối.</p>
         </div>
         <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
           Tạo đặt bàn mới
@@ -23,10 +24,10 @@ function BookingsPage() {
       </div>
 
       <div className="api-pending-notice" role="status">
-        <span aria-hidden="true">i</span>
+        <span><UiIcon name="info" /></span>
         <div>
           <strong>Chưa có dữ liệu đặt bàn từ máy chủ</strong>
-          <p>{reservationApiNotice} Trang này không tạo mã đặt bàn hoặc trạng thái giả.</p>
+          <p>{reservationApiNotice} Bản nháp chưa có mã đặt bàn và chưa được nhà hàng xác nhận.</p>
         </div>
       </div>
 
@@ -57,9 +58,9 @@ function BookingsPage() {
         </section>
       ) : (
         <section className="customer-empty-card">
-          <span>○</span>
+          <span><UiIcon name="circle" /></span>
           <h2>Bạn chưa có bản nháp nào</h2>
-          <p>Hãy chọn thời gian và số người. Chọn món trước là hoàn toàn tùy chọn.</p>
+          <p>Hãy chọn thời gian và số khách. Bạn không bắt buộc phải chọn món trước.</p>
           <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
             Bắt đầu đặt bàn
           </Link>

@@ -10,7 +10,6 @@
 }
 
 .booking-heading .back-link {
-  display: block;
   margin-bottom: 27px;
 }
 
@@ -23,7 +22,7 @@
   max-width: 265px;
   margin: 0 0 5px;
   color: #7b8882;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.6;
   text-align: right;
 }
@@ -57,12 +56,17 @@
   border-radius: 50%;
   color: #6e7d76;
   background: #edf0ed;
-  font-size: 10px;
-  font-weight: 850;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.booking-steps li > span .ui-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .booking-steps li strong {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .booking-steps li.is-active {
@@ -102,10 +106,11 @@
 .review-card h2 {
   margin: 0;
   color: #1d382e;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: clamp(27px, 4vw, 36px);
-  font-weight: 500;
-  letter-spacing: -0.8px;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
 }
 
 .booking-info-form header p,
@@ -113,7 +118,7 @@
 .booking-review > header p {
   margin: 8px 0 0;
   color: #78847e;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.6;
 }
 
@@ -132,16 +137,16 @@
 .booking-field > span,
 .staff-search-field > span {
   color: #455850;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .booking-field > span i {
   margin-left: 5px;
-  color: #94a099;
-  font-size: 9px;
+  color: #5f6d67;
+  font-size: 11px;
   font-style: normal;
-  font-weight: 650;
+  font-weight: 600;
 }
 
 .booking-field input,
@@ -178,7 +183,7 @@
 
 .booking-field small {
   color: #aa413a;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -186,8 +191,8 @@
   position: absolute;
   right: 10px;
   bottom: 7px;
-  color: #a0a9a5;
-  font-size: 8px;
+  color: #5f6d67;
+  font-size: 11px;
   font-style: normal;
 }
 
@@ -224,7 +229,7 @@
   border: 0;
   color: #3e725e;
   background: transparent;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   cursor: pointer;
   white-space: nowrap;
@@ -274,30 +279,38 @@
 }
 
 .booking-dish__copy > span {
-  display: block;
-  overflow: hidden;
-  color: #88938d;
-  font-size: 8px;
-  font-weight: 800;
-  text-overflow: ellipsis;
-  text-transform: uppercase;
-  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #5f6d67;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: normal;
+}
+
+.booking-dish__copy > span .ui-icon {
+  width: 11px;
+  height: 11px;
+  color: #b68035;
 }
 
 .booking-dish__copy h3 {
+  display: -webkit-box;
   overflow: hidden;
   margin: 5px 0 7px;
   color: #263a31;
-  font-family: Georgia, serif;
-  font-size: 16px;
-  font-weight: 600;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .booking-dish__copy strong {
   color: #2c6d54;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .quantity-control {
@@ -333,7 +346,7 @@
 
 .unavailable-label {
   color: #906555;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 800;
 }
 
@@ -344,7 +357,7 @@
   gap: 10px;
   margin-top: 17px;
   color: #76827c;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .booking-menu-summary strong {
@@ -369,8 +382,8 @@
   display: block;
   margin-bottom: 14px;
   color: #3c7a63;
-  font-size: 9px;
-  font-weight: 850;
+  font-size: 11px;
+  font-weight: 800;
   letter-spacing: 0.8px;
   text-transform: uppercase;
 }
@@ -392,15 +405,15 @@
 .review-card dt,
 .deposit-estimate dt {
   color: #849089;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .review-card dd,
 .deposit-estimate dd {
   margin: 0;
   color: #2c4037;
-  font-size: 10px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 700;
   text-align: right;
 }
 
@@ -417,7 +430,7 @@
   justify-content: space-between;
   gap: 14px;
   color: #586960;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .review-items strong {
@@ -428,7 +441,7 @@
 .review-empty {
   margin: 0;
   color: #7d8983;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
 }
 
@@ -455,14 +468,15 @@
 
 .deposit-estimate__heading > div > span {
   color: #5e746a;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 700;
 }
 
 .deposit-estimate__heading strong {
   color: #1d523e;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 28px;
+  font-weight: 700;
 }
 
 .deposit-estimate dl {
@@ -476,7 +490,7 @@
 .deposit-estimate > p {
   margin: 15px 0 0;
   color: #667a70;
-  font-size: 9.5px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -500,19 +514,23 @@
   border-radius: 50%;
   color: #fff;
   background: #ad7d38;
-  font-size: 10px;
-  font-weight: 900;
+  font-weight: 800;
+}
+
+.api-pending-notice > span .ui-icon {
+  width: 14px;
+  height: 14px;
 }
 
 .api-pending-notice strong {
   display: block;
   margin-bottom: 3px;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .api-pending-notice p {
   margin: 0;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.55;
 }
 
@@ -546,8 +564,8 @@
 
 .draft-booking-card__header > div > span {
   color: #4f806d;
-  font-size: 9px;
-  font-weight: 850;
+  font-size: 11px;
+  font-weight: 800;
   letter-spacing: 0.8px;
   text-transform: uppercase;
 }
@@ -555,9 +573,10 @@
 .draft-booking-card h2 {
   margin: 5px 0 0;
   color: #1d382e;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 29px;
-  font-weight: 500;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .draft-pill {
@@ -581,8 +600,8 @@
 
 .draft-booking-card dt {
   margin-bottom: 6px;
-  color: #909994;
-  font-size: 8px;
+  color: #5f6d67;
+  font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
 }
@@ -590,8 +609,8 @@
 .draft-booking-card dd {
   margin: 0;
   color: #2c4037;
-  font-size: 11px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .danger-text-button {

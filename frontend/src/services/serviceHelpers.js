@@ -31,7 +31,7 @@ export const withQuery = (path, query = {}) => {
 const throwForExplicitFailure = (response) => {
   if (response?.success !== false) return
 
-  const error = new Error(response.message || 'Backend reported an unsuccessful response')
+  const error = new Error(response.message || 'Yêu cầu chưa được xử lý. Vui lòng thử lại.')
   error.data = response
   throw error
 }

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
+import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { getLandingPath, isStaffRole } from '../utils/roleNavigation.js'
 
@@ -57,7 +58,7 @@ function DashboardPage() {
         </div>
       ) : (
         <div className="welcome-card">
-          <span className="success-icon" aria-hidden="true">✓</span>
+          <span className="success-icon"><UiIcon name="check" /></span>
           <span className="section-label">Đã xác thực</span>
           <h1>Xin chào, {user?.name || 'bạn'}</h1>
           <p>
@@ -79,7 +80,7 @@ function DashboardPage() {
           </dl>
           <Link className="primary-button link-button" to={getLandingPath(user)}>
             {isStaffRole(user?.role) ? 'Mở màn hình check-in' : 'Khám phá nhà hàng'}
-            <span className="button-arrow" aria-hidden="true">↗</span>
+            <UiIcon name="arrow-up-right" className="button-arrow" />
           </Link>
           <button className="secondary-button" type="button" onClick={logout}>
             Đăng xuất

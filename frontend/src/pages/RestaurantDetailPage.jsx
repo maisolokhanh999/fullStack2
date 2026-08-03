@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import DataSourceNotice from '../components/customer/DataSourceNotice.jsx'
 import DishGridState from '../components/customer/DishGridState.jsx'
 import DishVisual from '../components/customer/DishVisual.jsx'
+import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT, isDefaultRestaurant } from '../config/restaurant.js'
 import { useDishes } from '../hooks/useDishes.js'
 import {
@@ -35,18 +36,21 @@ function RestaurantDetailPage() {
     <main className="customer-main">
       <section className="restaurant-detail-hero">
         <div>
-          <Link className="back-link" to="/restaurants">← Tất cả nhà hàng</Link>
+          <Link className="back-link" to="/restaurants">
+            <UiIcon name="arrow-left" />
+            Tất cả nhà hàng
+          </Link>
           <span className="customer-kicker">{DEFAULT_RESTAURANT.eyebrow}</span>
           <h1>{DEFAULT_RESTAURANT.name}</h1>
           <p>{DEFAULT_RESTAURANT.description}</p>
           <div className="restaurant-detail-hero__facts">
-            <span>◷ {DEFAULT_RESTAURANT.hours}</span>
-            <span>⌖ {DEFAULT_RESTAURANT.address}</span>
+            <span><UiIcon name="clock" /> Giờ phục vụ: {DEFAULT_RESTAURANT.hours}</span>
+            <span><UiIcon name="location" /> Địa chỉ: {DEFAULT_RESTAURANT.address}</span>
           </div>
         </div>
         <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
-          Chọn thời gian & số khách
-          <span aria-hidden="true">→</span>
+          Chọn thời gian và số khách
+          <UiIcon name="arrow-right" />
         </Link>
       </section>
 
@@ -82,7 +86,11 @@ function RestaurantDetailPage() {
                   <DishVisual dish={dish} />
                   <div className="dish-card__body">
                     <div className="dish-card__topline">
-                      <span>{dish.isFeatured ? `★ Nổi bật · ${categoryName}` : categoryName}</span>
+                      <span className="dish-card__category">
+                        {dish.isFeatured && <UiIcon name="star" />}
+                        {dish.isFeatured && <span>Nổi bật ·</span>}
+                        {categoryName}
+                      </span>
                       <span className={'dish-status dish-status--' + (available ? 'available' : 'unavailable')}>
                         {available ? 'Có thể đặt trước' : 'Tạm hết'}
                       </span>
@@ -98,9 +106,9 @@ function RestaurantDetailPage() {
                       </div>
                       {(servingUnit || stock !== null) && (
                         <span className="dish-card__inventory">
-                          {servingUnit && `Theo ${servingUnit.toLowerCase()}`}
+                          {servingUnit && `Đơn vị: ${servingUnit}`}
                           {servingUnit && stock !== null && ' · '}
-                          {stock !== null && `Còn ${stock}`}
+                          {stock !== null && `Còn ${stock}${servingUnit ? ` ${servingUnit.toLowerCase()}` : ''}`}
                         </span>
                       )}
                     </div>
@@ -115,7 +123,7 @@ function RestaurantDetailPage() {
       <div className="sticky-booking-bar">
         <div>
           <strong>Sẵn sàng cho một bữa ăn thư thả?</strong>
-          <span>Chọn món là tùy chọn · Cọc dự kiến 20%</span>
+          <span>Không bắt buộc chọn món · Mức cọc dự kiến 20%</span>
         </div>
         <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
           Bắt đầu đặt bàn

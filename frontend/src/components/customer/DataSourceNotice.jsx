@@ -1,10 +1,12 @@
+import UiIcon from '../UiIcon.jsx'
+
 function DataSourceNotice() {
   return (
     <div className="data-source-notice" role="status">
-      <span aria-hidden="true">i</span>
+      <span><UiIcon name="info" /></span>
       <p>
-        Hiện hệ thống dùng hồ sơ mặc định của <strong>Bàn Việt</strong> trong khi chờ API
-        thông tin nhà hàng. Thực đơn bên dưới được tải trực tiếp từ backend.
+        Thông tin chi nhánh đang được cập nhật. Thực đơn bên dưới được đồng bộ trực tiếp
+        từ hệ thống nhà hàng.
       </p>
     </div>
   )

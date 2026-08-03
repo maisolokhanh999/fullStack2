@@ -24,23 +24,28 @@
 .staff-portal-label {
   flex: 1;
   color: #73827a;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.6px;
   text-transform: uppercase;
 }
 
 .staff-header nav {
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
 .staff-header nav a {
+  max-width: clamp(90px, 18vw, 180px);
+  overflow: hidden;
   color: #344b41;
-  font-size: 11px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 700;
   text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .staff-header nav button {
@@ -49,8 +54,8 @@
   border-radius: 9px;
   color: #496057;
   background: #fff;
-  font-size: 10px;
-  font-weight: 750;
+  font-size: 12px;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -68,18 +73,20 @@
 .staff-hero h1 {
   margin: 0;
   color: #173229;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: clamp(38px, 5vw, 57px);
-  font-weight: 500;
-  letter-spacing: -1.8px;
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.02em;
 }
 
 .staff-hero > div:first-child > p {
   max-width: 660px;
   margin: 14px 0 0;
   color: #6b7a72;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.7;
+  overflow-wrap: anywhere;
 }
 
 .staff-status {
@@ -104,14 +111,14 @@
 
 .staff-status span {
   color: #29463a;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
 }
 
 .staff-status small {
   grid-column: 2;
-  color: #8a9690;
-  font-size: 9px;
+  color: #5f6d67;
+  font-size: 11px;
 }
 
 .checkin-workspace {
@@ -134,16 +141,18 @@
 .checkin-guide h2 {
   margin: 0;
   color: #1d382e;
-  font-family: Georgia, serif;
+  font-family: var(--font-display);
   font-size: 29px;
-  font-weight: 500;
+  font-weight: 700;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
 }
 
 .checkin-search-card header p {
   margin: 8px 0 27px;
   color: #78857e;
-  font-size: 11px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .staff-search-field {
@@ -175,7 +184,7 @@
   outline: 0;
   color: #253a31;
   background: transparent;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .checkin-search-card .customer-primary-button {
@@ -189,8 +198,9 @@
   border-radius: 10px;
   color: #715f43;
   background: #faf3e6;
-  font-size: 10px;
-  line-height: 1.5;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .checkin-guide ol {
@@ -216,15 +226,17 @@
   border-radius: 8px;
   color: #fff;
   background: #2f6c55;
-  font-size: 9px;
-  font-weight: 850;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .checkin-guide li p {
+  min-width: 0;
   margin: 3px 0 0;
   color: #68766f;
-  font-size: 10px;
-  line-height: 1.45;
+  font-size: 12px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .checkin-guide li strong {
@@ -236,8 +248,9 @@
   border-left: 3px solid #bf8944;
   color: #725e40;
   background: #faf4e9;
-  font-size: 9.5px;
-  line-height: 1.55;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 760px) {

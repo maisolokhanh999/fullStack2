@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
+import UiIcon from '../components/UiIcon.jsx'
 
 function NotFoundPage() {
   return (
@@ -10,7 +11,7 @@ function NotFoundPage() {
         <p>Địa chỉ bạn vừa mở không tồn tại hoặc đã được chuyển sang nơi khác.</p>
         <Link className="primary-button link-button" to="/">
           Quay về trang chính
-          <span className="button-arrow" aria-hidden="true">↗</span>
+          <UiIcon name="arrow-up-right" className="button-arrow" />
         </Link>
       </div>
     </AuthLayout>

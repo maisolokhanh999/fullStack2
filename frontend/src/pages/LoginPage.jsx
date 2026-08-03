@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
 import { FieldIcon, GoogleMark } from '../components/AuthIcons.jsx'
+import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { login } from '../services/authService.js'
 import { getPostAuthPath } from '../utils/roleNavigation.js'
@@ -72,8 +73,8 @@ function LoginPage() {
 
   const showIntegrationNotice = (feature) => {
     const messages = {
-      google: 'Đăng nhập Google cần được cấu hình OAuth ở backend. Hiện tại bạn hãy dùng email và mật khẩu.',
-      password: 'Khôi phục mật khẩu chưa được backend hỗ trợ. Vui lòng liên hệ quản trị viên.',
+      google: 'Đăng nhập bằng Google đang được hoàn thiện. Hiện tại, vui lòng sử dụng email và mật khẩu.',
+      password: 'Tính năng khôi phục mật khẩu đang được hoàn thiện. Vui lòng liên hệ quản trị viên để được hỗ trợ.',
     }
 
     setErrors({})
@@ -100,9 +101,11 @@ function LoginPage() {
 
       {notice && (
         <div className="form-notice" role="status">
-          <span className="form-notice__icon" aria-hidden="true">i</span>
+          <span className="form-notice__icon"><UiIcon name="info" /></span>
           <p>{notice}</p>
-          <button type="button" onClick={() => setNotice('')} aria-label="Đóng thông báo">×</button>
+          <button type="button" onClick={() => setNotice('')} aria-label="Đóng thông báo">
+            <UiIcon name="close" />
+          </button>
         </div>
       )}
 
@@ -181,7 +184,7 @@ function LoginPage() {
         <button className="primary-button" type="submit" disabled={isLoading || isSessionLoading}>
           {isLoading && <span className="spinner spinner--light" aria-hidden="true" />}
           <span>{isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
-          {!isLoading && <span className="button-arrow" aria-hidden="true">↗</span>}
+          {!isLoading && <UiIcon name="arrow-up-right" className="button-arrow" />}
         </button>
       </form>
 

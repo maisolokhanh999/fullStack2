@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
 import { FieldIcon } from '../components/AuthIcons.jsx'
+import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { register } from '../services/authService.js'
 import { getPostAuthPath } from '../utils/roleNavigation.js'
@@ -99,12 +100,12 @@ function RegisterPage() {
       <header className="form-heading form-heading--register">
         <span className="section-label">Bắt đầu với Bàn Việt</span>
         <h1>Tạo tài khoản</h1>
-        <p>Đăng ký để xem nhà hàng, đặt bàn và gọi món thuận tiện hơn.</p>
+        <p>Đăng ký để đặt bàn, chọn món trước và theo dõi lịch hẹn thuận tiện hơn.</p>
       </header>
 
       <div className="role-note">
-        <span aria-hidden="true">i</span>
-        <p>Tài khoản quản lý và nhân viên sẽ được hệ thống cấp quyền riêng.</p>
+        <span><UiIcon name="info" /></span>
+        <p>Tài khoản nhân viên và quản lý sẽ do quản trị viên cấp và phân quyền.</p>
       </div>
 
       <form className="auth-form register-form" onSubmit={handleSubmit} noValidate>
@@ -196,7 +197,7 @@ function RegisterPage() {
         <button className="primary-button" type="submit" disabled={isLoading || isSessionLoading}>
           {isLoading && <span className="spinner spinner--light" aria-hidden="true" />}
           <span>{isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}</span>
-          {!isLoading && <span className="button-arrow" aria-hidden="true">↗</span>}
+          {!isLoading && <UiIcon name="arrow-up-right" className="button-arrow" />}
         </button>
       </form>
 
