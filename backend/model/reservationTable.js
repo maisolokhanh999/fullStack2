@@ -13,16 +13,17 @@ const reservationTableSchema = new mongoose.Schema(
       ref: "Table",
       required: [true, "Table is required"],
     },
+
+    status: {
+      type: String,
+      enum: ["Active", "Inactive", "Blocked"],
+      default: "Active",
+    },
   },
   {
     timestamps: {
       createdAt: true,
       updatedAt: false,
-    },
-     status: {
-      type: String,
-      enum: ["Active", "Inactive", "Blocked"],
-      default: "Active",
     },
   }
 );
