@@ -1,13 +1,38 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
 import DashboardPage from '../pages/DashboardPage.jsx'
+import BookingPage from '../pages/BookingPage.jsx'
+import BookingsPage from '../pages/BookingsPage.jsx'
 import LoginPage from '../pages/LoginPage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
 import RegisterPage from '../pages/RegisterPage.jsx'
-import { getStoredToken } from '../utils/authStorage.js'
+import RestaurantDetailPage from '../pages/RestaurantDetailPage.jsx'
+import RestaurantsPage from '../pages/RestaurantsPage.jsx'
+import StaffCheckInPage from '../pages/StaffCheckInPage.jsx'
+import CustomerLayout from '../components/customer/CustomerLayout.jsx'
+import { useAuth } from '../hooks/useAuth.js'
+import { getLandingPath } from '../utils/roleNavigation.js'
 import ProtectedRoute from './ProtectedRoute.jsx'
+import RoleRoute from './RoleRoute.jsx'
 
 function RootRoute() {
-  return <Navigate to={getStoredToken() ? '/dashboard' : '/login'} replace />
+  const { user, isLoading, sessionExpired } = useAuth()
+
+  if (isLoading) {
+    return (
+      <div className="session-loading" role="status" aria-live="polite">
+        <span className="spinner" aria-hidden="true" />
+        <p>Đang kiểm tra phiên đăng nhập...</p>
+      </div>
+    )
+  }
+
+  return (
+    <Navigate
+      to={user ? getLandingPath(user) : '/login'}
+      replace
+      state={!user && sessionExpired ? { sessionExpired: true } : undefined}
+    />
+  )
 }
 
 function AppRouter() {
@@ -18,6 +43,15 @@ function AppRouter() {
       <Route path="/register" element={<RegisterPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route element={<CustomerLayout />}>
+          <Route path="/restaurants" element={<RestaurantsPage />} />
+          <Route path="/restaurants/:restaurantId" element={<RestaurantDetailPage />} />
+          <Route path="/booking/:restaurantId" element={<BookingPage />} />
+          <Route path="/bookings" element={<BookingsPage />} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={['staff', 'admin']} />}>
+          <Route path="/staff/check-in" element={<StaffCheckInPage />} />
+        </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

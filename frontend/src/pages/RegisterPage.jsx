@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
 import { FieldIcon } from '../components/AuthIcons.jsx'
+import UiIcon from '../components/UiIcon.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 import { register } from '../services/authService.js'
-import { getStoredToken, saveSession } from '../utils/authStorage.js'
+import { getPostAuthPath } from '../utils/roleNavigation.js'
 
 const initialForm = {
   name: '',
@@ -16,6 +18,8 @@ const initialForm = {
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const location = useLocation()
+  const { user, isLoading: isSessionLoading, startSession } = useAuth()
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
@@ -23,8 +27,10 @@ function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false)
 
   useEffect(() => {
-    if (getStoredToken()) navigate('/dashboard', { replace: true })
-  }, [navigate])
+    if (user) {
+      navigate(getPostAuthPath(location.state?.from, user), { replace: true })
+    }
+  }, [location.state?.from, navigate, user])
 
   const updateField = (event) => {
     const { name } = event.target
@@ -73,8 +79,8 @@ function RegisterPage() {
 
     try {
       const data = await register(form)
-      saveSession({ token: data.token, user: data.user, remember: true })
-      navigate('/dashboard', { replace: true })
+      startSession({ token: data.token, user: data.user, remember: true })
+      navigate(getPostAuthPath(location.state?.from, data.user), { replace: true })
     } catch (error) {
       setSubmitError(error.message)
     } finally {
@@ -94,12 +100,12 @@ function RegisterPage() {
       <header className="form-heading form-heading--register">
         <span className="section-label">Bắt đầu với Bàn Việt</span>
         <h1>Tạo tài khoản</h1>
-        <p>Đăng ký để xem nhà hàng, đặt bàn và gọi món thuận tiện hơn.</p>
+        <p>Đăng ký để đặt bàn, chọn món trước và theo dõi lịch hẹn thuận tiện hơn.</p>
       </header>
 
       <div className="role-note">
-        <span aria-hidden="true">i</span>
-        <p>Tài khoản quản lý và nhân viên sẽ được hệ thống cấp quyền riêng.</p>
+        <span><UiIcon name="info" /></span>
+        <p>Tài khoản nhân viên và quản lý sẽ do quản trị viên cấp và phân quyền.</p>
       </div>
 
       <form className="auth-form register-form" onSubmit={handleSubmit} noValidate>
@@ -188,15 +194,18 @@ function RegisterPage() {
           </div>
         )}
 
-        <button className="primary-button" type="submit" disabled={isLoading}>
+        <button className="primary-button" type="submit" disabled={isLoading || isSessionLoading}>
           {isLoading && <span className="spinner spinner--light" aria-hidden="true" />}
           <span>{isLoading ? 'Đang tạo tài khoản...' : 'Tạo tài khoản'}</span>
-          {!isLoading && <span className="button-arrow" aria-hidden="true">↗</span>}
+          {!isLoading && <UiIcon name="arrow-up-right" className="button-arrow" />}
         </button>
       </form>
 
       <p className="register-note">
-        Đã có tài khoản? <Link to="/login">Đăng nhập</Link>
+        Đã có tài khoản?{' '}
+        <Link to="/login" state={{ from: location.state?.from }}>
+          Đăng nhập
+        </Link>
       </p>
     </AuthLayout>
   )

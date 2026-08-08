@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
 import { FieldIcon, GoogleMark } from '../components/AuthIcons.jsx'
+import UiIcon from '../components/UiIcon.jsx'
+import { useAuth } from '../hooks/useAuth.js'
 import { login } from '../services/authService.js'
-import { getStoredToken, saveSession } from '../utils/authStorage.js'
+import { getPostAuthPath } from '../utils/roleNavigation.js'
 
 const initialForm = { email: '', password: '' }
 
 function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const { user, isLoading: isSessionLoading, startSession } = useAuth()
   const [form, setForm] = useState(initialForm)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
@@ -21,8 +24,10 @@ function LoginPage() {
   const [rememberMe, setRememberMe] = useState(true)
 
   useEffect(() => {
-    if (getStoredToken()) navigate('/dashboard', { replace: true })
-  }, [navigate])
+    if (user) {
+      navigate(getPostAuthPath(location.state?.from, user), { replace: true })
+    }
+  }, [location.state?.from, navigate, user])
 
   const updateField = (event) => {
     const { name, value } = event.target
@@ -57,9 +62,8 @@ function LoginPage() {
 
     try {
       const data = await login(form)
-      saveSession({ token: data.token, user: data.user, remember: rememberMe })
-      const nextPath = location.state?.from?.pathname || '/dashboard'
-      navigate(nextPath, { replace: true })
+      startSession({ token: data.token, user: data.user, remember: rememberMe })
+      navigate(getPostAuthPath(location.state?.from, data.user), { replace: true })
     } catch (error) {
       setSubmitError(error.message)
     } finally {
@@ -69,8 +73,8 @@ function LoginPage() {
 
   const showIntegrationNotice = (feature) => {
     const messages = {
-      google: 'Đăng nhập Google cần được cấu hình OAuth ở backend. Hiện tại bạn hãy dùng email và mật khẩu.',
-      password: 'Khôi phục mật khẩu chưa được backend hỗ trợ. Vui lòng liên hệ quản trị viên.',
+      google: 'Đăng nhập bằng Google đang được hoàn thiện. Hiện tại, vui lòng sử dụng email và mật khẩu.',
+      password: 'Tính năng khôi phục mật khẩu đang được hoàn thiện. Vui lòng liên hệ quản trị viên để được hỗ trợ.',
     }
 
     setErrors({})
@@ -97,9 +101,11 @@ function LoginPage() {
 
       {notice && (
         <div className="form-notice" role="status">
-          <span className="form-notice__icon" aria-hidden="true">i</span>
+          <span className="form-notice__icon"><UiIcon name="info" /></span>
           <p>{notice}</p>
-          <button type="button" onClick={() => setNotice('')} aria-label="Đóng thông báo">×</button>
+          <button type="button" onClick={() => setNotice('')} aria-label="Đóng thông báo">
+            <UiIcon name="close" />
+          </button>
         </div>
       )}
 
@@ -175,15 +181,18 @@ function LoginPage() {
           </div>
         )}
 
-        <button className="primary-button" type="submit" disabled={isLoading}>
+        <button className="primary-button" type="submit" disabled={isLoading || isSessionLoading}>
           {isLoading && <span className="spinner spinner--light" aria-hidden="true" />}
           <span>{isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}</span>
-          {!isLoading && <span className="button-arrow" aria-hidden="true">↗</span>}
+          {!isLoading && <UiIcon name="arrow-up-right" className="button-arrow" />}
         </button>
       </form>
 
       <p className="register-note">
-        Chưa có tài khoản? <Link to="/register">Tạo tài khoản</Link>
+        Chưa có tài khoản?{' '}
+        <Link to="/register" state={{ from: location.state?.from }}>
+          Tạo tài khoản
+        </Link>
       </p>
     </AuthLayout>
   )
