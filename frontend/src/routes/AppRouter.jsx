@@ -8,6 +8,7 @@ import RegisterPage from '../pages/RegisterPage.jsx'
 import RestaurantDetailPage from '../pages/RestaurantDetailPage.jsx'
 import RestaurantsPage from '../pages/RestaurantsPage.jsx'
 import StaffCheckInPage from '../pages/StaffCheckInPage.jsx'
+import ApiTesterPage from '../pages/ApiTesterPage.jsx'
 import CustomerLayout from '../components/customer/CustomerLayout.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { getLandingPath } from '../utils/roleNavigation.js'
@@ -41,6 +42,7 @@ function AppRouter() {
       <Route path="/" element={<RootRoute />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/api-tester" element={<ApiTesterPage />} />
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route element={<CustomerLayout />}>

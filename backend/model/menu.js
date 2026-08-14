@@ -82,8 +82,10 @@ const menuSchema = new mongoose.Schema(
 );
 
 // Kiểm tra tất cả dishId trong items đều tồn tại và chưa bị xóa mềm
-menuSchema.pre("save", async function (next) {
-  if (!this.isModified("items") || this.items.length === 0) return next();
+menuSchema.pre("save", async function () {
+  if (!this.isModified("items") || this.items.length === 0) {
+    return;
+  }
 
   const Dish = mongoose.model("Dish");
   const ids = this.items.map((i) => i.dishId);
@@ -94,10 +96,8 @@ menuSchema.pre("save", async function (next) {
   });
 
   if (count !== ids.length) {
-    return next(new Error("Một hoặc nhiều món ăn không tồn tại hoặc đã bị xóa"));
+    throw new Error("Một hoặc nhiều món ăn không tồn tại hoặc đã bị xóa");
   }
-
-  next();
 });
 
 menuSchema.pre(/^find/, function (next) {

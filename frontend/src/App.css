@@ -104,6 +104,198 @@
   box-shadow: 0 7px 18px rgba(23, 63, 51, 0.18);
 }
 
+.api-tester-page {
+  min-height: 100vh;
+  padding: 32px 20px;
+  background: linear-gradient(135deg, #edf4f1 0%, #f7f2ea 100%);
+  color: #17201d;
+}
+
+.api-tester-shell {
+  max-width: 1280px;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(21, 32, 28, 0.08);
+  box-shadow: 0 22px 60px rgba(22, 37, 30, 0.09);
+  border-radius: 24px;
+  padding: 28px;
+}
+
+.api-tester-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.api-tester-header h1 {
+  margin: 8px 0 0;
+  font-size: 32px;
+  letter-spacing: -0.04em;
+}
+
+.secondary-link {
+  color: #1d5b48;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.api-tester-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 20px;
+}
+
+.api-panel {
+  background: #f9faf8;
+  border: 1px solid #e6ebe7;
+  border-radius: 18px;
+  padding: 18px;
+}
+
+.preset-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.preset-chip {
+  border: 1px solid #dfe7e2;
+  background: #fff;
+  color: #1b2b26;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.preset-chip.active {
+  background: #153d32;
+  border-color: #153d32;
+  color: #fff;
+}
+
+.api-form {
+  display: grid;
+  gap: 16px;
+}
+
+.field-group {
+  display: grid;
+  gap: 8px;
+}
+
+.field-group label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #33423d;
+}
+
+.field-group input,
+.field-group select,
+.field-group textarea {
+  width: 100%;
+  border: 1px solid #dfe5e2;
+  border-radius: 12px;
+  padding: 12px 14px;
+  font: inherit;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.field-group textarea {
+  resize: vertical;
+  min-height: 180px;
+}
+
+.row-two {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 12px;
+}
+
+.action-row {
+  display: flex;
+  gap: 12px;
+}
+
+.primary-btn,
+.ghost-btn {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary-btn {
+  background: #173f33;
+  color: white;
+}
+
+.ghost-btn {
+  background: #edf1ee;
+  color: #1d2b27;
+}
+
+.response-header {
+  margin-bottom: 18px;
+}
+
+.response-header h2 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.status-box {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 14px;
+}
+
+.success-box {
+  background: #e9f7ef;
+  color: #116339;
+}
+
+.warning-box {
+  background: #fff3e3;
+  color: #9a5a00;
+}
+
+.error-box {
+  background: #fdecec;
+  color: #b12727;
+}
+
+.response-box {
+  margin: 0;
+  min-height: 420px;
+  max-height: 620px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #101a18;
+  color: #d9f6e5;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.empty-state {
+  color: #697772;
+  background: #eef4f1;
+  border: 1px dashed #dfe8e4;
+  border-radius: 12px;
+  padding: 20px;
+}
+
 .brand-mark span {
   font-size: 15px;
   font-weight: 800;
