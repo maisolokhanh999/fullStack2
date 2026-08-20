@@ -1,14 +1,14 @@
 .staff-app {
   min-height: 100svh;
-  color: #17201d;
+  color: var(--ink);
   background:
-    radial-gradient(circle at 90% 12%, rgba(202, 222, 210, 0.55), transparent 25rem),
-    #f5f5f0;
+    radial-gradient(circle at 90% 12%, rgba(165, 129, 63, 0.14), transparent 25rem),
+    var(--bg);
 }
 
 .staff-header {
-  border-bottom: 1px solid #dce3dd;
-  background: rgba(255, 255, 255, 0.86);
+  border-bottom: 1px solid var(--line);
+  background: rgba(255, 253, 251, 0.88);
   backdrop-filter: blur(18px);
 }
 
@@ -23,7 +23,7 @@
 
 .staff-portal-label {
   flex: 1;
-  color: #73827a;
+  color: var(--muted);
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.6px;
@@ -40,23 +40,34 @@
 .staff-header nav a {
   max-width: clamp(90px, 18vw, 180px);
   overflow: hidden;
-  color: #344b41;
+  color: var(--ink);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
+  transition: color 150ms ease;
+}
+
+.staff-header nav a:hover {
+  color: var(--accent-dark);
 }
 
 .staff-header nav button {
   padding: 8px 11px;
-  border: 1px solid #d6dfda;
-  border-radius: 9px;
-  color: #496057;
-  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--surface);
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.staff-header nav button:hover {
+  border-color: var(--accent-soft);
+  background: var(--accent-softer);
 }
 
 .staff-page {
@@ -72,7 +83,7 @@
 
 .staff-hero h1 {
   margin: 0;
-  color: #173229;
+  color: var(--ink-strong);
   font-family: var(--font-display);
   font-size: clamp(38px, 5vw, 57px);
   font-weight: 700;
@@ -83,7 +94,7 @@
 .staff-hero > div:first-child > p {
   max-width: 660px;
   margin: 14px 0 0;
-  color: #6b7a72;
+  color: var(--muted);
   font-size: 14px;
   line-height: 1.7;
   overflow-wrap: anywhere;
@@ -95,9 +106,9 @@
   grid-template-columns: 10px 1fr;
   gap: 2px 9px;
   padding: 15px;
-  border: 1px solid #d7e3dc;
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 253, 251, 0.8);
 }
 
 .staff-status i {
@@ -105,19 +116,19 @@
   height: 8px;
   margin-top: 4px;
   border-radius: 50%;
-  background: #4ca478;
-  box-shadow: 0 0 0 4px rgba(76, 164, 120, 0.12);
+  background: var(--success);
+  box-shadow: 0 0 0 4px var(--success-soft);
 }
 
 .staff-status span {
-  color: #29463a;
+  color: var(--ink-strong);
   font-size: 12px;
   font-weight: 800;
 }
 
 .staff-status small {
   grid-column: 2;
-  color: #5f6d67;
+  color: var(--muted);
   font-size: 11px;
 }
 
@@ -131,16 +142,16 @@
 .checkin-search-card,
 .checkin-guide {
   padding: clamp(23px, 4vw, 38px);
-  border: 1px solid #dfe4de;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 15px 44px rgba(33, 64, 51, 0.07);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 253, 251, 0.92);
+  box-shadow: var(--shadow-md);
 }
 
 .checkin-search-card header h2,
 .checkin-guide h2 {
   margin: 0;
-  color: #1d382e;
+  color: var(--ink-strong);
   font-family: var(--font-display);
   font-size: 29px;
   font-weight: 700;
@@ -150,7 +161,7 @@
 
 .checkin-search-card header p {
   margin: 8px 0 27px;
-  color: #78857e;
+  color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -166,13 +177,19 @@
   align-items: center;
   gap: 10px;
   padding: 0 15px;
-  border: 1px solid #d8e0dc;
-  border-radius: 12px;
-  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.staff-search-field > div:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-softer);
 }
 
 .staff-search-field > div > span {
-  color: #7d8b84;
+  color: var(--muted);
   font-size: 21px;
 }
 
@@ -182,7 +199,7 @@
   padding: 16px 0;
   border: 0;
   outline: 0;
-  color: #253a31;
+  color: var(--ink);
   background: transparent;
   font-size: 14px;
 }
@@ -195,9 +212,9 @@
 .staff-local-note {
   margin: 13px 0 0;
   padding: 11px;
-  border-radius: 10px;
-  color: #715f43;
-  background: #faf3e6;
+  border-radius: var(--radius-sm);
+  color: #6b4a1f;
+  background: var(--warning-soft);
   font-size: 12px;
   line-height: 1.55;
   overflow-wrap: anywhere;
@@ -223,9 +240,9 @@
   height: 26px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   color: #fff;
-  background: #2f6c55;
+  background: var(--accent-dark);
   font-size: 11px;
   font-weight: 800;
 }
@@ -233,21 +250,21 @@
 .checkin-guide li p {
   min-width: 0;
   margin: 3px 0 0;
-  color: #68766f;
+  color: var(--muted);
   font-size: 12px;
   line-height: 1.55;
   overflow-wrap: anywhere;
 }
 
 .checkin-guide li strong {
-  color: #31483e;
+  color: var(--ink-strong);
 }
 
 .staff-warning {
   padding: 12px;
-  border-left: 3px solid #bf8944;
-  color: #725e40;
-  background: #faf4e9;
+  border-left: 3px solid var(--warning);
+  color: #6b4a1f;
+  background: var(--warning-soft);
   font-size: 12px;
   line-height: 1.6;
   overflow-wrap: anywhere;
