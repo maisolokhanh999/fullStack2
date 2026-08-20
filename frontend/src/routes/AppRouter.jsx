@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import AdminDashboardPage from '../pages/AdminDashboardPage.jsx'
 import DashboardPage from '../pages/DashboardPage.jsx'
 import BookingPage from '../pages/BookingPage.jsx'
 import BookingsPage from '../pages/BookingsPage.jsx'
@@ -53,6 +54,9 @@ function AppRouter() {
         </Route>
         <Route element={<RoleRoute allowedRoles={['staff', 'admin']} />}>
           <Route path="/staff/check-in" element={<StaffCheckInPage />} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={['admin']} />}>
+          <Route path="/admin" element={<AdminDashboardPage />} />
         </Route>
       </Route>
       <Route path="*" element={<NotFoundPage />} />
