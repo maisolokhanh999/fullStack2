@@ -1,7 +1,7 @@
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../AuthIcons.jsx'
 import { useAuth } from '../../hooks/useAuth.js'
-import { isStaffRole } from '../../utils/roleNavigation.js'
+import { isAdminRole, isStaffRole } from '../../utils/roleNavigation.js'
 
 function CustomerLayout() {
   const navigate = useNavigate()
@@ -25,6 +25,7 @@ function CustomerLayout() {
             <NavLink to="/restaurants">Nhà hàng</NavLink>
             <NavLink to="/bookings">Đặt bàn của tôi</NavLink>
             {isStaffRole(user?.role) && <NavLink to="/staff/check-in">Check-in</NavLink>}
+            {isAdminRole(user?.role) && <NavLink to="/admin">Quản trị</NavLink>}
           </nav>
 
           <div className="site-account">
