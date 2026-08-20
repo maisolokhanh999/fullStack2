@@ -370,12 +370,13 @@ function AdminDashboardPage() {
     <div className="admin-app">
       <header className="staff-header">
         <div className="staff-header__inner">
-          <Link className="site-brand" to="/admin">
+          <Link className="site-brand" to="/restaurants" aria-label="Bàn Việt - Về trang nhà hàng">
             <BrandMark />
             <span>Bàn Việt</span>
           </Link>
           <span className="staff-portal-label">Cổng quản trị</span>
           <nav>
+            <Link to="/restaurants">Trang nhà hàng</Link>
             <Link to="/dashboard">{user?.name || 'Tài khoản'}</Link>
             <button type="button" onClick={logout}>Đăng xuất</button>
           </nav>
