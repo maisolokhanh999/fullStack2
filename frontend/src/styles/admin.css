@@ -230,6 +230,99 @@
   line-height: 1.4;
 }
 
+.admin-resource-toolbar,
+.admin-lookup-panel {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.admin-lookup-panel {
+  flex-wrap: wrap;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 253, 251, 0.92);
+}
+
+.admin-lookup-panel input,
+.admin-lookup-panel select {
+  min-width: min(360px, 100%);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+  font-size: 12px;
+}
+
+.admin-detail-box {
+  flex-basis: 100%;
+  overflow: auto;
+  margin: 4px 0 0;
+  padding: 12px;
+  color: var(--ink);
+  background: var(--surface-alt);
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
+.admin-resource-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 253, 251, 0.92);
+}
+
+.admin-resource-form label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.admin-resource-form input,
+.admin-resource-form select {
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--surface);
+  font: inherit;
+  font-size: 12px;
+}
+
+.admin-resource-form .admin-action-row {
+  align-self: end;
+}
+
+.admin-detail-list {
+  display: grid;
+  flex-basis: 100%;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-size: 12px;
+}
+
+.admin-detail-list div {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.admin-detail-list dt { color: var(--muted); font-weight: 700; }
+.admin-detail-list dd { margin: 0; color: var(--ink); overflow-wrap: anywhere; }
+
 @media (max-width: 700px) {
   .admin-page {
     padding-top: 32px;
