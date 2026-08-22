@@ -7,13 +7,13 @@ import {
   updateInvoiceDetail,
   deleteInvoiceDetail,
 } from "../contreller/invoiceDetail/invoiceDetail.js";
-
+import { authMiddleware, adminMiddleware } from "../middlewares/authMiddleware/authMiddleware.js";
 const router = express.Router();
 
-router.post("/", createInvoiceDetail);
-router.post("/bulk", createInvoiceDetailsBulk);
+router.post("/", authMiddleware, adminMiddleware, createInvoiceDetail);
+router.post("/bulk", authMiddleware, adminMiddleware,createInvoiceDetailsBulk);
 router.get("/:id", getInvoiceDetailById);
-router.put("/:id", updateInvoiceDetail);
-router.delete("/:id", deleteInvoiceDetail);
+router.put("/:id", authMiddleware, adminMiddleware, updateInvoiceDetail);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteInvoiceDetail);
 
 export default router;

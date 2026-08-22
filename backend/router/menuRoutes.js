@@ -7,7 +7,7 @@ router.get("/", getMenus);
 router.get("/:id", getMenuById);
 router.post("/", createMenu);
 router.put("/:id", updateMenu);
-router.delete("/:id", deleteMenu);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteMenu);
 router.patch("/:id/restore", restoreMenu);
 
 // Items

@@ -7,14 +7,14 @@ import {
   updateTableStatus,
   deleteTable,
 } from "../contreller/tableController/tableController.js";
-
+import { authMiddleware, adminMiddleware } from "../middlewares/authMiddleware/authMiddleware.js";
 const router = express.Router();
 
-router.post("/", createTable);
-router.get("/", getTables);
+router.post("/", authMiddleware, adminMiddleware,createTable);
+router.get("/",  getTables);
 router.get("/:id", getTableById);
-router.put("/:id", updateTable);
-router.patch("/:id/status", updateTableStatus);
-router.delete("/:id", deleteTable);
+router.put("/:id", authMiddleware, adminMiddleware, updateTable);
+router.patch("/:id/status", authMiddleware, updateTableStatus);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteTable);
 
 export default router;

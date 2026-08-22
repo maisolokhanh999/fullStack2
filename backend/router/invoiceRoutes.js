@@ -9,16 +9,16 @@ import {
   refundInvoice,
   deleteInvoice,
 } from "../contreller/invoice/invoice.js";
-
+import { authMiddleware, adminMiddleware } from "../middlewares/authMiddleware/authMiddleware.js";
 const router = express.Router();
 
-router.post("/", createInvoice);
-router.get("/", getInvoices);
-router.get("/:id", getInvoiceById);
-router.put("/:id", updateInvoice);
-router.patch("/:id/pay", payInvoice);
-router.patch("/:id/cancel", cancelInvoice);
-router.patch("/:id/refund", refundInvoice);
-router.delete("/:id", deleteInvoice);
+router.post("/", authMiddleware, adminMiddleware, createInvoice);
+router.get("/", authMiddleware, getInvoices);
+router.get("/:id", authMiddleware, getInvoiceById);
+router.put("/:id", authMiddleware, updateInvoice);
+router.patch("/:id/pay", authMiddleware, payInvoice);
+router.patch("/:id/cancel", authMiddleware, cancelInvoice);
+router.patch("/:id/refund", authMiddleware, refundInvoice);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteInvoice);
 
 export default router;

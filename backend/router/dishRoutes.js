@@ -4,10 +4,10 @@ import { authMiddleware, adminMiddleware } from "../middlewares/authMiddleware/a
 const router = express.Router();
 
 router.get("/", getDishes,);
-router.get("/:id", getDishById);
-router.post("/",  createDish);
-router.put("/:id",  updateDish);
-router.delete("/:id",  deleteDish);
-router.patch("/:id/restore",  restoreDish);
+router.get("/:id",getDishById);
+router.post("/", authMiddleware, adminMiddleware ,createDish,);
+router.put("/:id",  authMiddleware, adminMiddleware,updateDish,);
+router.delete("/:id",  authMiddleware, adminMiddleware, deleteDish);
+router.patch("/:id/restore",  authMiddleware, adminMiddleware, restoreDish);
 
 export default router;
