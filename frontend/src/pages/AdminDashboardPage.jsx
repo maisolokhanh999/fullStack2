@@ -91,11 +91,15 @@ function RowActionError({ message }) {
 }
 
 function UsersPanel() {
+  const { user: currentUser } = useAuth()
   const { items, setItems, isLoading, error, retry } = useAdminCollection(getUsers, 'users')
   const [rowErrors, setRowErrors] = useState({})
   const [savingId, setSavingId] = useState(null)
 
-  const handleRoleChange = async (id, role) => {
+  const handleRoleChange = async (id, role, name) => {
+    const confirmed = window.confirm(`Đổi vai trò của "${name}" thành "${ROLE_LABELS[role]}"?`)
+    if (!confirmed) return
+
     setSavingId(id)
     setRowErrors((prev) => ({ ...prev, [id]: '' }))
     try {
@@ -126,7 +130,10 @@ function UsersPanel() {
           </tr>
         </thead>
         <tbody>
-          {items.map((item) => (
+          {items.map((item) => {
+            const isSelf = item._id === currentUser?._id
+
+            return (
             <tr key={item._id}>
               <td>{item.name}</td>
               <td>{item.email}</td>
@@ -134,13 +141,14 @@ function UsersPanel() {
               <td>
                 <select
                   value={item.role}
-                  disabled={savingId === item._id}
-                  onChange={(event) => handleRoleChange(item._id, event.target.value)}
+                  disabled={isSelf || savingId === item._id}
+                  onChange={(event) => handleRoleChange(item._id, event.target.value, item.name)}
                 >
                   {ROLE_OPTIONS.map((role) => (
                     <option key={role} value={role}>{ROLE_LABELS[role]}</option>
                   ))}
                 </select>
+                {isSelf && <p className="admin-muted">Không thể tự đổi vai trò của chính mình.</p>}
                 <RowActionError message={rowErrors[item._id]} />
               </td>
               <td>
@@ -149,7 +157,8 @@ function UsersPanel() {
               </td>
               <td>{formatDateTime(item.createdAt)}</td>
             </tr>
-          ))}
+            )
+          })}
         </tbody>
       </table>
     </div>
@@ -176,7 +185,9 @@ function ReservationsPanel() {
   const [rowErrors, setRowErrors] = useState({})
   const [savingId, setSavingId] = useState(null)
 
-  const runAction = async (id, action, run) => {
+  const runAction = async (id, action, run, label, danger) => {
+    if (danger && !window.confirm(`Xác nhận: ${label}?`)) return
+
     setSavingId(`${id}:${action}`)
     setRowErrors((prev) => ({ ...prev, [id]: '' }))
     try {
@@ -228,7 +239,7 @@ function ReservationsPanel() {
                       type="button"
                       className={danger ? 'admin-btn admin-btn--danger' : 'admin-btn'}
                       disabled={savingId === `${item._id}:${action}`}
-                      onClick={() => runAction(item._id, action, run)}
+                      onClick={() => runAction(item._id, action, run, label, danger)}
                     >
                       {label}
                     </button>
@@ -260,7 +271,9 @@ function InvoicesPanel() {
   const [rowErrors, setRowErrors] = useState({})
   const [savingId, setSavingId] = useState(null)
 
-  const runAction = async (id, action, run) => {
+  const runAction = async (id, action, run, label, danger) => {
+    if (danger && !window.confirm(`Xác nhận: ${label}?`)) return
+
     setSavingId(`${id}:${action}`)
     setRowErrors((prev) => ({ ...prev, [id]: '' }))
     try {
@@ -312,7 +325,7 @@ function InvoicesPanel() {
                       type="button"
                       className={danger ? 'admin-btn admin-btn--danger' : 'admin-btn'}
                       disabled={savingId === `${item._id}:${action}`}
-                      onClick={() => runAction(item._id, action, run)}
+                      onClick={() => runAction(item._id, action, run, label, danger)}
                     >
                       {label}
                     </button>
@@ -370,12 +383,13 @@ function AdminDashboardPage() {
     <div className="admin-app">
       <header className="staff-header">
         <div className="staff-header__inner">
-          <Link className="site-brand" to="/admin">
+          <Link className="site-brand" to="/restaurants" aria-label="Bàn Việt - Về trang nhà hàng">
             <BrandMark />
             <span>Bàn Việt</span>
           </Link>
           <span className="staff-portal-label">Cổng quản trị</span>
           <nav>
+            <Link to="/restaurants">Trang nhà hàng</Link>
             <Link to="/dashboard">{user?.name || 'Tài khoản'}</Link>
             <button type="button" onClick={logout}>Đăng xuất</button>
           </nav>
