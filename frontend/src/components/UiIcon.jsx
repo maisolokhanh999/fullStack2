@@ -61,6 +61,33 @@ function UiIcon({ name, className = '' }) {
           <path d="M12 7.5V12l3 2" />
         </svg>
       )
+    case 'calendar':
+      return (
+        <svg {...commonProps}>
+          <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
+          <path d="M3.5 9.5h17" />
+          <path d="M8 3v4" />
+          <path d="M16 3v4" />
+        </svg>
+      )
+    case 'users':
+      return (
+        <svg {...commonProps}>
+          <circle cx="9" cy="9" r="3.2" />
+          <path d="M3.8 19c.6-3 2.7-4.7 5.2-4.7s4.6 1.7 5.2 4.7" />
+          <path d="M15.5 5.7c1.4.3 2.4 1.6 2.4 3.1s-1 2.8-2.4 3.1" />
+          <path d="M15 14.4c2.1.4 3.6 1.9 4.1 4.4" />
+        </svg>
+      )
+    case 'table':
+      return (
+        <svg {...commonProps}>
+          <path d="M3.5 8.5h17" />
+          <path d="M6 8.5V19" />
+          <path d="M18 8.5V19" />
+          <rect x="3.5" y="4.5" width="17" height="4" rx="1.2" />
+        </svg>
+      )
     case 'location':
       return (
         <svg {...commonProps}>

@@ -18,7 +18,9 @@ import {
   getDishPrice,
   getDishQuantityLimit,
   getDishServingUnit,
+  getMaxBookingDateString,
   getTodayString,
+  MAX_BOOKING_DAYS_AHEAD,
   isDishAvailable,
 } from '../utils/booking.js'
 
@@ -97,12 +99,16 @@ function BookingPage() {
     const visitDate = String(draft.visitDate || '')
     const visitTime = String(draft.visitTime || '')
 
+    const maxDate = getMaxBookingDateString()
+
     if (!visitDate) {
       nextErrors.visitDate = 'Vui lòng chọn ngày đến.'
     } else if (!isValidDateString(visitDate)) {
       nextErrors.visitDate = 'Ngày đến chưa hợp lệ.'
     } else if (visitDate < today) {
       nextErrors.visitDate = 'Ngày đến không thể nằm trong quá khứ.'
+    } else if (visitDate > maxDate) {
+      nextErrors.visitDate = `Chỉ nhận đặt bàn trong vòng ${MAX_BOOKING_DAYS_AHEAD} ngày tới.`
     }
 
     if (!visitTime) {
@@ -263,60 +269,73 @@ function BookingPage() {
             <div className="booking-form-grid">
               <label className="booking-field">
                 <span>Ngày đến</span>
-                <input
-                  name="visitDate"
-                  type="date"
-                  min={getTodayString()}
-                  value={draft.visitDate}
-                  onChange={updateDraftField}
-                  aria-invalid={Boolean(errors.visitDate)}
-                />
+                <div className="booking-field__control">
+                  <UiIcon name="calendar" />
+                  <input
+                    name="visitDate"
+                    type="date"
+                    min={getTodayString()}
+                    max={getMaxBookingDateString()}
+                    value={draft.visitDate}
+                    onChange={updateDraftField}
+                    aria-invalid={Boolean(errors.visitDate)}
+                  />
+                </div>
                 {errors.visitDate && <small>{errors.visitDate}</small>}
               </label>
 
               <label className="booking-field">
                 <span>Giờ đến</span>
-                <input
-                  name="visitTime"
-                  type="time"
-                  min={OPENING_TIME}
-                  max={LAST_BOOKING_TIME}
-                  value={draft.visitTime}
-                  onChange={updateDraftField}
-                  aria-invalid={Boolean(errors.visitTime)}
-                />
+                <div className="booking-field__control">
+                  <UiIcon name="clock" />
+                  <input
+                    name="visitTime"
+                    type="time"
+                    min={OPENING_TIME}
+                    max={LAST_BOOKING_TIME}
+                    value={draft.visitTime}
+                    onChange={updateDraftField}
+                    aria-invalid={Boolean(errors.visitTime)}
+                  />
+                </div>
                 {errors.visitTime && <small>{errors.visitTime}</small>}
               </label>
 
               <label className="booking-field">
                 <span>Số khách</span>
-                <select name="guests" value={draft.guests} onChange={updateDraftField}>
-                  {Array.from({ length: 20 }, (_, index) => index + 1).map((value) => (
-                    <option value={value} key={value}>{value} người</option>
-                  ))}
-                </select>
+                <div className="booking-field__control">
+                  <UiIcon name="users" />
+                  <select name="guests" value={draft.guests} onChange={updateDraftField}>
+                    {Array.from({ length: 20 }, (_, index) => index + 1).map((value) => (
+                      <option value={value} key={value}>{value} người</option>
+                    ))}
+                  </select>
+                </div>
                 {errors.guests && <small>{errors.guests}</small>}
               </label>
 
               <label className="booking-field">
                 <span>Chọn bàn</span>
-                <select
-                  name="tableId"
-                  value={draft.tableId}
-                  onChange={updateDraftField}
-                  disabled={!tables.length}
-                  aria-invalid={Boolean(errors.tableId)}
-                  required
-                >
-                  <option value="">{tables.length ? 'Chọn bàn phù hợp' : 'Không có bàn khả dụng'}</option>
-                  {tables
-                    .filter((table) => table.capacity >= Number(draft.guests))
-                    .map((table) => (
-                      <option value={table._id} key={table._id}>
-                        Bàn {table.tableNumber} · {table.capacity} chỗ{table.location ? ` · ${table.location}` : ''}
-                      </option>
-                    ))}
-                </select>
+                <div className="booking-field__control">
+                  <UiIcon name="table" />
+                  <select
+                    name="tableId"
+                    value={draft.tableId}
+                    onChange={updateDraftField}
+                    disabled={!tables.length}
+                    aria-invalid={Boolean(errors.tableId)}
+                    required
+                  >
+                    <option value="">{tables.length ? 'Chọn bàn phù hợp' : 'Không có bàn khả dụng'}</option>
+                    {tables
+                      .filter((table) => table.capacity >= Number(draft.guests))
+                      .map((table) => (
+                        <option value={table._id} key={table._id}>
+                          Bàn {table.tableNumber} · {table.capacity} chỗ{table.location ? ` · ${table.location}` : ''}
+                        </option>
+                      ))}
+                  </select>
+                </div>
                 {tableError && <small>{tableError}</small>}
                 {errors.tableId && !tableError && <small>{errors.tableId}</small>}
               </label>

@@ -76,3 +76,15 @@ export const getTodayString = () => {
   const offset = today.getTimezoneOffset()
   return new Date(today.getTime() - offset * 60000).toISOString().slice(0, 10)
 }
+
+// Nhà hàng chỉ nhận đặt bàn trước tối đa 60 ngày — chặn cả trong lịch native
+// (min/max) lẫn khi validate submit, để không ai chọn được ngày quá xa.
+export const MAX_BOOKING_DAYS_AHEAD = 60
+
+export const getMaxBookingDateString = () => {
+  const today = new Date()
+  const offset = today.getTimezoneOffset()
+  const localToday = new Date(today.getTime() - offset * 60000)
+  localToday.setDate(localToday.getDate() + MAX_BOOKING_DAYS_AHEAD)
+  return localToday.toISOString().slice(0, 10)
+}
