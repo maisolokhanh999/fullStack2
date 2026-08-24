@@ -4,6 +4,7 @@ import cors from "cors";
 import connectDB from "./configs/db.js";
 import cloudinary from "./configs/cloudinary.js";
 import routes from "./router/index.js";
+import { expireLateReservations } from "./contreller/reservationController/reservation.js";
 dotenv.config();
 
 if (!process.env.JWT_SECRET) {
@@ -17,6 +18,11 @@ app.use(cors());
 app.use(express.json());
 await cloudinary.config();
 await connectDB();
+await expireLateReservations();
+setInterval(
+  () => expireLateReservations().catch((error) => console.error("Auto cancel error:", error)),
+  60 * 1000
+);
 
 app.use("/", routes);
 

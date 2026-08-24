@@ -351,6 +351,7 @@
 .invoice-receipt__totals { display: grid; gap: 7px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #a9a39a; }
 .invoice-receipt__totals span { display: flex; justify-content: space-between; gap: 16px; }
 .invoice-receipt__grand-total { font-size: 14px; font-weight: 700; }
+.invoice-receipt__cancelled { color: #7a291d; }
 .invoice-receipt footer { margin-top: 22px; padding-top: 12px; border-top: 1px dashed #a9a39a; text-align: center; }
 .invoice-receipt-actions { justify-content: center; }
 

@@ -23,6 +23,36 @@ const releaseReservationTables = async (reservationId) => {
   );
 };
 
+export const expireLateReservations = async () => {
+  const cutoff = new Date(Date.now() - 30 * 60 * 1000);
+  const lateReservations = await Reservation.find({
+    status: { $in: ["Pending", "Confirmed"] },
+    expectedCheckInTime: { $lte: cutoff },
+  }).select("_id");
+
+  for (const reservation of lateReservations) {
+    const updated = await Reservation.findOneAndUpdate(
+      { _id: reservation._id, status: { $in: ["Pending", "Confirmed"] } },
+      { status: "NoShow" },
+      { new: true }
+    );
+    if (!updated) continue;
+
+    await releaseReservationTables(updated._id);
+    await Invoice.updateMany(
+      {
+        reservationId: updated._id,
+        status: { $in: ["Pending", "Finalized"] },
+      },
+      {
+        status: "Cancelled",
+        cancellationReason: "Khách không đến trong vòng 30 phút",
+        depositRefunded: false,
+      }
+    );
+  }
+};
+
 // @desc    Tạo đặt bàn mới
 // @route   POST /api/reservations
 export const createReservation = async (req, res) => {
@@ -75,6 +105,7 @@ export const createReservation = async (req, res) => {
 // @route   GET /api/reservations
 export const getReservations = async (req, res) => {
   try {
+    await expireLateReservations();
     const { status, reservationType, date, query } = req.query;
     const filter = {};
 

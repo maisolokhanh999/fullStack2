@@ -135,6 +135,8 @@ export default function InvoiceDetailsPanel() {
           <span className="invoice-receipt__grand-total">CÒN PHẢI TRẢ <strong>{formatMoney(invoice.finalAmount)}</strong></span>
           <span>PHƯƠNG THỨC <strong>{invoice.paymentMethod}</strong></span>
           {invoice.changeAmount > 0 && <span>TIỀN THỪA <strong>{formatMoney(invoice.changeAmount)}</strong></span>}
+          {invoice.status === 'Cancelled' && <span className="invoice-receipt__cancelled">LÝ DO HỦY <strong>{invoice.cancellationReason || 'Đặt bàn đã bị hủy'}</strong></span>}
+          {invoice.status === 'Cancelled' && <span className="invoice-receipt__cancelled">HOÀN CỌC <strong>Không hoàn lại</strong></span>}
         </div>
         <footer>Cảm ơn quý khách. Hẹn gặp lại!</footer>
       </div>

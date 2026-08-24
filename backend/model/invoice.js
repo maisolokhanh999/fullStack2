@@ -44,6 +44,17 @@ const invoiceSchema = new mongoose.Schema(
       min: 0,
     },
 
+    depositRefunded: {
+      type: Boolean,
+      default: false,
+    },
+
+    cancellationReason: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     finalAmount: {
       type: Number,
       required: true,
