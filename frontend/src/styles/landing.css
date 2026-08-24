@@ -905,3 +905,9 @@
   font-size: 12px;
   line-height: 1.55;
 }
+
+.landing-section__more {
+  display: flex;
+  justify-content: center;
+  margin-top: 26px;
+}
