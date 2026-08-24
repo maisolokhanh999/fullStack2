@@ -7,15 +7,15 @@ import {
   withQuery,
 } from './serviceHelpers.js'
 
-export const RESERVATION_API_AVAILABLE = false
+export const RESERVATION_API_AVAILABLE = true
 
 export const RESERVATION_CAPABILITIES = Object.freeze({
-  create: false,
-  history: false,
-  search: false,
+  create: true,
+  history: true,
+  search: true,
   tableAssignment: false,
-  deposit: false,
-  checkIn: false,
+  deposit: true,
+  checkIn: true,
   preorder: false,
   invoice: false,
 })
@@ -32,6 +32,9 @@ export async function getReservations(query = {}, signal) {
 
   return unwrapCollection(response, 'reservations')
 }
+
+export const searchReservations = (query, signal) =>
+  getReservations({ query }, signal)
 
 export async function getReservationById(id, signal) {
   const response = await apiRequest(

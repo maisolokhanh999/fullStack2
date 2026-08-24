@@ -39,11 +39,18 @@ export const createReservation = async (req, res) => {
 // @route   GET /api/reservations
 export const getReservations = async (req, res) => {
   try {
-    const { status, reservationType, date } = req.query;
+    const { status, reservationType, date, query } = req.query;
     const filter = {};
 
     if (status) filter.status = status;
     if (reservationType) filter.reservationType = reservationType;
+    if (query?.trim()) {
+      const searchValue = query.trim();
+      filter.$or = [
+        { reservationCode: searchValue },
+        { customerPhone: searchValue },
+      ];
+    }
 
     // Lọc theo ngày check-in dự kiến (yyyy-mm-dd)
     if (date) {

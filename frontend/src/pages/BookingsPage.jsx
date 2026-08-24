@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useBookingDraft } from '../context/bookingDraftStore.js'
@@ -6,12 +6,14 @@ import { reservationApiNotice } from '../services/reservationService.js'
 import { calculateBookingEstimate, formatCurrency } from '../utils/booking.js'
 
 function BookingsPage() {
+  const location = useLocation()
   const { draft, clearDraft } = useBookingDraft()
   const hasDraft = Boolean(draft.visitDate || draft.visitTime || draft.items.length)
   const estimate = calculateBookingEstimate({ items: draft.items, guests: draft.guests })
 
   return (
     <main className="customer-main bookings-page">
+      {location.state?.reservationSubmitted && <div className="api-pending-notice" role="status"><span><UiIcon name="check" /></span><div><strong>Đã gửi yêu cầu đặt bàn</strong><p>Nhà hàng sẽ kiểm tra và xác nhận thông tin đặt bàn của bạn.</p></div></div>}
       <div className="page-title-row">
         <div>
           <span className="customer-kicker">Lịch hẹn của bạn</span>

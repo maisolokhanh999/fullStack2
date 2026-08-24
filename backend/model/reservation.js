@@ -2,6 +2,13 @@ import mongoose from "mongoose";
 
 const reservationSchema = new mongoose.Schema(
   {
+    reservationCode: {
+      type: String,
+      unique: true,
+      default: () => `BV-${Date.now().toString(36).toUpperCase()}`,
+      trim: true,
+    },
+
     customerName: {
       type: String,
       required: [true, "Customer name is required"],

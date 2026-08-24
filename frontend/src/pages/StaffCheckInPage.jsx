@@ -3,15 +3,57 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../components/AuthIcons.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
+import { checkInReservation, searchReservations } from '../services/reservationService.js'
+import { formatDateTime, formatMoney } from '../components/admin/adminUtils.js'
 
 function StaffCheckInPage() {
   const navigate = useNavigate()
   const { user, endSession } = useAuth()
   const [query, setQuery] = useState('')
+  const [reservation, setReservation] = useState(null)
+  const [error, setError] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
+  const [isCheckingIn, setIsCheckingIn] = useState(false)
 
   const logout = () => {
     endSession()
     navigate('/login', { replace: true })
+  }
+
+  const search = async (event) => {
+    event.preventDefault()
+    const searchValue = query.trim()
+    if (!searchValue) return
+
+    setIsSearching(true)
+    setError('')
+    setReservation(null)
+    try {
+      const results = await searchReservations(searchValue)
+      if (!results.length) {
+        setError('Không tìm thấy đặt bàn với thông tin này.')
+      } else {
+        setReservation(results[0])
+      }
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setIsSearching(false)
+    }
+  }
+
+  const checkIn = async () => {
+    if (!reservation) return
+
+    setIsCheckingIn(true)
+    setError('')
+    try {
+      setReservation(await checkInReservation(reservation._id))
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setIsCheckingIn(false)
+    }
   }
 
   return (
@@ -36,14 +78,14 @@ function StaffCheckInPage() {
           <span className="customer-kicker">Cổng nhân viên</span>
           <h1>Check-in cho khách tại nhà hàng</h1>
           <p>
-            Xin chào {user?.name || 'nhân viên'}. Khi dữ liệu đặt bàn được kết nối, bạn có thể
-            tra cứu bằng mã đặt bàn hoặc số điện thoại, xác nhận bàn và chuyển món đặt trước xuống bếp.
+            Xin chào {user?.name || 'nhân viên'}. Bạn có thể tra cứu bằng mã đặt bàn hoặc số điện thoại,
+            xác nhận khách đã đến và đối chiếu khoản cọc.
           </p>
         </div>
         <div className="staff-status">
           <i />
-          <span>Chưa kết nối dữ liệu</span>
-          <small>Tính năng check-in đang được hoàn thiện</small>
+          <span>Đã kết nối dữ liệu</span>
+          <small>Sẵn sàng tra cứu và check-in</small>
         </div>
       </section>
 
@@ -52,10 +94,11 @@ function StaffCheckInPage() {
           <header>
             <span className="customer-kicker">Tìm khách đến</span>
             <h2>Mã đặt bàn hoặc số điện thoại</h2>
-            <p>Nút check-in chỉ khả dụng sau khi tải được thông tin đặt bàn.</p>
+            <p>Nhập số điện thoại hoặc mã đặt bàn để tải thông tin khách.</p>
           </header>
 
-          <label className="staff-search-field">
+          <form onSubmit={search}>
+            <label className="staff-search-field">
             <span>Thông tin tra cứu</span>
             <div>
               <span><UiIcon name="search" /></span>
@@ -66,17 +109,21 @@ function StaffCheckInPage() {
                 autoComplete="off"
               />
             </div>
-          </label>
+            </label>
 
-          <button className="customer-primary-button" type="button" disabled>
-            Tra cứu (chưa khả dụng)
-          </button>
+            <button className="customer-primary-button" type="submit" disabled={isSearching || !query.trim()}>
+              {isSearching ? 'Đang tra cứu...' : 'Tra cứu'}
+            </button>
+          </form>
 
-          {query && (
-            <p className="staff-local-note" role="status">
-              Đã nhập “{query}”. Tính năng tra cứu chưa được kết nối với dữ liệu đặt bàn.
-            </p>
-          )}
+          {error && <p className="staff-local-note" role="alert">{error}</p>}
+          {reservation && <div className="staff-local-note" role="status">
+            <strong>{reservation.customerName}</strong>
+            <p>Mã: {reservation.reservationCode || reservation._id}</p>
+            <p>{formatDateTime(reservation.expectedCheckInTime)} · {reservation.numberOfGuests} khách · Cọc {formatMoney(reservation.depositAmount)}</p>
+            <p>Trạng thái: {reservation.status}</p>
+            {['Pending', 'Confirmed'].includes(reservation.status) && <button className="customer-primary-button" type="button" onClick={checkIn} disabled={isCheckingIn}>{isCheckingIn ? 'Đang check-in...' : 'Xác nhận check-in'}</button>}
+          </div>}
         </div>
 
         <aside className="checkin-guide">

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import DishGridState from '../components/customer/DishGridState.jsx'
 import DishVisual from '../components/customer/DishVisual.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT, isDefaultRestaurant } from '../config/restaurant.js'
 import { useBookingDraft } from '../context/bookingDraftStore.js'
 import { useDishes } from '../hooks/useDishes.js'
-import { reservationApiNotice } from '../services/reservationService.js'
+import { useAuth } from '../hooks/useAuth.js'
+import { createReservation } from '../services/reservationService.js'
 import {
   calculateBookingEstimate,
   formatCurrency,
@@ -43,9 +44,13 @@ const isValidDateString = (value) => {
 
 function BookingPage() {
   const { restaurantId } = useParams()
+  const navigate = useNavigate()
+  const { user } = useAuth()
   const [step, setStep] = useState(1)
   const [errors, setErrors] = useState({})
-  const { draft, updateInfo, setItemQuantity, reconcileItems } = useBookingDraft()
+  const [submitError, setSubmitError] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { draft, updateInfo, setItemQuantity, reconcileItems, clearDraft } = useBookingDraft()
   const { dishes, isLoading, error, retry } = useDishes()
 
   const estimate = useMemo(
@@ -130,6 +135,34 @@ function BookingPage() {
       Math.min(getDishQuantityLimit(dish), quantityFor(dish) + delta),
     )
     setItemQuantity(dish, nextQuantity)
+  }
+
+  const submitReservation = async () => {
+    if (!user?.name || !user?.phone) {
+      setSubmitError('Vui lòng cập nhật họ tên và số điện thoại trong tài khoản trước khi đặt bàn.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitError('')
+
+    try {
+      await createReservation({
+        customerName: user.name,
+        customerPhone: user.phone,
+        numberOfGuests: draft.guests,
+        expectedCheckInTime: `${draft.visitDate}T${draft.visitTime}:00`,
+        reservationType: 'Online',
+        note: draft.note,
+        depositAmount: estimate.estimatedDeposit,
+      })
+      clearDraft()
+      navigate('/bookings', { replace: true, state: { reservationSubmitted: true } })
+    } catch (requestError) {
+      setSubmitError(requestError.message)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -378,21 +411,15 @@ function BookingPage() {
               </p>
             </div>
 
-            <div className="api-pending-notice" role="status">
-              <span><UiIcon name="info" /></span>
-              <div>
-                <strong>Chưa thể gửi yêu cầu đặt bàn</strong>
-                <p>{reservationApiNotice} Bản nháp của bạn vẫn được lưu trên thiết bị này.</p>
-              </div>
-            </div>
+            {submitError && <div className="api-pending-notice" role="alert"><span><UiIcon name="info" /></span><div><strong>Không thể gửi yêu cầu đặt bàn</strong><p>{submitError}</p></div></div>}
 
             <div className="booking-actions booking-actions--review">
               <button className="customer-secondary-button" type="button" onClick={() => setStep(2)}>
                 Chỉnh sửa
               </button>
               <Link className="customer-secondary-link" to="/bookings">Xem bản nháp</Link>
-              <button className="customer-primary-button" type="button" disabled>
-                Chưa thể gửi đặt bàn
+              <button className="customer-primary-button" type="button" onClick={submitReservation} disabled={isSubmitting}>
+                {isSubmitting ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu đặt bàn'}
               </button>
             </div>
           </div>
