@@ -1,4 +1,5 @@
 import { apiRequest } from './apiClient.js'
+import { getReservationTables, releaseReservationTable } from './reservationTableService.js'
 import {
   encodePathSegment,
   jsonBody,
@@ -95,7 +96,25 @@ export const completeReservation = (id, payload = {}, signal) =>
   runReservationAction(id, 'complete', payload, signal, 'Không thể hoàn tất lượt đặt bàn.')
 
 export const cancelReservation = (id, payload = {}, signal) =>
-  runReservationAction(id, 'cancel', payload, signal, 'Không thể hủy lượt đặt bàn.')
+  cancelAndReleaseTables(id, payload, signal)
+
+const cancelAndReleaseTables = async (id, payload, signal) => {
+  const reservation = await runReservationAction(id, 'cancel', payload, signal, 'Không thể hủy lượt đặt bàn.')
+  await releaseTablesForReservation(id, signal)
+  return reservation
+}
 
 export const markReservationNoShow = (id, payload = {}, signal) =>
-  runReservationAction(id, 'no-show', payload, signal, 'Không thể đánh dấu khách không đến.')
+  noShowAndReleaseTables(id, payload, signal)
+
+const noShowAndReleaseTables = async (id, payload, signal) => {
+  const reservation = await runReservationAction(id, 'no-show', payload, signal, 'Không thể đánh dấu khách không đến.')
+  await releaseTablesForReservation(id, signal)
+  return reservation
+}
+
+const releaseTablesForReservation = async (reservationId, signal) => {
+  const { reservationTables } = await getReservationTables({ reservationId }, signal)
+  const activeTables = reservationTables.filter((item) => item.status === 'Active')
+  await Promise.all(activeTables.map((item) => releaseReservationTable(item._id, {}, signal)))
+}

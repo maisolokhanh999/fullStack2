@@ -47,12 +47,19 @@ export async function createReservationTable(payload, signal) {
   return unwrapEntity(response, 'reservationTable')
 }
 
-export const deleteReservationTable = (id, signal) =>
-  apiRequest(
+export const deleteReservationTable = async (id, signal) => {
+  const reservationTable = await getReservationTableById(id, signal)
+
+  if (reservationTable.status === 'Active') {
+    await releaseReservationTable(id, {}, signal)
+  }
+
+  return apiRequest(
     `/reservation-tables/${encodePathSegment(id, 'reservationTableId')}`,
     { auth: true, method: 'DELETE', signal },
     'Không thể xóa bàn khỏi lượt đặt.',
   )
+}
 
 const runReservationTableAction = async (id, action, payload, signal, fallbackMessage) => {
   const response = await apiRequest(
