@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { finalizeInvoice, getInvoiceById, getInvoices, payInvoice } from '../../services/invoiceService.js'
 import { createInvoiceDetail, getInvoiceDetailsByInvoice } from '../../services/invoiceDetailService.js'
 import { getDishes } from '../../services/dishService.js'
+import { getReservationTables } from '../../services/reservationTableService.js'
 import useAdminCollection from './useAdminCollection.js'
 import { AdminPanelError, AdminPanelLoading } from './AdminShared.jsx'
 import { formatMoney } from './adminUtils.js'
@@ -11,6 +12,7 @@ export default function InvoiceDetailsPanel() {
   const [id, setId] = useState('')
   const [invoice, setInvoice] = useState(null)
   const [details, setDetails] = useState([])
+  const [reservationTables, setReservationTables] = useState([])
   const [dishes, setDishes] = useState([])
   const [dishId, setDishId] = useState('')
   const [quantity, setQuantity] = useState(1)
@@ -26,12 +28,15 @@ export default function InvoiceDetailsPanel() {
   }, [])
 
   const loadInvoiceData = async (invoiceId) => {
-    const [invoiceData, detailData] = await Promise.all([
-      getInvoiceById(invoiceId),
+    const invoiceData = await getInvoiceById(invoiceId)
+    const reservationId = invoiceData.reservationId?._id || invoiceData.reservationId
+    const [detailData, tableData] = await Promise.all([
       getInvoiceDetailsByInvoice(invoiceId),
+      getReservationTables({ reservationId }),
     ])
     setInvoice(invoiceData)
     setDetails(detailData.invoiceDetails)
+    setReservationTables(tableData.reservationTables.map((entry) => entry.tableId))
   }
 
   const lookup = async (event) => {
@@ -108,11 +113,32 @@ export default function InvoiceDetailsPanel() {
     {lookupError && <p className="admin-row-error">{lookupError}</p>}
     {actionError && <p className="admin-row-error">{actionError}</p>}
     {invoice && <>
-      <dl className="admin-detail-list">
-        {[['Mã hóa đơn', invoice._id], ['Người thanh toán', invoice.payerName], ['Điện thoại', invoice.phoneNumber], ['Tổng tiền món', formatMoney(invoice.totalAmount)], ['Tiền cọc', formatMoney(invoice.depositAmount)], ['Còn phải trả', formatMoney(invoice.finalAmount)], ['Phương thức', invoice.paymentMethod], ['Trạng thái', invoice.status]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value ?? '—'}</dd></div>)}
-      </dl>
-      <h3>Món trong hóa đơn</h3>
-      {details.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Món</th><th>Đơn giá</th><th>Số lượng</th><th>Thành tiền</th></tr></thead><tbody>{details.map((detail) => <tr key={detail._id}><td>{detail.itemName}</td><td>{formatMoney(detail.unitPrice)}</td><td>{detail.quantity}</td><td>{formatMoney(detail.totalAmount)}</td></tr>)}</tbody></table></div> : <p>Chưa có món trong hóa đơn.</p>}
+      <div className="invoice-receipt" id="invoice-receipt">
+        <header className="invoice-receipt__header">
+          <strong>BÀN VIỆT</strong>
+          <span>{'Không gian Việt đương đại'}</span>
+          <span>{'Địa chỉ đang được cập nhật'}</span>
+          <h2>HÓA ĐƠN THANH TOÁN</h2>
+        </header>
+        <div className="invoice-receipt__meta">
+          <span>Số HĐ: <strong>{invoice._id}</strong></span>
+          <span>Ngày in: {new Date(invoice.paymentDate || invoice.createdAt).toLocaleString('vi-VN')}</span>
+          <span>Bàn: <strong>{reservationTables.map((table) => table?.tableNumber).filter(Boolean).join(', ') || '—'}</strong></span>
+          <span>Thu ngân: <strong>ADMIN</strong></span>
+          <span>Khách hàng: {invoice.payerName || '—'}</span>
+        </div>
+        <table className="invoice-receipt__items"><thead><tr><th>TÊN HÀNG</th><th>SL</th><th>ĐƠN GIÁ</th><th>THÀNH TIỀN</th></tr></thead><tbody>{details.map((detail) => <tr key={detail._id}><td>{detail.itemName}</td><td>{detail.quantity}</td><td>{formatMoney(detail.unitPrice)}</td><td>{formatMoney(detail.totalAmount)}</td></tr>)}</tbody></table>
+        {!details.length && <p className="invoice-receipt__empty">Chưa có món trong hóa đơn.</p>}
+        <div className="invoice-receipt__totals">
+          <span>TỔNG CỘNG <strong>{formatMoney(invoice.totalAmount)}</strong></span>
+          <span>TIỀN CỌC <strong>{formatMoney(invoice.depositAmount)}</strong></span>
+          <span className="invoice-receipt__grand-total">CÒN PHẢI TRẢ <strong>{formatMoney(invoice.finalAmount)}</strong></span>
+          <span>PHƯƠNG THỨC <strong>{invoice.paymentMethod}</strong></span>
+          {invoice.changeAmount > 0 && <span>TIỀN THỪA <strong>{formatMoney(invoice.changeAmount)}</strong></span>}
+        </div>
+        <footer>Cảm ơn quý khách. Hẹn gặp lại!</footer>
+      </div>
+      <div className="admin-action-row invoice-receipt-actions"><button type="button" className="admin-btn" onClick={() => window.print()}>In hóa đơn</button></div>
       {invoice.status === 'Pending' && <>
         <h3>Thêm món ăn</h3>
         <form className="admin-action-row" onSubmit={addDish}>
