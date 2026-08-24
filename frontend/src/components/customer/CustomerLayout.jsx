@@ -1,11 +1,18 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../AuthIcons.jsx'
 import { useAuth } from '../../hooks/useAuth.js'
 import { isAdminRole, isStaffRole } from '../../utils/roleNavigation.js'
 
 function CustomerLayout() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { user, endSession } = useAuth()
+
+  // "Hóa đơn của tôi" mở modal trên cùng route /restaurants thay vì có path
+  // riêng, nên NavLink mặc định (chỉ so khớp pathname, bỏ qua state/hash) sẽ
+  // luôn tô sáng cả "Nhà hàng" lẫn "Hóa đơn của tôi" cùng lúc. Tự tính active
+  // theo đúng ý nghĩa: có đang mở modal hóa đơn hay không.
+  const isInvoiceView = location.hash === '#my-invoices' || Boolean(location.state?.openInvoices)
 
   const logout = () => {
     endSession()
@@ -22,9 +29,20 @@ function CustomerLayout() {
           </NavLink>
 
           <nav className="site-nav" aria-label="Điều hướng chính">
-            <NavLink to="/restaurants">Nhà hàng</NavLink>
+            <NavLink
+              to="/restaurants"
+              className={({ isActive }) => (isActive && !isInvoiceView ? 'active' : undefined)}
+            >
+              Nhà hàng
+            </NavLink>
             <NavLink to="/bookings">Đặt bàn của tôi</NavLink>
-            <NavLink className="site-nav__invoice-button" to="/restaurants" state={{ openInvoices: true }}>Hóa đơn của tôi</NavLink>
+            <NavLink
+              className={() => (isInvoiceView ? 'site-nav__invoice-button active' : 'site-nav__invoice-button')}
+              to="/restaurants"
+              state={{ openInvoices: true }}
+            >
+              Hóa đơn của tôi
+            </NavLink>
             {isStaffRole(user?.role) && <NavLink to="/staff/check-in">Check-in</NavLink>}
             {isAdminRole(user?.role) && <NavLink to="/admin">Quản trị</NavLink>}
           </nav>
