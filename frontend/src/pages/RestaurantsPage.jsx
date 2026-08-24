@@ -7,24 +7,14 @@ import { useAuth } from '../hooks/useAuth.js'
 import { getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
 import { getInvoices } from '../services/invoiceService.js'
 import { getReservationTables } from '../services/reservationTableService.js'
-import { formatDateTime, formatMoney } from '../components/admin/adminUtils.js'
-
-const invoiceStatusLabels = {
-  Pending: 'Chờ thanh toán',
-  Finalized: 'Đã chốt',
-  Paid: 'Đã thanh toán',
-  Cancelled: 'Đã hủy',
-  Refunded: 'Đã hoàn tiền',
-}
-
-const reservationStatusLabels = {
-  Pending: 'Chờ xác nhận',
-  Confirmed: 'Đã xác nhận',
-  CheckedIn: 'Đã check-in',
-  Completed: 'Đã hoàn tất',
-  Cancelled: 'Đã hủy',
-  NoShow: 'Không đến',
-}
+import { cancelReservation } from '../services/reservationService.js'
+import {
+  INVOICE_STATUS_LABELS,
+  RESERVATION_STATUS_LABELS,
+  formatDateTime,
+  formatMoney,
+  labelFor,
+} from '../components/admin/adminUtils.js'
 
 function RestaurantsPage() {
   const location = useLocation()
@@ -35,7 +25,29 @@ function RestaurantsPage() {
   const [invoiceTables, setInvoiceTables] = useState({})
   const [invoiceError, setInvoiceError] = useState('')
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(true)
+  const [cancellingId, setCancellingId] = useState('')
+  const [cancelError, setCancelError] = useState('')
   const isInvoiceModalOpen = location.hash === '#my-invoices' || location.state?.openInvoices
+
+  const cancelBooking = async (invoice) => {
+    const reservation = invoice.reservationId
+    const reservationId = reservation?._id || reservation
+    if (!reservationId) return
+    if (!window.confirm(`Huỷ lượt đặt bàn ${reservation?.reservationCode || reservationId}?`)) return
+
+    setCancellingId(invoice._id)
+    setCancelError('')
+    try {
+      const updated = await cancelReservation(reservationId)
+      setInvoices((current) => current.map((item) => (item._id === invoice._id
+        ? { ...item, reservationId: { ...reservation, ...updated } }
+        : item)))
+    } catch (requestError) {
+      setCancelError(requestError.message)
+    } finally {
+      setCancellingId('')
+    }
+  }
 
   useEffect(() => {
     if (!user) return undefined
@@ -112,7 +124,7 @@ function RestaurantsPage() {
           <section className="invoice-group">
             <h3>Hóa đơn đã thanh toán</h3>
             {invoices.filter((invoice) => ['Paid', 'Refunded'].includes(invoice.status)).map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
-              <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{invoiceStatusLabels[invoice.status] || invoice.status}</span></div>
+              <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{labelFor(INVOICE_STATUS_LABELS, invoice.status)}</span></div>
               <p>{formatDateTime(invoice.paymentDate || invoice.createdAt)} · {invoice.paymentMethod}</p>
               <p>Bàn: {invoiceTables[invoice._id]?.tableNumber || 'Chưa có thông tin bàn'}</p>
               <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
@@ -123,13 +135,15 @@ function RestaurantsPage() {
           <section className="invoice-group">
             <h3>Hóa đơn chưa thanh toán</h3>
             {invoices.filter((invoice) => !['Paid', 'Refunded'].includes(invoice.status)).map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
-              <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{invoiceStatusLabels[invoice.status] || invoice.status}</span></div>
+              <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{labelFor(INVOICE_STATUS_LABELS, invoice.status)}</span></div>
               <p>{formatDateTime(invoice.createdAt)} · {invoice.paymentMethod}</p>
               <p>Bàn đã đặt: {invoiceTables[invoice._id]?.tableNumber || 'Chưa có thông tin bàn'}</p>
-              <p>Trạng thái bàn: {reservationStatusLabels[invoice.reservationId?.status] || 'Đang chờ cập nhật'}</p>
+              <p>Trạng thái bàn: {labelFor(RESERVATION_STATUS_LABELS, invoice.reservationId?.status)}</p>
               <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
               <div className="dashboard-invoice__total"><span>Tiền cọc: {formatMoney(invoice.depositAmount)}</span><strong>Còn phải trả: {formatMoney(invoice.finalAmount)}</strong></div>
+              {['Pending', 'Confirmed'].includes(invoice.reservationId?.status) && <button type="button" className="danger-text-button" disabled={cancellingId === invoice._id} onClick={() => cancelBooking(invoice)}>{cancellingId === invoice._id ? 'Đang huỷ...' : 'Huỷ đặt bàn'}</button>}
             </article>)}
+            {cancelError && <p className="dashboard-invoices__error">{cancelError}</p>}
             {!invoices.some((invoice) => !['Paid', 'Refunded'].includes(invoice.status)) && <p className="invoice-group__empty">Chưa có hóa đơn chưa thanh toán.</p>}
           </section>
         </section>

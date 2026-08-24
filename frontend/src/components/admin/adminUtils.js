@@ -11,7 +11,7 @@ export const RESERVATION_STATUS_LABELS = {
   Confirmed: 'Đã xác nhận',
   CheckedIn: 'Đã check-in',
   Completed: 'Hoàn tất',
-  Cancelled: 'Đã huỷ',
+  Cancelled: 'Đã hủy',
   NoShow: 'Không đến',
 }
 
@@ -25,7 +25,7 @@ export const INVOICE_STATUS_LABELS = {
   Pending: 'Chờ thanh toán',
   Finalized: 'Đã chốt',
   Paid: 'Đã thanh toán',
-  Cancelled: 'Đã huỷ',
+  Cancelled: 'Đã hủy',
   Refunded: 'Đã hoàn tiền',
 }
 
