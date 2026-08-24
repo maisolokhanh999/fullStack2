@@ -33,8 +33,26 @@ export async function getReservations(query = {}, signal) {
   return unwrapCollection(response, 'reservations')
 }
 
+// Số điện thoại được lưu ở hai dạng: đặt bàn tạo từ app lấy `user.phone` mà
+// User.phone là Number nên mất số 0 đầu ("909709537"), còn đặt bàn nhập trực
+// tiếp thì giữ nguyên chuỗi ("0909709537"). Backend lại so khớp tuyệt đối, nên
+// nhân viên gõ đúng số khách đọc vẫn có thể không ra kết quả. Thử cả hai dạng
+// cho tới khi backend thống nhất kiểu dữ liệu.
+const phoneVariants = (value) => {
+  if (!/^\d+$/.test(value)) return []
+  return value.startsWith('0') ? [value.replace(/^0+/, '')] : [`0${value}`]
+}
+
 export const searchReservations = async (query, signal) => {
-  const { reservations } = await getReservations({ query }, signal)
+  const searchValue = String(query).trim()
+  const { reservations } = await getReservations({ query: searchValue }, signal)
+  if (reservations.length) return reservations
+
+  for (const variant of phoneVariants(searchValue)) {
+    const fallback = await getReservations({ query: variant }, signal)
+    if (fallback.reservations.length) return fallback.reservations
+  }
+
   return reservations
 }
 

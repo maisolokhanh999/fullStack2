@@ -15,6 +15,12 @@ export const RESERVATION_STATUS_LABELS = {
   NoShow: 'Không đến',
 }
 
+export const USER_STATUS_LABELS = {
+  Active: 'Đang hoạt động',
+  Inactive: 'Chưa kích hoạt',
+  Blocked: 'Đã khóa',
+}
+
 export const INVOICE_STATUS_LABELS = {
   Pending: 'Chờ thanh toán',
   Finalized: 'Đã chốt',
