@@ -11,10 +11,11 @@ import {
   markNoShow,
   deleteReservation,
 } from "../contreller/reservationController/reservation.js";
+import { authMiddleware } from "../middlewares/authMiddleware/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/", createReservation);
+router.post("/", authMiddleware, createReservation);
 router.get("/", getReservations);
 router.get("/:id", getReservationById);
 router.put("/:id", updateReservation);

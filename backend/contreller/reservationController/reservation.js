@@ -1,4 +1,5 @@
 import Reservation from "../../model/reservation.js"; // chỉnh lại path cho đúng
+import Invoice from "../../model/invoice.js";
 import handleError from "../../middlewares/handleError/handleError.js";
 
 // @desc    Tạo đặt bàn mới
@@ -25,10 +26,24 @@ export const createReservation = async (req, res) => {
       note,
     });
 
+    const invoice = await Invoice.create({
+      reservationId: reservation._id,
+      userId: req.user._id,
+      payerName: customerName,
+      phoneNumber: customerPhone,
+      totalAmount: 0,
+      discountAmount: 0,
+      depositAmount,
+      finalAmount: 0,
+      paymentMethod: "BankTransfer",
+      status: "Pending",
+    });
+
     res.status(201).json({
       success: true,
       message: "Tạo đặt bàn thành công",
       data: reservation,
+      invoice,
     });
   } catch (error) {
     handleError(res, error);
