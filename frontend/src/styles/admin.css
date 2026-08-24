@@ -1,9 +1,7 @@
 .admin-app {
   min-height: 100svh;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 90% 12%, rgba(165, 129, 63, 0.14), transparent 25rem),
-    var(--bg);
+  background: var(--page-bg);
 }
 
 .admin-page {

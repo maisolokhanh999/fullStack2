@@ -4,6 +4,7 @@ import AdminDashboardPage from '../pages/AdminDashboardPage.jsx'
 import DashboardPage from '../pages/DashboardPage.jsx'
 import BookingPage from '../pages/BookingPage.jsx'
 import BookingsPage from '../pages/BookingsPage.jsx'
+import InvoicesPage from '../pages/InvoicesPage.jsx'
 import LoginPage from '../pages/LoginPage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
 import RegisterPage from '../pages/RegisterPage.jsx'
@@ -66,6 +67,7 @@ function AppRouter() {
           <Route path="/restaurants/:restaurantId" element={<RestaurantDetailPage />} />
           <Route path="/booking/:restaurantId" element={<BookingPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
+          <Route path="/invoices" element={<InvoicesPage />} />
         </Route>
         <Route element={<RoleRoute allowedRoles={['staff', 'admin']} />}>
           <Route path="/staff/check-in" element={<StaffCheckInPage />} />

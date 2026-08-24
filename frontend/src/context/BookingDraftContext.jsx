@@ -139,15 +139,21 @@ function bookingDraftReducer(state, action) {
   switch (action.type) {
     case 'SWITCH_OWNER':
       return { storageKey: action.storageKey, draft: action.draft }
-    case 'UPDATE_INFO':
+    case 'UPDATE_INFO': {
+      // Payload có thể là một hàm nhận bản nháp hiện tại, để những thao tác
+      // tăng/giảm liên tiếp không đọc phải giá trị cũ của lần render trước.
+      const patch =
+        typeof action.payload === 'function' ? action.payload(state.draft) : action.payload
+
       return {
         ...state,
         draft: {
           ...state.draft,
-          ...action.payload,
+          ...patch,
           updatedAt: new Date().toISOString(),
         },
       }
+    }
     case 'SET_ITEM_QUANTITY': {
       const { dish, quantity } = action.payload
       const dishId = getDishId(dish)

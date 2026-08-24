@@ -1,32 +1,36 @@
 .staff-app {
   min-height: 100svh;
   color: var(--ink);
-  background:
-    radial-gradient(circle at 90% 12%, rgba(165, 129, 63, 0.14), transparent 25rem),
-    var(--bg);
+  background: var(--page-bg);
 }
 
+/* Cùng một dải sơn mài như cổng khách, để ba cổng đọc ra cùng một sản phẩm */
 .staff-header {
-  border-bottom: 1px solid var(--line);
-  background: rgba(255, 253, 251, 0.88);
-  backdrop-filter: blur(18px);
+  position: relative;
+  z-index: 20;
+  color: var(--egg);
+  background: var(--lacquer-deep);
 }
 
 .staff-header__inner {
-  width: min(100% - 40px, 1180px);
-  min-height: 72px;
+  width: var(--shell);
+  min-height: 76px;
   display: flex;
   align-items: center;
-  gap: 23px;
+  gap: clamp(16px, 2vw, 28px);
   margin: 0 auto;
+}
+
+.staff-header .site-brand {
+  color: var(--egg);
 }
 
 .staff-portal-label {
   flex: 1;
-  color: var(--muted);
+  color: var(--gold-pale);
   font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -34,15 +38,18 @@
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(10px, 1.4vw, 18px);
 }
 
 .staff-header nav a {
   max-width: clamp(90px, 18vw, 180px);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   overflow: hidden;
-  color: var(--ink);
-  font-size: 12px;
-  font-weight: 700;
+  color: rgba(242, 234, 217, 0.72);
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -50,24 +57,26 @@
 }
 
 .staff-header nav a:hover {
-  color: var(--accent-dark);
+  color: var(--egg);
 }
 
 .staff-header nav button {
-  padding: 8px 11px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  color: var(--ink);
-  background: var(--surface);
+  min-height: 40px;
+  padding: 0 16px;
+  border: 1px solid rgba(176, 133, 68, 0.45);
+  border-radius: var(--radius-pill);
+  color: var(--egg);
+  background: transparent;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   transition: border-color 150ms ease, background 150ms ease;
 }
 
 .staff-header nav button:hover {
-  border-color: var(--accent-soft);
-  background: var(--accent-softer);
+  border-color: var(--gold-pale);
+  background: rgba(176, 133, 68, 0.18);
 }
 
 .staff-page {
@@ -201,7 +210,10 @@
   outline: 0;
   color: var(--ink);
   background: transparent;
+  /* Ô này chỉ nhận mã đặt bàn hoặc số điện thoại */
+  font-family: var(--font-data);
   font-size: 14px;
+  letter-spacing: -0.01em;
 }
 
 .checkin-search-card .customer-primary-button {

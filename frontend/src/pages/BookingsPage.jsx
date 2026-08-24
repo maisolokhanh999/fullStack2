@@ -17,7 +17,10 @@ function BookingsPage() {
         <div>
           <span className="customer-kicker">Lịch hẹn của bạn</span>
           <h1>Đặt bàn của tôi</h1>
-          <p>Các lượt đặt bàn và bàn đã chọn của bạn được lưu tại đây.</p>
+          <p>
+            Bản nháp đang soạn được giữ trên trình duyệt này. Lượt đã gửi đi nằm ở{' '}
+            <Link to="/invoices">Hoá đơn của tôi</Link>.
+          </p>
         </div>
         <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
           Tạo đặt bàn mới
@@ -52,11 +55,19 @@ function BookingsPage() {
       ) : (
         <section className="customer-empty-card">
           <span><UiIcon name="circle" /></span>
-          <h2>Bạn chưa có bản nháp nào</h2>
-          <p>Hãy chọn thời gian và số khách. Bạn không bắt buộc phải chọn món trước.</p>
-          <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
-            Bắt đầu đặt bàn
-          </Link>
+          <h2>Chưa có bản nháp nào đang soạn</h2>
+          <p>
+            Chọn thời gian và số khách để bắt đầu — không bắt buộc chọn món trước.
+            Những lượt bạn đã gửi đi được xem tại Hoá đơn của tôi.
+          </p>
+          <div className="customer-empty-card__actions">
+            <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
+              Bắt đầu đặt bàn
+            </Link>
+            <Link className="customer-secondary-link" to="/invoices">
+              Xem lượt đã đặt
+            </Link>
+          </div>
         </section>
       )}
     </main>

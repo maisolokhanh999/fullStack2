@@ -33,8 +33,9 @@ function RestaurantDetailPage() {
   }
 
   return (
-    <main className="customer-main">
+    <main>
       <section className="restaurant-detail-hero">
+        <div className="restaurant-detail-hero__inner">
         <div>
           <Link className="back-link" to="/restaurants">
             <UiIcon name="arrow-left" />
@@ -52,11 +53,16 @@ function RestaurantDetailPage() {
           Chọn thời gian và số khách
           <UiIcon name="arrow-right" />
         </Link>
+        </div>
       </section>
 
-      <DataSourceNotice />
+      <div className="landing-notice-band">
+        <div className="landing-notice-band__inner">
+          <DataSourceNotice />
+        </div>
+      </div>
 
-      <section className="menu-section" aria-labelledby="menu-heading">
+      <section className="menu-section customer-main" aria-labelledby="menu-heading">
         <div className="section-heading">
           <div>
             <span className="customer-kicker">Từ bếp Bàn Việt</span>

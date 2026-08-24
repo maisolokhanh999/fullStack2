@@ -1,41 +1,66 @@
 :root {
   --font-sans: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
-  --font-display: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
+  --font-display: 'Fraunces Variable', 'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-data: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
   font-family: var(--font-sans);
-  color: #2b211b;
-  background: #faf6f1;
+  color: #2a211c;
+  background: #f5efe3;
   font-synthesis: weight style;
   font-kerning: normal;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 
-  /* Warm minimalist palette — Bàn Việt premium */
-  --bg: #faf6f1;
-  --bg-alt: #f3ece2;
-  --surface: #fffdfb;
-  --surface-alt: #fbf6ef;
-  --ink: #2b211b;
-  --ink-strong: #1c140f;
-  --muted: #8a7a6c;
-  --muted-soft: #ab9d8f;
-  --line: #e8ded0;
-  --line-soft: #f0e8dc;
+  /* Bảng màu sơn mài — nền sơn mài, vỏ trứng, đỏ son, thếp vàng.
+     Các token thô ở đây là nguồn duy nhất; token ngữ nghĩa bên dưới trỏ vào. */
+  --lacquer: #241612;
+  --lacquer-deep: #160c0a;
+  --lacquer-mid: #33201a;
+  --son: #c8402f;
+  --son-deep: #a93122;
+  --sauce: #8a4b18;
+  --gold-leaf: #b08544;
+  --gold-pale: #d8b877;
+  --egg: #f2ead9;
+  --egg-bright: #fffdf7;
 
-  --accent: #b9542e;
-  --accent-dark: #98431f;
-  --accent-darker: #7a3418;
-  --accent-soft: #f4ddcc;
-  --accent-softer: #fbf0e6;
+  --bg: #f5efe3;
+  --bg-alt: #ece3d2;
+  --surface: #fffdf7;
+  --surface-alt: #faf4e8;
+  --ink: #2a211c;
+  --ink-strong: #160c0a;
+  --muted: #7a6a55;
+  --muted-soft: #a2937c;
+  --line: #e2d7c2;
+  --line-soft: #efe7d8;
 
-  --gold: #a5813f;
-  --gold-soft: #f1e6d0;
+  --accent: #c8402f;
+  --accent-dark: #a93122;
+  --accent-darker: #8a2a1d;
+  --accent-soft: #f2d9d2;
+  --accent-softer: #fbf0ec;
 
-  --success: #57794c;
-  --success-soft: #e7efe0;
-  --warning: #b07f2c;
-  --warning-soft: #faeed7;
-  --danger: #a23b2c;
-  --danger-soft: #f8e3dc;
+  --gold: #b08544;
+  --gold-soft: #f0e3c9;
+
+  --success: #4a7a55;
+  --success-soft: #e4efe5;
+  --warning: #a8752a;
+  --warning-soft: #f8eed8;
+  --danger: #a93122;
+  --danger-soft: #f7e0da;
+
+  /* Nền chung của mọi vỏ trang: khách, nhân viên, quản trị và tài khoản.
+     Trước đây mỗi vỏ tự pha một nền nên bốn trang ra bốn sắc khác nhau. */
+  --page-bg:
+    radial-gradient(circle at 8% 8%, rgba(176, 133, 68, 0.1), transparent 26rem),
+    linear-gradient(180deg, #fdfaf2 0%, #f1e9d9 100%);
+
+  /* Hệ khung dùng chung cho header, hero và mọi section.
+     Nội dung nằm trong --shell; lớp trang trí được phép chạy rộng hơn. */
+  --shell-max: 1560px;
+  --gutter: clamp(20px, 3.4vw, 64px);
+  --shell: min(100% - var(--gutter) * 2, var(--shell-max));
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -72,6 +97,11 @@ h1,
 h2,
 h3 {
   font-family: var(--font-display);
+  /* Trục WONK/SOFT của Fraunces cho nét hơi lệch như viết cọ. Thuộc tính này
+     bị bỏ qua với font tĩnh nên không ảnh hưởng phần chữ Be Vietnam Pro. */
+  font-variation-settings: 'SOFT' 40, 'WONK' 1, 'opsz' 96;
+  font-weight: 600;
+  letter-spacing: -0.018em;
   text-wrap: balance;
   word-break: normal;
 }
@@ -112,6 +142,6 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(185, 84, 46, 0.3);
+  outline: 3px solid rgba(176, 133, 68, 0.55);
   outline-offset: 2px;
 }

@@ -8,7 +8,7 @@
   overflow-y: auto;
   padding: 36px 24px;
   color: var(--ink);
-  background: var(--bg);
+  background: var(--page-bg);
 }
 
 .ambient {
@@ -16,11 +16,7 @@
   z-index: -1;
   inset: 0;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 18% 14%, rgba(185, 84, 46, 0.16), transparent 32%),
-    radial-gradient(circle at 84% 82%, rgba(165, 129, 63, 0.2), transparent 30%),
-    radial-gradient(circle at 60% 22%, rgba(255, 255, 255, 0.92), transparent 26%),
-    linear-gradient(145deg, #fbf7f1 0%, #f5ede1 54%, #f8f0e4 100%);
+  background: var(--page-bg);
 }
 
 .ambient::after {
@@ -29,8 +25,8 @@
   inset: 0;
   opacity: 0.4;
   background-image:
-    linear-gradient(115deg, transparent 0 46%, rgba(122, 52, 24, 0.035) 46.2% 46.4%, transparent 46.6%),
-    radial-gradient(circle at center, transparent 0 30%, rgba(122, 82, 52, 0.08) 100%);
+    linear-gradient(115deg, transparent 0 46%, rgba(176, 133, 68, 0.05) 46.2% 46.4%, transparent 46.6%),
+    radial-gradient(circle at center, transparent 0 30%, rgba(36, 22, 18, 0.07) 100%);
 }
 
 .ambient__glow {
@@ -45,7 +41,8 @@
   height: 440px;
   top: -180px;
   left: -90px;
-  background: #e3b89a;
+  background: var(--gold-leaf);
+  opacity: 0.12;
 }
 
 .ambient__glow--two {
@@ -53,13 +50,15 @@
   height: 380px;
   right: -100px;
   bottom: -190px;
-  background: #ead6b7;
-  opacity: 0.58;
+  background: var(--son);
+  opacity: 0.08;
 }
 
 .auth-shell {
+  --shell-pad: 34px;
   width: min(100%, 440px);
-  padding: 30px 34px 27px;
+  overflow: hidden;
+  padding: 0 var(--shell-pad) 27px;
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: var(--radius-xl);
   background: rgba(255, 253, 251, 0.92);
@@ -75,18 +74,25 @@
   width: min(100%, 690px);
 }
 
+/* Dải sơn mài — mảnh duy nhất neo trang tài khoản vào hướng thiết kế chung */
 .brand-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 20px;
+  margin: 0 calc(var(--shell-pad) * -1) 4px;
+  padding: 17px var(--shell-pad);
+  border-bottom: 1px solid rgba(176, 133, 68, 0.32);
+  background:
+    radial-gradient(circle at 88% 18%, rgba(176, 133, 68, 0.2), transparent 48%),
+    linear-gradient(158deg, var(--lacquer) 0%, var(--lacquer-deep) 100%);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
   gap: 10px;
-  color: var(--ink-strong);
+  color: var(--egg);
   text-decoration: none;
 }
 
@@ -107,7 +113,7 @@
 .api-tester-page {
   min-height: 100vh;
   padding: 32px 20px;
-  background: linear-gradient(135deg, #f7efe4 0%, #f8f0e6 100%);
+  background: var(--page-bg);
   color: var(--ink);
 }
 
@@ -284,7 +290,7 @@
 
 .success-box {
   background: var(--success-soft);
-  color: #2f4b28;
+  color: #35604a;
 }
 
 .warning-box {
@@ -304,8 +310,8 @@
   overflow: auto;
   white-space: pre-wrap;
   word-break: break-word;
-  background: #1c1410;
-  color: #f2e2d3;
+  background: var(--lacquer);
+  color: var(--egg);
   border-radius: var(--radius-md);
   padding: 16px;
   font-size: 12px;
@@ -344,10 +350,10 @@
 
 .portal-label {
   padding: 6px 9px;
-  border: 1px solid var(--line);
+  border: 1px solid rgba(176, 133, 68, 0.42);
   border-radius: var(--radius-pill);
-  color: var(--muted);
-  background: var(--surface-alt);
+  color: var(--gold-pale);
+  background: rgba(176, 133, 68, 0.14);
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
@@ -815,50 +821,12 @@
   overflow-wrap: anywhere;
 }
 
-.dashboard-invoices {
-  margin-top: 28px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
-  text-align: left;
-}
-
 .dashboard-topline {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
 }
-
-.dashboard-invoice-link {
-  color: var(--accent-dark);
-  font-size: 12px;
-  font-weight: 800;
-  text-decoration: none;
-}
-
-.dashboard-invoice-link:hover { text-decoration: underline; }
-
-.dashboard-invoices__heading,
-.dashboard-invoice__top,
-.dashboard-invoice__total {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.dashboard-invoices__heading h2 { margin: 4px 0 0; color: var(--ink-strong); font-size: 21px; }
-.dashboard-invoices__heading a { color: var(--accent-dark); font-size: 12px; font-weight: 700; }
-.dashboard-invoices__empty, .dashboard-invoices__error { color: var(--muted); font-size: 13px; }
-.dashboard-invoices__error { color: var(--danger); }
-.dashboard-invoice { margin-top: 14px; padding: 15px; border: 1px solid var(--line); background: var(--surface-alt); }
-.dashboard-invoice__top strong { color: var(--ink-strong); font-size: 13px; }
-.dashboard-invoice__top span { color: #2f4b28; font-size: 11px; font-weight: 800; }
-.dashboard-invoice > p { margin: 6px 0 12px; color: var(--muted); font-size: 11px; }
-.dashboard-invoice ul { display: grid; gap: 7px; margin: 0; padding: 0; list-style: none; font-size: 12px; }
-.dashboard-invoice li { display: flex; justify-content: space-between; gap: 16px; }
-.dashboard-invoice__total { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); color: var(--muted); font-size: 11px; }
-.dashboard-invoice__total strong { color: var(--ink-strong); font-size: 15px; }
 
 .status-dot {
   width: 7px;
@@ -973,7 +941,8 @@
   }
 
   .auth-shell {
-    padding: 25px 20px 23px;
+    --shell-pad: 20px;
+    padding: 0 var(--shell-pad) 23px;
     border-radius: 16px;
   }
 
@@ -1021,7 +990,7 @@
   }
 
   .auth-shell {
-    padding-block: 23px 21px;
+    padding-block: 0 21px;
   }
 
   .form-heading {

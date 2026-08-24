@@ -1,0 +1,907 @@
+/* Landing — hướng "sơn mài & mâm cơm".
+   Nền sơn mài nâu đen, vỏ trứng, đỏ son, thếp vàng.
+   Mọi thứ đặt dưới .landing để không tranh chấp với customer.css. */
+
+/* Bảng màu và bộ chữ sống ở index.css. Đây chỉ là tên gọi tắt cho trang này. */
+:root {
+  --bv-lacquer: var(--lacquer);
+  --bv-lacquer-deep: var(--lacquer-deep);
+  --bv-son: var(--son);
+  --bv-son-deep: var(--son-deep);
+  --bv-sauce: var(--sauce);
+  --bv-gold: var(--gold-leaf);
+  --bv-gold-soft: var(--gold-pale);
+  --bv-egg: var(--egg);
+  --bv-egg-bright: var(--egg-bright);
+  --bv-ink: var(--ink);
+  --bv-tea: var(--muted);
+
+  --bv-display: var(--font-display);
+  --bv-body: var(--font-sans);
+  --bv-data: var(--font-data);
+}
+
+/* ── Sân khấu sơn mài chạy hết bề ngang ──────────────────────
+   Header và hero dùng chung một nền, nên cả hai đọc thành một sân khấu
+   liền mạch. Mâm được phép tràn ra ngoài và bị khung cắt có chủ đích. */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--bv-egg);
+  background:
+    radial-gradient(circle at 14% 10%, rgba(176, 133, 68, 0.15), transparent 46%),
+    radial-gradient(circle at 8% 96%, rgba(200, 64, 47, 0.1), transparent 42%),
+    linear-gradient(168deg, var(--bv-lacquer) 0%, var(--bv-lacquer-deep) 100%);
+}
+
+.hero__inner {
+  width: var(--shell);
+  min-height: min(calc(100svh - 76px), 880px);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  align-items: center;
+  gap: clamp(24px, 2.6vw, 56px);
+  margin: 0 auto;
+  padding-block: clamp(44px, 6vh, 88px);
+}
+
+.hero__copy {
+  position: relative;
+  z-index: 2;
+  grid-column: 1 / span 5;
+}
+
+.hero__eyebrow {
+  display: block;
+  margin-bottom: clamp(14px, 1.6vh, 22px);
+  color: var(--bv-gold-soft);
+  font-family: var(--bv-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.hero__title {
+  margin: 0;
+  font-family: var(--bv-display);
+  font-size: clamp(2.9rem, 4.4vw, 5.1rem);
+  font-weight: 600;
+  font-variation-settings: 'SOFT' 40, 'WONK' 1, 'opsz' 144;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.hero__title span {
+  display: block;
+  color: var(--bv-gold-soft);
+}
+
+.hero__lede {
+  max-width: 42ch;
+  margin: clamp(18px, 2.4vh, 30px) 0 0;
+  color: rgba(242, 234, 217, 0.76);
+  font-family: var(--bv-body);
+  font-size: clamp(15px, 1.05vw, 18px);
+  line-height: 1.68;
+}
+
+/* Ba con số thật của nhà hàng, ngăn nhau bằng chỉ vàng */
+.hero__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: clamp(26px, 3.6vh, 46px) 0 0;
+}
+
+.hero__facts div {
+  padding: 0 clamp(16px, 1.4vw, 26px);
+  border-left: 1px solid rgba(176, 133, 68, 0.32);
+}
+
+.hero__facts div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.hero__facts dt {
+  color: rgba(242, 234, 217, 0.5);
+  font-family: var(--bv-body);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hero__facts dd {
+  margin: 8px 0 0;
+  color: var(--bv-gold-soft);
+  font-family: var(--bv-data);
+  font-size: clamp(15px, 1.1vw, 19px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+/* ── Mâm: vành khổng lồ, vòng chỗ ngồi, điều khiển ở tâm ─────── */
+
+.hero__stage {
+  position: relative;
+  grid-column: 7 / span 6;
+  display: grid;
+  place-items: center;
+  min-height: min(600px, 58vh);
+}
+
+/* Lớp không khí — to hơn khung hình để bị cắt ở mép */
+.hero__field {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  width: max(124%, 106vh);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.hero__ring {
+  fill: none;
+  stroke: rgba(176, 133, 68, 0.2);
+  stroke-width: 1;
+}
+
+.hero__ring--bright {
+  stroke: rgba(176, 133, 68, 0.5);
+  stroke-width: 1.6;
+}
+
+.hero__ring--faint {
+  stroke: rgba(176, 133, 68, 0.11);
+}
+
+.hero__seats {
+  grid-area: 1 / 1;
+  width: min(100%, 560px);
+  aspect-ratio: 1;
+  overflow: visible;
+}
+
+/* Mặt mâm: vòng sáng nhất trong khung, để chỗ ngồi đọc ra là mép bàn
+   chứ không lẫn vào các vành trang trí bên ngoài. */
+.hero__tray-face {
+  fill: rgba(58, 36, 28, 0.55);
+}
+
+.hero__seat-track {
+  fill: none;
+  stroke: rgba(176, 133, 68, 0.62);
+  stroke-width: 1.6;
+}
+
+.hero__seat {
+  transition: transform 420ms cubic-bezier(0.3, 0.8, 0.3, 1);
+  animation: bv-seat-in 240ms ease-out both;
+  animation-delay: calc(var(--seat-index) * 22ms);
+}
+
+.is-intro .hero__seat {
+  animation-duration: 420ms;
+  animation-delay: calc(var(--seat-index) * 52ms + 420ms);
+}
+
+.hero__seat-bowl {
+  fill: var(--bv-egg);
+  stroke: rgba(176, 133, 68, 0.55);
+  stroke-width: 0.9;
+}
+
+.hero__seat-rice {
+  fill: rgba(42, 33, 28, 0.16);
+}
+
+.hero__chopstick {
+  stroke: var(--bv-gold-soft);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+@keyframes bv-seat-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Bảng điều khiển ngồi đúng tâm mâm — chỗ bát nước mắm vẫn đặt */
+.hero__console {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 1.4vh, 16px);
+  width: min(100%, 300px);
+  text-align: center;
+}
+
+.hero__console-label {
+  color: rgba(242, 234, 217, 0.62);
+  font-family: var(--bv-body);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.hero__stepper {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 1.6vw, 20px);
+}
+
+.hero__stepper button {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(176, 133, 68, 0.45);
+  border-radius: 50%;
+  color: var(--bv-egg);
+  background: rgba(22, 12, 10, 0.55);
+  font-family: var(--bv-body);
+  font-size: 21px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.hero__stepper button:hover:not(:disabled) {
+  border-color: var(--bv-gold-soft);
+  background: rgba(176, 133, 68, 0.22);
+}
+
+/* Không chỉ mờ đi: viền và chữ cùng đổi để trạng thái đọc được rõ */
+.hero__stepper button:disabled {
+  border-color: rgba(176, 133, 68, 0.16);
+  color: rgba(242, 234, 217, 0.34);
+  background: transparent;
+  cursor: not-allowed;
+}
+
+.hero__stepper output {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
+  min-width: 118px;
+}
+
+.hero__stepper output strong {
+  font-family: var(--bv-data);
+  font-size: clamp(40px, 3.6vw, 56px);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.hero__stepper output span {
+  color: rgba(242, 234, 217, 0.6);
+  font-family: var(--bv-body);
+  font-size: 14px;
+}
+
+.hero__presets {
+  display: flex;
+  gap: 8px;
+}
+
+.hero__presets button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(176, 133, 68, 0.3);
+  border-radius: 999px;
+  color: rgba(242, 234, 217, 0.74);
+  background: transparent;
+  font-family: var(--bv-data);
+  font-size: 13px;
+  cursor: pointer;
+  transition: color 160ms ease, border-color 160ms ease, background-color 160ms ease;
+}
+
+.hero__presets button:hover {
+  color: var(--bv-egg);
+  border-color: var(--bv-gold-soft);
+}
+
+.hero__presets button.is-current {
+  color: var(--bv-lacquer-deep);
+  border-color: var(--bv-gold-soft);
+  background: var(--bv-gold-soft);
+  font-weight: 600;
+}
+
+.hero__seating-note {
+  max-width: 34ch;
+  margin: 0;
+  color: rgba(242, 234, 217, 0.58);
+  font-family: var(--bv-body);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.hero__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 52px;
+  margin-top: 2px;
+  padding: 0 30px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--bv-egg-bright);
+  background: var(--bv-son-deep);
+  font-family: var(--bv-body);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+}
+
+.hero__cta:hover {
+  background: var(--bv-son);
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(169, 49, 34, 0.42);
+}
+
+.hero__cta .ui-icon {
+  width: 17px;
+  height: 17px;
+}
+
+.hero :focus-visible {
+  outline: 2px solid var(--bv-gold-soft);
+  outline-offset: 3px;
+}
+
+/* Dải thông báo ngay dưới sân khấu, chạy hết bề ngang */
+.landing-notice-band {
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-alt);
+}
+
+.landing-notice-band__inner {
+  width: var(--shell);
+  margin: 0 auto;
+}
+
+.landing-notice-band .data-source-notice {
+  margin: 0;
+  padding: 14px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ── Tablet: bố cục riêng, không phải desktop thu nhỏ ────────── */
+
+@media (max-width: 1080px) {
+  .hero__inner {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 0;
+    gap: clamp(28px, 5vh, 52px);
+  }
+
+  .hero__copy {
+    grid-column: 1 / -1;
+    max-width: 42rem;
+  }
+
+  .hero__stage {
+    grid-column: 1 / -1;
+    min-height: 520px;
+  }
+
+  .hero__field {
+    width: max(150%, 720px);
+  }
+}
+
+/* ── Mobile: bảng điều khiển rời khỏi tâm mâm và xếp dọc ─────── */
+
+@media (max-width: 680px) {
+  .hero__stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+    min-height: 0;
+  }
+
+  .hero__seats {
+    width: min(78vw, 330px);
+  }
+
+  .hero__console {
+    width: 100%;
+    max-width: 340px;
+  }
+
+  .hero__field {
+    width: max(190%, 620px);
+  }
+
+  .hero__facts {
+    gap: 18px 26px;
+  }
+
+  .hero__facts div {
+    padding: 0;
+    border-left: 0;
+  }
+
+  .hero__cta {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__seat {
+    animation: none;
+    opacity: 1;
+    transition: none;
+  }
+
+  .hero__cta,
+  .hero__stepper button,
+  .hero__presets button {
+    transition: none;
+  }
+
+  .hero__cta:hover {
+    transform: none;
+  }
+}
+
+/* ── Phần dưới: nhà hàng ────────────────────────────────────── */
+
+.landing-eyebrow {
+  display: block;
+  margin-bottom: 14px;
+  color: var(--bv-gold-soft);
+  font-family: var(--bv-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.landing-section {
+  padding-top: 56px;
+}
+
+.landing-section__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(176, 133, 68, 0.32);
+}
+
+.landing-section__head h2 {
+  margin: 8px 0 0;
+  color: var(--bv-ink);
+  font-family: var(--bv-display);
+  font-size: clamp(26px, 3vw, 36px);
+  font-weight: 600;
+  font-variation-settings: 'SOFT' 40, 'WONK' 1, 'opsz' 72;
+  letter-spacing: -0.02em;
+}
+
+.landing-section__head > p {
+  max-width: 38ch;
+  margin: 0;
+  color: var(--bv-tea);
+  font-family: var(--bv-body);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.landing-eyebrow--dark {
+  color: var(--bv-son-deep);
+}
+
+.landing-card {
+  display: grid;
+  grid-template-columns: clamp(200px, 20vw, 320px) minmax(0, 1fr);
+  gap: 0;
+  margin-top: 26px;
+  overflow: hidden;
+  border: 1px solid rgba(42, 33, 28, 0.1);
+  border-radius: 22px;
+  background: var(--bv-egg-bright);
+}
+
+.landing-card__art {
+  display: grid;
+  place-items: center;
+  color: var(--bv-gold-soft);
+  background:
+    radial-gradient(circle at 50% 38%, rgba(176, 133, 68, 0.2), transparent 60%),
+    linear-gradient(160deg, var(--bv-lacquer) 0%, var(--bv-lacquer-deep) 100%);
+  font-family: var(--bv-display);
+  font-size: 40px;
+  font-weight: 600;
+  font-variation-settings: 'SOFT' 40, 'WONK' 1, 'opsz' 72;
+  letter-spacing: 0.04em;
+}
+
+.landing-card__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 32px;
+  padding: 30px 32px;
+}
+
+.landing-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--bv-tea);
+  font-family: var(--bv-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.landing-card__status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4a7a55;
+}
+
+.landing-card__text h3 {
+  margin: 12px 0 0;
+  color: var(--bv-ink);
+  font-family: var(--bv-display);
+  font-size: 28px;
+  font-weight: 600;
+  font-variation-settings: 'SOFT' 40, 'WONK' 1, 'opsz' 48;
+  letter-spacing: -0.015em;
+}
+
+.landing-card__text > p {
+  max-width: 52ch;
+  margin: 10px 0 0;
+  color: var(--bv-tea);
+  font-family: var(--bv-body);
+  font-size: 14px;
+  line-height: 1.68;
+}
+
+.landing-card__actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.landing-card__actions .landing-link {
+  justify-content: center;
+}
+
+.landing-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border: 1px solid var(--bv-lacquer);
+  border-radius: 999px;
+  color: var(--bv-egg-bright);
+  background: var(--bv-lacquer);
+  font-family: var(--bv-body);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background-color 170ms ease, color 170ms ease;
+}
+
+.landing-link:hover {
+  background: var(--bv-lacquer-deep);
+}
+
+.landing-link--quiet {
+  color: var(--bv-ink);
+  background: transparent;
+  border-color: rgba(42, 33, 28, 0.22);
+}
+
+.landing-link--quiet:hover {
+  background: rgba(176, 133, 68, 0.12);
+  border-color: var(--bv-gold);
+}
+
+.landing-link .ui-icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── Nền chung ──────────────────────────────────────────────── */
+
+.landing :focus-visible {
+  outline: 2px solid var(--bv-gold-soft);
+  outline-offset: 3px;
+}
+
+/* ── Responsive ─────────────────────────────────────────────── */
+
+@media (max-width: 940px) {
+  .landing-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .landing-card__art {
+    padding: 32px 0;
+  }
+
+  .landing-card__body {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: 22px;
+  }
+
+  .landing-card__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 560px) {
+  .landing-section__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .landing-card__body {
+    padding: 24px 20px;
+  }
+
+  .landing-card__actions .landing-link {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
+/* ── Trang hoá đơn ──────────────────────────────────────────── */
+
+.invoice-section {
+  margin-top: 38px;
+}
+
+.invoice-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 0 0 18px;
+  color: var(--bv-ink);
+  font-family: var(--bv-display);
+  font-size: 21px;
+  font-variation-settings: 'SOFT' 40, 'WONK' 1, 'opsz' 48;
+}
+
+/* Chỉ vàng kéo hết phần còn lại của dòng, thay cho một đường kẻ trang trí */
+.invoice-section h2::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(176, 133, 68, 0.34);
+}
+
+.invoice-section__empty {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px dashed rgba(176, 133, 68, 0.4);
+  border-radius: 14px;
+  color: var(--bv-tea);
+  font-size: 13px;
+}
+
+.invoice-section__error {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--accent-soft);
+  border-radius: 12px;
+  color: var(--accent-darker);
+  background: var(--accent-softer);
+  font-size: 13px;
+}
+
+.invoice-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+  gap: 18px;
+}
+
+.invoice-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 22px 24px;
+  border: 1px solid rgba(42, 33, 28, 0.1);
+  border-radius: 18px;
+  background: var(--bv-egg-bright);
+}
+
+.invoice-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.invoice-card__code {
+  display: block;
+  color: var(--bv-ink);
+  font-family: var(--bv-data);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.invoice-card__top p {
+  margin: 5px 0 0;
+  color: var(--bv-tea);
+  font-family: var(--bv-data);
+  font-size: 11px;
+}
+
+.invoice-badge {
+  flex: 0 0 auto;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.invoice-badge--open {
+  color: var(--accent-darker);
+  background: var(--accent-softer);
+}
+
+.invoice-badge--settled {
+  color: #35604a;
+  background: var(--success-soft);
+}
+
+.invoice-card__facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  margin: 0;
+  padding: 14px 0;
+  border-top: 1px solid rgba(176, 133, 68, 0.22);
+  border-bottom: 1px solid rgba(176, 133, 68, 0.22);
+}
+
+.invoice-card__facts div {
+  padding: 0 16px;
+  border-left: 1px solid rgba(176, 133, 68, 0.22);
+}
+
+.invoice-card__facts div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.invoice-card__facts dt {
+  color: var(--bv-tea);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.invoice-card__facts dd {
+  margin: 5px 0 0;
+  color: var(--bv-ink);
+  font-family: var(--bv-data);
+  font-size: 13px;
+}
+
+.invoice-card__items {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.invoice-card__items li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--bv-tea);
+}
+
+.invoice-card__items b {
+  color: var(--bv-ink);
+  font-family: var(--bv-data);
+}
+
+.invoice-card__items strong {
+  color: var(--bv-ink);
+  font-family: var(--bv-data);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.invoice-card__total {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid rgba(176, 133, 68, 0.22);
+  color: var(--bv-tea);
+  font-family: var(--bv-data);
+  font-size: 11px;
+}
+
+.invoice-card__total > div {
+  text-align: right;
+}
+
+.invoice-card__total strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--accent-darker);
+  font-family: var(--bv-data);
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+@media (max-width: 560px) {
+  .invoice-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .invoice-card {
+    padding: 20px;
+  }
+
+  .invoice-card__facts {
+    gap: 14px 22px;
+  }
+
+  .invoice-card__facts div {
+    padding: 0;
+    border-left: 0;
+  }
+}
+
+.invoice-card__no-items {
+  margin: 0;
+  color: var(--bv-tea);
+  font-size: 13px;
+  font-style: italic;
+}
+
+.invoice-card__stranded {
+  margin: 0;
+  padding: 11px 13px;
+  border: 1px solid rgba(168, 117, 42, 0.34);
+  border-radius: 10px;
+  color: var(--warning);
+  background: var(--warning-soft);
+  font-size: 12px;
+  line-height: 1.55;
+}
