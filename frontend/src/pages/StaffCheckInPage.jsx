@@ -4,13 +4,15 @@ import { BrandMark } from '../components/AuthIcons.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { checkInReservation, searchReservations } from '../services/reservationService.js'
+import { getReservationTables } from '../services/reservationTableService.js'
 import { formatDateTime, formatMoney } from '../components/admin/adminUtils.js'
 
 function StaffCheckInPage() {
   const navigate = useNavigate()
   const { user, endSession } = useAuth()
   const [query, setQuery] = useState('')
-  const [reservation, setReservation] = useState(null)
+  const [reservations, setReservations] = useState([])
+  const [reservationTables, setReservationTables] = useState({})
   const [error, setError] = useState('')
   const [isSearching, setIsSearching] = useState(false)
   const [isCheckingIn, setIsCheckingIn] = useState(false)
@@ -27,13 +29,21 @@ function StaffCheckInPage() {
 
     setIsSearching(true)
     setError('')
-    setReservation(null)
+    setReservations([])
+    setReservationTables({})
     try {
       const results = await searchReservations(searchValue)
       if (!results.length) {
         setError('Không tìm thấy đặt bàn với thông tin này.')
       } else {
-        setReservation(results[0])
+        const tableEntries = await Promise.all(results.map(async (reservation) => {
+          const { reservationTables: assignedTables } = await getReservationTables(
+            { reservationId: reservation._id },
+          )
+          return [reservation._id, assignedTables.map((assignment) => assignment.tableId)]
+        }))
+        setReservations(results)
+        setReservationTables(Object.fromEntries(tableEntries))
       }
     } catch (requestError) {
       setError(requestError.message)
@@ -42,13 +52,14 @@ function StaffCheckInPage() {
     }
   }
 
-  const checkIn = async () => {
-    if (!reservation) return
+  const checkIn = async (reservationId) => {
+    if (!reservationId) return
 
     setIsCheckingIn(true)
     setError('')
     try {
-      setReservation(await checkInReservation(reservation._id))
+      const updatedReservation = await checkInReservation(reservationId)
+      setReservations((current) => current.map((item) => item._id === reservationId ? updatedReservation : item))
     } catch (requestError) {
       setError(requestError.message)
     } finally {
@@ -117,13 +128,14 @@ function StaffCheckInPage() {
           </form>
 
           {error && <p className="staff-local-note" role="alert">{error}</p>}
-          {reservation && <div className="staff-local-note" role="status">
+          {reservations.map((reservation) => <div className="staff-local-note" role="status" key={reservation._id}>
             <strong>{reservation.customerName}</strong>
             <p>Mã: {reservation.reservationCode || reservation._id}</p>
             <p>{formatDateTime(reservation.expectedCheckInTime)} · {reservation.numberOfGuests} khách · Cọc {formatMoney(reservation.depositAmount)}</p>
+            <p>Bàn chờ check: {(reservationTables[reservation._id] || []).map((table) => `Bàn ${table?.tableNumber || table?._id}`).join(', ') || 'Chưa gán bàn'}</p>
             <p>Trạng thái: {reservation.status}</p>
-            {['Pending', 'Confirmed'].includes(reservation.status) && <button className="customer-primary-button" type="button" onClick={checkIn} disabled={isCheckingIn}>{isCheckingIn ? 'Đang check-in...' : 'Xác nhận check-in'}</button>}
-          </div>}
+            {['Pending', 'Confirmed'].includes(reservation.status) && <button className="customer-primary-button" type="button" onClick={() => checkIn(reservation._id)} disabled={isCheckingIn}>{isCheckingIn ? 'Đang check-in...' : 'Xác nhận check-in'}</button>}
+          </div>)}
         </div>
 
         <aside className="checkin-guide">
