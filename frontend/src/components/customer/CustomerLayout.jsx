@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../AuthIcons.jsx'
 import { useAuth } from '../../hooks/useAuth.js'
+import { DEFAULT_RESTAURANT } from '../../config/restaurant.js'
 import { isAdminRole, isStaffRole } from '../../utils/roleNavigation.js'
 
 function CustomerLayout() {
@@ -59,8 +60,28 @@ function CustomerLayout() {
       <Outlet />
 
       <footer className="site-footer">
-        <span>Bàn Việt</span>
-        <p>Đặt bàn trước, tận hưởng trọn vẹn khi đến nơi.</p>
+        <div className="site-footer__grid">
+          <div className="site-footer__brand">
+            <span className="site-footer__logo"><BrandMark />Bàn Việt</span>
+            <p>Đặt bàn trước, tận hưởng trọn vẹn khi đến nơi.</p>
+          </div>
+
+          <nav className="site-footer__col" aria-label="Khám phá">
+            <span>Khám phá</span>
+            <NavLink to="/restaurants">Nhà hàng</NavLink>
+            <NavLink to="/bookings">Đặt bàn của tôi</NavLink>
+            <NavLink to="/restaurants" state={{ openInvoices: true }}>Hóa đơn của tôi</NavLink>
+          </nav>
+
+          <div className="site-footer__col">
+            <span>Thông tin</span>
+            <p>Giờ phục vụ: {DEFAULT_RESTAURANT.hours}</p>
+            <p>Địa chỉ: {DEFAULT_RESTAURANT.address}</p>
+          </div>
+        </div>
+        <div className="site-footer__bottom">
+          <p>© {new Date().getFullYear()} Bàn Việt. Mọi thông tin trên trang chỉ mang tính minh hoạ cho bản dùng thử.</p>
+        </div>
       </footer>
     </div>
   )

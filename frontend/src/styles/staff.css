@@ -13,7 +13,7 @@
 }
 
 .staff-header__inner {
-  width: min(100% - 40px, 1180px);
+  width: min(100% - 40px, 1320px);
   min-height: 72px;
   display: flex;
   align-items: center;
@@ -272,7 +272,7 @@
 
 @media (max-width: 760px) {
   .staff-header__inner {
-    width: min(100% - 24px, 1180px);
+    width: min(100% - 24px, 1320px);
   }
 
   .staff-portal-label {

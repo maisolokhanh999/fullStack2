@@ -16,6 +16,51 @@ import {
   labelFor,
 } from '../components/admin/adminUtils.js'
 
+const whyUsItems = [
+  {
+    icon: 'clock',
+    title: 'Đặt bàn trong vài bước',
+    description: 'Chọn thời gian và số khách nhanh chóng ngay trên web, không cần gọi điện chờ đợi.',
+  },
+  {
+    icon: 'check',
+    title: 'Giữ bàn bằng đặt cọc',
+    description: 'Đặt cọc để giữ chỗ chắc chắn, hạn chế mất bàn vào khung giờ đông khách.',
+  },
+  {
+    icon: 'star',
+    title: 'Thực đơn chọn trước',
+    description: 'Xem giá và chọn món yêu thích ngay lúc đặt bàn nếu muốn, hoặc chọn trực tiếp khi đến.',
+  },
+  {
+    icon: 'info',
+    title: 'Theo dõi minh bạch',
+    description: 'Xem lại lịch sử đặt bàn, hoá đơn và huỷ lịch dễ dàng trong mục "Hóa đơn của tôi".',
+  },
+]
+
+const faqItems = [
+  {
+    question: 'Đặt bàn có mất phí không?',
+    answer:
+      'Một số khung giờ yêu cầu đặt cọc giữ chỗ. Số tiền hiển thị ở bước xem lại chỉ là ước tính; nhà hàng sẽ xác nhận số tiền chính thức.',
+  },
+  {
+    question: 'Tôi có bắt buộc chọn món trước không?',
+    answer: 'Không. Bạn có thể chỉ đặt bàn và chọn món trực tiếp khi đến nhà hàng.',
+  },
+  {
+    question: 'Tôi có thể huỷ đặt bàn đã gửi không?',
+    answer:
+      'Có. Vào mục "Hóa đơn của tôi" để xem và huỷ các lượt đặt còn ở trạng thái chờ xác nhận hoặc đã xác nhận.',
+  },
+  {
+    question: 'Thanh toán như thế nào?',
+    answer:
+      'Thanh toán được ghi nhận trực tiếp tại nhà hàng; trạng thái hoá đơn sẽ cập nhật ngay sau khi hoàn tất.',
+  },
+]
+
 function RestaurantsPage() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -189,6 +234,41 @@ function RestaurantsPage() {
             </div>
           </div>
         </article>
+      </section>
+
+      <section className="why-us-section" aria-labelledby="why-us-heading">
+        <div className="section-heading">
+          <div>
+            <span className="customer-kicker">Vì sao chọn Bàn Việt</span>
+            <h2 id="why-us-heading">Đặt bàn nhẹ nhàng, đến nơi là dùng bữa</h2>
+          </div>
+        </div>
+        <div className="why-us-grid">
+          {whyUsItems.map((item) => (
+            <article className="why-us-card" key={item.title}>
+              <span className="why-us-card__icon"><UiIcon name={item.icon} /></span>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="faq-section" aria-labelledby="faq-heading">
+        <div className="section-heading">
+          <div>
+            <span className="customer-kicker">Giải đáp</span>
+            <h2 id="faq-heading">Câu hỏi thường gặp</h2>
+          </div>
+        </div>
+        <div className="faq-list">
+          {faqItems.map((item) => (
+            <details className="faq-item" key={item.question}>
+              <summary>{item.question}</summary>
+              <p>{item.answer}</p>
+            </details>
+          ))}
+        </div>
       </section>
     </main>
   )
