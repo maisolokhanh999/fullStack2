@@ -1,3 +1,4 @@
+import { Suspense, lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminDashboardPage from '../pages/AdminDashboardPage.jsx'
 import DashboardPage from '../pages/DashboardPage.jsx'
@@ -9,12 +10,17 @@ import RegisterPage from '../pages/RegisterPage.jsx'
 import RestaurantDetailPage from '../pages/RestaurantDetailPage.jsx'
 import RestaurantsPage from '../pages/RestaurantsPage.jsx'
 import StaffCheckInPage from '../pages/StaffCheckInPage.jsx'
-import ApiTesterPage from '../pages/ApiTesterPage.jsx'
 import CustomerLayout from '../components/customer/CustomerLayout.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { getLandingPath } from '../utils/roleNavigation.js'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import RoleRoute from './RoleRoute.jsx'
+
+// Dev-only tool: kept out of production builds entirely (route + bundled code),
+// vì trang này cho gọi mọi endpoint và chứa credential mẫu.
+const ApiTesterPage = import.meta.env.DEV
+  ? lazy(() => import('../pages/ApiTesterPage.jsx'))
+  : null
 
 function RootRoute() {
   const { user, isLoading, sessionExpired } = useAuth()
@@ -43,7 +49,16 @@ function AppRouter() {
       <Route path="/" element={<RootRoute />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
-      <Route path="/api-tester" element={<ApiTesterPage />} />
+      {ApiTesterPage && (
+        <Route
+          path="/api-tester"
+          element={(
+            <Suspense fallback={null}>
+              <ApiTesterPage />
+            </Suspense>
+          )}
+        />
+      )}
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route element={<CustomerLayout />}>

@@ -7,7 +7,7 @@ import { DEFAULT_RESTAURANT, isDefaultRestaurant } from '../config/restaurant.js
 import { useBookingDraft } from '../context/bookingDraftStore.js'
 import { useDishes } from '../hooks/useDishes.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { createReservation } from '../services/reservationService.js'
+import { cancelReservation, createReservation } from '../services/reservationService.js'
 import { createReservationTable } from '../services/reservationTableService.js'
 import { getTables } from '../services/tableService.js'
 import {
@@ -167,8 +167,10 @@ function BookingPage() {
     setIsSubmitting(true)
     setSubmitError('')
 
+    let reservation
+
     try {
-      const reservation = await createReservation({
+      reservation = await createReservation({
         customerName: user.name,
         customerPhone: user.phone,
         numberOfGuests: draft.guests,
@@ -181,17 +183,41 @@ function BookingPage() {
           quantity: item.quantity,
         })),
       })
+    } catch (requestError) {
+      setSubmitError(requestError.message)
+      setIsSubmitting(false)
+      return
+    }
+
+    // Bàn có thể bị người khác giữ mất giữa hai bước. Nếu gán bàn thất bại thì
+    // huỷ luôn lượt vừa tạo để không để lại đặt bàn không có bàn.
+    try {
       await createReservationTable({
         reservationId: reservation._id,
         tableId: draft.tableId,
       })
-      clearDraft()
-      navigate('/bookings', { replace: true, state: { reservationSubmitted: true } })
     } catch (requestError) {
-      setSubmitError(requestError.message)
-    } finally {
+      const bookingCode = reservation.reservationCode || reservation._id
+
+      try {
+        await cancelReservation(reservation._id)
+        setSubmitError(
+          `${requestError.message} Yêu cầu đặt bàn đã được huỷ, bạn hãy chọn bàn khác và thử lại.`,
+        )
+      } catch {
+        setSubmitError(
+          `${requestError.message} Lượt đặt bàn ${bookingCode} đã được tạo nhưng chưa gán được bàn. `
+          + 'Vui lòng liên hệ nhà hàng với mã này, đừng gửi lại yêu cầu mới.',
+        )
+      }
+
       setIsSubmitting(false)
+      return
     }
+
+    clearDraft()
+    setIsSubmitting(false)
+    navigate('/bookings', { replace: true, state: { reservationSubmitted: true } })
   }
 
   return (
@@ -441,6 +467,12 @@ function BookingPage() {
                   </ul>
                 ) : (
                   <p className="review-empty">Không chọn món trước. Bạn vẫn có thể đặt bàn.</p>
+                )}
+                {draft.items.length > 0 && (
+                  <p className="review-empty">
+                    Danh sách món này hiện chỉ dùng để tạm tính khoản cọc và chưa được gửi xuống bếp.
+                    Bạn vui lòng xác nhận lại món với nhân viên khi đến nhà hàng.
+                  </p>
                 )}
               </div>
             </div>
