@@ -109,7 +109,7 @@ function RestaurantsPage() {
           {invoiceError && <p className="dashboard-invoices__error">{invoiceError}</p>}
           {isInvoiceLoading && <p className="dashboard-invoices__empty">Đang tải hóa đơn...</p>}
           {!isInvoiceLoading && !invoiceError && !invoices.length && <p className="dashboard-invoices__empty">Chưa có hóa đơn nào.</p>}
-          {['Paid', 'Refunded'].some((status) => invoices.some((invoice) => invoice.status === status)) && <section className="invoice-group">
+          <section className="invoice-group">
             <h3>Hóa đơn đã thanh toán</h3>
             {invoices.filter((invoice) => ['Paid', 'Refunded'].includes(invoice.status)).map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
               <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{invoiceStatusLabels[invoice.status] || invoice.status}</span></div>
@@ -118,8 +118,9 @@ function RestaurantsPage() {
               <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
               <div className="dashboard-invoice__total"><span>Tiền cọc: {formatMoney(invoice.depositAmount)}</span><strong>{formatMoney(invoice.finalAmount)}</strong></div>
             </article>)}
-          </section>}
-          {invoices.some((invoice) => !['Paid', 'Refunded'].includes(invoice.status)) && <section className="invoice-group">
+            {!invoices.some((invoice) => ['Paid', 'Refunded'].includes(invoice.status)) && <p className="invoice-group__empty">Chưa có hóa đơn đã thanh toán.</p>}
+          </section>
+          <section className="invoice-group">
             <h3>Hóa đơn chưa thanh toán</h3>
             {invoices.filter((invoice) => !['Paid', 'Refunded'].includes(invoice.status)).map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
               <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{invoiceStatusLabels[invoice.status] || invoice.status}</span></div>
@@ -129,7 +130,8 @@ function RestaurantsPage() {
               <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
               <div className="dashboard-invoice__total"><span>Tiền cọc: {formatMoney(invoice.depositAmount)}</span><strong>Còn phải trả: {formatMoney(invoice.finalAmount)}</strong></div>
             </article>)}
-          </section>}
+            {!invoices.some((invoice) => !['Paid', 'Refunded'].includes(invoice.status)) && <p className="invoice-group__empty">Chưa có hóa đơn chưa thanh toán.</p>}
+          </section>
         </section>
       </div>}
 

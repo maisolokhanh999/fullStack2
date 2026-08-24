@@ -33,16 +33,19 @@ function StaffCheckInPage() {
     setReservationTables({})
     try {
       const results = await searchReservations(searchValue)
-      if (!results.length) {
-        setError('Không tìm thấy đặt bàn với thông tin này.')
+      const pendingResults = results.filter((reservation) =>
+        ['Pending', 'Confirmed'].includes(reservation.status),
+      )
+      if (!pendingResults.length) {
+        setError('Không tìm thấy đặt bàn đang chờ check-in với thông tin này.')
       } else {
-        const tableEntries = await Promise.all(results.map(async (reservation) => {
+        const tableEntries = await Promise.all(pendingResults.map(async (reservation) => {
           const { reservationTables: assignedTables } = await getReservationTables(
             { reservationId: reservation._id },
           )
           return [reservation._id, assignedTables.map((assignment) => assignment.tableId)]
         }))
-        setReservations(results)
+        setReservations(pendingResults)
         setReservationTables(Object.fromEntries(tableEntries))
       }
     } catch (requestError) {

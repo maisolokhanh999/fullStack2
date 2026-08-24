@@ -176,6 +176,10 @@ function BookingPage() {
         reservationType: 'Online',
         note: draft.note,
         depositAmount: estimate.estimatedDeposit,
+        preorderItems: draft.items.map((item) => ({
+          dishId: item.dishId,
+          quantity: item.quantity,
+        })),
       })
       await createReservationTable({
         reservationId: reservation._id,

@@ -97,6 +97,7 @@
 
 .invoice-group + .invoice-group { margin-top: 26px; }
 .invoice-group h3 { margin: 0 0 12px; color: var(--ink-strong); font-size: 16px; }
+.invoice-group__empty { margin: 0; padding: 14px; border: 1px dashed var(--line); color: var(--muted); font-size: 12px; }
 
 .site-account {
   display: flex;

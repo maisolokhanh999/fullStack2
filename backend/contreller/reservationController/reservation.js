@@ -1,5 +1,7 @@
 import Reservation from "../../model/reservation.js"; // chỉnh lại path cho đúng
 import Invoice from "../../model/invoice.js";
+import InvoiceDetail from "../../model/invoiceDetail.js";
+import Dish from "../../model/dish.js";
 import ReservationTable from "../../model/reservationTable.js";
 import Table from "../../model/table.js";
 import handleError from "../../middlewares/handleError/handleError.js";
@@ -62,6 +64,7 @@ export const createReservation = async (req, res) => {
       customerPhone,
       numberOfGuests,
       depositAmount = 0,
+      preorderItems = [],
       expectedCheckInTime,
       reservationType,
       note,
@@ -89,6 +92,30 @@ export const createReservation = async (req, res) => {
       paymentMethod: "BankTransfer",
       status: "Pending",
     });
+
+    if (Array.isArray(preorderItems) && preorderItems.length > 0) {
+      const dishIds = preorderItems.map((item) => item.dishId).filter(Boolean);
+      const dishes = await Dish.find({ _id: { $in: dishIds } });
+      const dishMap = new Map(dishes.map((dish) => [dish._id.toString(), dish]));
+      const detailDocs = preorderItems.map((item) => {
+        const dish = dishMap.get(String(item.dishId));
+        const quantity = Math.max(1, Math.min(99, Math.round(Number(item.quantity) || 1)));
+        if (!dish) throw new Error(`Món ăn với id ${item.dishId} không tồn tại`);
+        return {
+          invoiceId: invoice._id,
+          dishId: dish._id,
+          itemName: dish.name,
+          unitPrice: dish.price,
+          quantity,
+          totalAmount: dish.price * quantity,
+        };
+      });
+      await InvoiceDetail.insertMany(detailDocs);
+      const totalAmount = detailDocs.reduce((sum, item) => sum + item.totalAmount, 0);
+      invoice.totalAmount = totalAmount;
+      invoice.finalAmount = Math.max(totalAmount - depositAmount, 0);
+      await invoice.save();
+    }
 
     res.status(201).json({
       success: true,
