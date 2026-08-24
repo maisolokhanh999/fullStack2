@@ -20,6 +20,12 @@ const reservationSchema = new mongoose.Schema(
       min: 1,
     },
 
+    depositAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     expectedCheckInTime: {
       type: Date,
       required: [true, "Expected check-in time is required"],

@@ -38,6 +38,12 @@ const invoiceSchema = new mongoose.Schema(
       min: 0,
     },
 
+    depositAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     finalAmount: {
       type: Number,
       required: true,

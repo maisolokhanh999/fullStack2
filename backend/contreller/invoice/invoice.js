@@ -13,6 +13,7 @@ export const createInvoice = async (req, res) => {
       phoneNumber,
       totalAmount,
       discountAmount = 0,
+      depositAmount,
       paymentMethod,
       cashReceived = 0,
       status,
@@ -39,6 +40,8 @@ export const createInvoice = async (req, res) => {
       });
     }
 
+    const invoiceDeposit = depositAmount ?? reservation.depositAmount ?? 0;
+
     if (discountAmount > totalAmount) {
       return res.status(400).json({
         success: false,
@@ -46,7 +49,14 @@ export const createInvoice = async (req, res) => {
       });
     }
 
-    const finalAmount = totalAmount - discountAmount;
+    if (invoiceDeposit > totalAmount - discountAmount) {
+      return res.status(400).json({
+        success: false,
+        message: "Số tiền cọc không thể lớn hơn số tiền sau giảm giá",
+      });
+    }
+
+    const finalAmount = totalAmount - discountAmount - invoiceDeposit;
 
     let changeAmount = 0;
     if (paymentMethod === "Cash") {
@@ -66,6 +76,7 @@ export const createInvoice = async (req, res) => {
       phoneNumber,
       totalAmount,
       discountAmount,
+      depositAmount: invoiceDeposit,
       finalAmount,
       paymentMethod,
       cashReceived,
@@ -167,12 +178,14 @@ export const updateInvoice = async (req, res) => {
       phoneNumber,
       totalAmount,
       discountAmount,
+      depositAmount,
       paymentMethod,
       cashReceived,
     } = req.body;
 
     const newTotal = totalAmount ?? invoice.totalAmount;
     const newDiscount = discountAmount ?? invoice.discountAmount;
+    const newDeposit = depositAmount ?? invoice.depositAmount ?? 0;
     const newMethod = paymentMethod ?? invoice.paymentMethod;
     const newCashReceived = cashReceived ?? invoice.cashReceived;
 
@@ -183,7 +196,14 @@ export const updateInvoice = async (req, res) => {
       });
     }
 
-    const newFinal = newTotal - newDiscount;
+    if (newDeposit > newTotal - newDiscount) {
+      return res.status(400).json({
+        success: false,
+        message: "Số tiền cọc không thể lớn hơn số tiền sau giảm giá",
+      });
+    }
+
+    const newFinal = newTotal - newDiscount - newDeposit;
 
     let newChange = 0;
     if (newMethod === "Cash") {
@@ -200,6 +220,7 @@ export const updateInvoice = async (req, res) => {
     if (phoneNumber !== undefined) invoice.phoneNumber = phoneNumber;
     invoice.totalAmount = newTotal;
     invoice.discountAmount = newDiscount;
+    invoice.depositAmount = newDeposit;
     invoice.finalAmount = newFinal;
     invoice.paymentMethod = newMethod;
     invoice.cashReceived = newCashReceived;
