@@ -1,5 +1,7 @@
 import Invoice from "../../model/invoice.js"; // chỉnh lại path cho đúng
 import Reservation from "../../model/reservation.js";
+import ReservationTable from "../../model/reservationTable.js";
+import Table from "../../model/table.js";
 import handleError from "../../middlewares/handleError/handleError.js";
 
 // @desc    Tạo hoá đơn mới
@@ -274,6 +276,23 @@ export const payInvoice = async (req, res) => {
     invoice.changeAmount = paymentMethod === "Cash" ? cashReceived - invoice.finalAmount : 0;
     invoice.paymentDate = new Date();
     await invoice.save();
+
+    const assignedTables = await ReservationTable.find({
+      reservationId: invoice.reservationId,
+      status: "Active",
+    }).select("tableId");
+    const tableIds = assignedTables.map((assignment) => assignment.tableId);
+
+    if (tableIds.length > 0) {
+      await ReservationTable.updateMany(
+        { reservationId: invoice.reservationId, status: "Active" },
+        { status: "Inactive" }
+      );
+      await Table.updateMany(
+        { _id: { $in: tableIds } },
+        { status: "Available" }
+      );
+    }
 
     res.status(200).json({
       success: true,
