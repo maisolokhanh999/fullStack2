@@ -3,17 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../components/AuthIcons.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import UsersPanel from '../components/admin/UsersPanel.jsx'
-import ReservationsPanel from '../components/admin/ReservationsPanel.jsx'
-import InvoicesPanel from '../components/admin/InvoicesPanel.jsx'
+import OperationsPanel from '../components/admin/OperationsPanel.jsx'
 import AdminResourcePanel from '../components/admin/AdminResourcePanel.jsx'
-import InvoiceDetailsPanel from '../components/admin/InvoiceDetailsPanel.jsx'
 import { getCategories, createCategory, updateCategory, deleteCategory } from '../services/categoryService.js'
 import { getDishes, createDish, updateDish, deleteDish, restoreDish } from '../services/dishService.js'
 import { getMenus, createMenu, updateMenu, deleteMenu, restoreMenu } from '../services/menuService.js'
 import { getTables, createTable, updateTable, deleteTable } from '../services/tableService.js'
 import { getReservationTables, deleteReservationTable } from '../services/reservationTableService.js'
 
-const tabs = [['users', 'Người dùng'], ['categories', 'Danh mục'], ['dishes', 'Món ăn'], ['menus', 'Thực đơn'], ['tables', 'Bàn'], ['reservations', 'Đặt bàn'], ['reservation-tables', 'Bàn đã gán'], ['invoices', 'Hóa đơn']]
 const resources = {
   categories: { title: 'danh mục', key: 'categories', loader: getCategories, create: createCategory, update: updateCategory, remove: deleteCategory, fields: ['name', 'description', 'status'], statuses: ['active', 'inactive'], columns: [['name', 'Tên'], ['description', 'Mô tả'], ['status', 'Trạng thái']] },
   dishes: { title: 'món ăn', key: 'dishes', loader: getDishes, categoryLoader: getCategories, create: createDish, update: updateDish, remove: deleteDish, restore: restoreDish, fields: ['categoryId', 'code', 'name', 'type', 'servingUnit', 'price', 'discount', 'stock', 'image'], columns: [['code', 'Mã'], ['name', 'Tên món'], ['price', 'Giá'], ['status', 'Trạng thái']] },
@@ -22,8 +19,85 @@ const resources = {
   'reservation-tables': { title: 'bàn đã gán', key: 'reservationTables', loader: getReservationTables, remove: deleteReservationTable, columns: [['reservationId', 'Đặt bàn'], ['tableId', 'Bàn'], ['status', 'Trạng thái']] },
 }
 
+// Bốn nhóm theo công việc thật, thay cho tám tab ngang hàng. Nhóm nào có nhiều
+// bảng dữ liệu thì chuyển qua lại bằng một dải chọn phụ bên trong.
+const groups = [
+  { id: 'operations', label: 'Vận hành', hint: 'Đặt bàn và hóa đơn đi liền một luồng' },
+  { id: 'menu', label: 'Thực đơn', sections: [['dishes', 'Món ăn'], ['categories', 'Danh mục'], ['menus', 'Bộ thực đơn']] },
+  { id: 'tables', label: 'Bàn', sections: [['tables', 'Danh sách bàn'], ['reservation-tables', 'Bàn đã gán']] },
+  { id: 'users', label: 'Người dùng' },
+]
+
 export default function AdminDashboardPage() {
-  const navigate = useNavigate(); const { user, endSession } = useAuth(); const [activeTab, setActiveTab] = useState('users')
+  const navigate = useNavigate()
+  const { user, endSession } = useAuth()
+  const [groupId, setGroupId] = useState('operations')
+  const [sectionId, setSectionId] = useState('dishes')
+
   const logout = () => { endSession(); navigate('/login', { replace: true }) }
-  return <div className="admin-app"><header className="staff-header"><div className="staff-header__inner"><Link className="site-brand" to="/restaurants" aria-label="Bàn Việt - Về trang nhà hàng"><BrandMark /><span>Bàn Việt</span></Link><span className="staff-portal-label">Cổng quản trị</span><nav><Link to="/restaurants">Trang nhà hàng</Link><Link to="/dashboard">{user?.name || 'Tài khoản'}</Link><button type="button" onClick={logout}>Đăng xuất</button></nav></div></header><main className="customer-main admin-page"><section className="admin-hero"><span className="customer-kicker">Bảng điều khiển</span><h1>Quản trị hệ thống</h1><p>Theo dõi và cập nhật dữ liệu vận hành nhà hàng.</p></section><div className="admin-tabs" role="tablist">{tabs.map(([id, label]) => <button key={id} type="button" role="tab" aria-selected={activeTab === id} className={activeTab === id ? 'admin-tab is-active' : 'admin-tab'} onClick={() => setActiveTab(id)}>{label}</button>)}</div>{activeTab === 'users' && <UsersPanel currentUser={user} />}{activeTab === 'reservations' && <ReservationsPanel />}{activeTab === 'invoices' && <><InvoicesPanel /><InvoiceDetailsPanel /></>}{resources[activeTab] && <AdminResourcePanel config={resources[activeTab]} />}</main></div>
+  const group = groups.find((entry) => entry.id === groupId)
+  const sections = group?.sections || []
+  const activeSection = sections.some(([id]) => id === sectionId) ? sectionId : sections[0]?.[0]
+
+  const openGroup = (entry) => {
+    setGroupId(entry.id)
+    if (entry.sections) setSectionId(entry.sections[0][0])
+  }
+
+  return (
+    <div className="admin-app">
+      <header className="staff-header">
+        <div className="staff-header__inner">
+          <Link className="site-brand" to="/restaurants" aria-label="Bàn Việt - Về trang nhà hàng">
+            <BrandMark />
+            <span>Bàn Việt</span>
+          </Link>
+          <span className="staff-portal-label">Cổng quản trị</span>
+          <nav>
+            <Link to="/restaurants">Trang nhà hàng</Link>
+            <Link to="/dashboard">{user?.name || 'Tài khoản'}</Link>
+            <button type="button" onClick={logout}>Đăng xuất</button>
+          </nav>
+        </div>
+      </header>
+
+      <main className="customer-main admin-page">
+        <section className="admin-hero">
+          <span className="customer-kicker">Bảng điều khiển</span>
+          <h1>Quản trị hệ thống</h1>
+          <p>Theo dõi và cập nhật dữ liệu vận hành nhà hàng.</p>
+        </section>
+
+        <div className="admin-tabs" role="tablist" aria-label="Nhóm quản trị">
+          {groups.map((entry) => (
+            <button key={entry.id} type="button" role="tab"
+              aria-selected={groupId === entry.id}
+              className={groupId === entry.id ? 'admin-tab is-active' : 'admin-tab'}
+              onClick={() => openGroup(entry)}>
+              {entry.label}
+            </button>
+          ))}
+        </div>
+
+        {sections.length > 0 && (
+          <div className="admin-subtabs" role="tablist" aria-label={`Bảng trong nhóm ${group.label}`}>
+            {sections.map(([id, label]) => (
+              <button key={id} type="button" role="tab"
+                aria-selected={activeSection === id}
+                className={activeSection === id ? 'admin-subtab is-active' : 'admin-subtab'}
+                onClick={() => setSectionId(id)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {groupId === 'operations' && <OperationsPanel />}
+        {groupId === 'users' && <UsersPanel currentUser={user} />}
+        {resources[activeSection] && groupId !== 'operations' && groupId !== 'users' && (
+          <AdminResourcePanel key={activeSection} config={resources[activeSection]} />
+        )}
+      </main>
+    </div>
+  )
 }

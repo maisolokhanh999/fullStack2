@@ -372,3 +372,155 @@
     flex: 0 0 auto;
   }
 }
+
+/* ── Nhóm phụ trong một nhóm quản trị ───────────────────────── */
+
+.admin-subtabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 20px;
+}
+
+.admin-subtab {
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: var(--muted);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+}
+
+.admin-subtab:hover {
+  color: var(--ink);
+  border-color: var(--gold-leaf);
+}
+
+.admin-subtab.is-active {
+  color: var(--egg-bright);
+  border-color: var(--lacquer);
+  background: var(--lacquer);
+}
+
+/* ── Luồng vận hành: đặt bàn mở ra hoá đơn của chính nó ─────── */
+
+.admin-ops__hint {
+  max-width: 68ch;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.admin-table tr.is-open > td {
+  background: var(--surface-alt);
+}
+
+.admin-table__expand > td {
+  padding: 0 0 22px;
+  background: var(--surface-alt);
+}
+
+.admin-invoice {
+  display: grid;
+  gap: 18px;
+  padding: 22px clamp(16px, 2vw, 26px);
+  border-top: 1px solid rgba(176, 133, 68, 0.34);
+}
+
+.admin-invoice__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-invoice__label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-invoice__head strong {
+  color: var(--ink-strong);
+  font-family: var(--font-data);
+  font-size: 19px;
+  letter-spacing: -0.02em;
+}
+
+.admin-invoice__work {
+  padding-top: 16px;
+  border-top: 1px dashed var(--line);
+}
+
+.admin-invoice__work h4 {
+  margin: 0 0 12px;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: 16px;
+}
+
+.admin-field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.admin-field > span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.admin-field select,
+.admin-field input {
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.admin-field--narrow {
+  max-width: 110px;
+}
+
+.admin-btn--primary {
+  border-color: var(--son-deep);
+  color: var(--egg-bright);
+  background: var(--son-deep);
+}
+
+.admin-btn--primary:hover:not(:disabled) {
+  background: var(--son);
+  border-color: var(--son);
+}
+
+.admin-btn--link {
+  border-color: transparent;
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.admin-btn:disabled {
+  color: var(--muted);
+  background: var(--surface-alt);
+  cursor: not-allowed;
+}
+
+@media (max-width: 720px) {
+  .admin-invoice__head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
