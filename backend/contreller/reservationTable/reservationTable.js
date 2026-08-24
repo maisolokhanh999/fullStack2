@@ -209,9 +209,7 @@ export const blockReservationTable = async (req, res) => {
 // @route   DELETE /api/reservation-tables/:id
 export const deleteReservationTable = async (req, res) => {
   try {
-    const reservationTable = await ReservationTable.findByIdAndDelete(
-      req.params.id
-    );
+    const reservationTable = await ReservationTable.findById(req.params.id);
 
     if (!reservationTable) {
       return res.status(404).json({
@@ -219,6 +217,13 @@ export const deleteReservationTable = async (req, res) => {
         message: "Không tìm thấy bản ghi gán bàn",
       });
     }
+
+    if (reservationTable.status === "Active") {
+      await Table.findByIdAndUpdate(reservationTable.tableId, {
+        status: "Available",
+      });
+    }
+    await ReservationTable.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,

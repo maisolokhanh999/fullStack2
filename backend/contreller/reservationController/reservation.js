@@ -1,6 +1,27 @@
 import Reservation from "../../model/reservation.js"; // chỉnh lại path cho đúng
 import Invoice from "../../model/invoice.js";
+import ReservationTable from "../../model/reservationTable.js";
+import Table from "../../model/table.js";
 import handleError from "../../middlewares/handleError/handleError.js";
+
+const releaseReservationTables = async (reservationId) => {
+  const assignments = await ReservationTable.find({
+    reservationId,
+    status: "Active",
+  }).select("tableId");
+  const tableIds = assignments.map((assignment) => assignment.tableId);
+
+  if (!tableIds.length) return;
+
+  await ReservationTable.updateMany(
+    { reservationId, status: "Active" },
+    { status: "Inactive" }
+  );
+  await Table.updateMany(
+    { _id: { $in: tableIds } },
+    { status: "Available" }
+  );
+};
 
 // @desc    Tạo đặt bàn mới
 // @route   POST /api/reservations
@@ -261,6 +282,7 @@ export const cancelReservation = async (req, res) => {
 
     reservation.status = "Cancelled";
     await reservation.save();
+    await releaseReservationTables(reservation._id);
 
     res.status(200).json({
       success: true,
@@ -294,6 +316,7 @@ export const markNoShow = async (req, res) => {
 
     reservation.status = "NoShow";
     await reservation.save();
+    await releaseReservationTables(reservation._id);
 
     res.status(200).json({
       success: true,
@@ -309,7 +332,7 @@ export const markNoShow = async (req, res) => {
 // @route   DELETE /api/reservations/:id
 export const deleteReservation = async (req, res) => {
   try {
-    const reservation = await Reservation.findByIdAndDelete(req.params.id);
+    const reservation = await Reservation.findById(req.params.id);
 
     if (!reservation) {
       return res.status(404).json({
@@ -317,6 +340,9 @@ export const deleteReservation = async (req, res) => {
         message: "Không tìm thấy đặt bàn",
       });
     }
+
+    await releaseReservationTables(reservation._id);
+    await Reservation.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,
