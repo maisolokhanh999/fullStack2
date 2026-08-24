@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import DataSourceNotice from '../components/customer/DataSourceNotice.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
 import { getInvoices } from '../services/invoiceService.js'
+import { getReservationTables } from '../services/reservationTableService.js'
 import { formatDateTime, formatMoney } from '../components/admin/adminUtils.js'
 
 const invoiceStatusLabels = {
@@ -16,11 +17,25 @@ const invoiceStatusLabels = {
   Refunded: 'Đã hoàn tiền',
 }
 
+const reservationStatusLabels = {
+  Pending: 'Chờ xác nhận',
+  Confirmed: 'Đã xác nhận',
+  CheckedIn: 'Đã check-in',
+  Completed: 'Đã hoàn tất',
+  Cancelled: 'Đã hủy',
+  NoShow: 'Không đến',
+}
+
 function RestaurantsPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const { user } = useAuth()
   const [invoices, setInvoices] = useState([])
   const [invoiceDetails, setInvoiceDetails] = useState({})
+  const [invoiceTables, setInvoiceTables] = useState({})
   const [invoiceError, setInvoiceError] = useState('')
+  const [isInvoiceLoading, setIsInvoiceLoading] = useState(true)
+  const isInvoiceModalOpen = location.hash === '#my-invoices' || location.state?.openInvoices
 
   useEffect(() => {
     if (!user) return undefined
@@ -38,12 +53,26 @@ function RestaurantsPage() {
             return [invoice._id, []]
           }
         }))
+        const tableEntries = await Promise.all(customerInvoices.map(async (invoice) => {
+          const reservationId = invoice.reservationId?._id || invoice.reservationId
+          if (!reservationId) return [invoice._id, null]
+          try {
+            const result = await getReservationTables({ reservationId }, controller.signal)
+            return [invoice._id, result.reservationTables[0]?.tableId || null]
+          } catch (requestError) {
+            if (requestError.name === 'AbortError') throw requestError
+            return [invoice._id, null]
+          }
+        }))
         if (!controller.signal.aborted) {
           setInvoices(customerInvoices)
           setInvoiceDetails(Object.fromEntries(detailEntries))
+          setInvoiceTables(Object.fromEntries(tableEntries))
         }
       } catch (requestError) {
         if (requestError.name !== 'AbortError') setInvoiceError(requestError.message)
+      } finally {
+        if (!controller.signal.aborted) setIsInvoiceLoading(false)
       }
     }
 
@@ -71,23 +100,38 @@ function RestaurantsPage() {
 
       <DataSourceNotice />
 
-      <section className="dashboard-invoices restaurant-invoices" aria-labelledby="restaurant-invoices-title">
-        <div className="dashboard-invoices__heading">
-          <div>
-            <span className="customer-kicker">Lịch sử hóa đơn</span>
-            <h2 id="restaurant-invoices-title">Hóa đơn của tôi</h2>
+      {isInvoiceModalOpen && <div className="invoice-modal-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && navigate('/restaurants', { replace: true })}>
+        <section className="invoice-modal" role="dialog" aria-modal="true" aria-labelledby="restaurant-invoices-title">
+          <div className="invoice-modal__header">
+            <div><span className="customer-kicker">Lịch sử hóa đơn</span><h2 id="restaurant-invoices-title">Hóa đơn của tôi</h2></div>
+            <button type="button" className="invoice-modal__close" onClick={() => navigate('/restaurants', { replace: true })} aria-label="Đóng hóa đơn">×</button>
           </div>
-          <Link to="/bookings">Xem đặt bàn</Link>
-        </div>
-        {invoiceError && <p className="dashboard-invoices__error">{invoiceError}</p>}
-        {!invoiceError && !invoices.length && <p className="dashboard-invoices__empty">Chưa có hóa đơn nào.</p>}
-        {invoices.map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
-          <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{invoiceStatusLabels[invoice.status] || invoice.status}</span></div>
-          <p>{formatDateTime(invoice.paymentDate || invoice.createdAt)} · {invoice.paymentMethod}</p>
-          <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
-          <div className="dashboard-invoice__total"><span>Tiền cọc: {formatMoney(invoice.depositAmount)}</span><strong>{formatMoney(invoice.finalAmount)}</strong></div>
-        </article>)}
-      </section>
+          {invoiceError && <p className="dashboard-invoices__error">{invoiceError}</p>}
+          {isInvoiceLoading && <p className="dashboard-invoices__empty">Đang tải hóa đơn...</p>}
+          {!isInvoiceLoading && !invoiceError && !invoices.length && <p className="dashboard-invoices__empty">Chưa có hóa đơn nào.</p>}
+          {['Paid', 'Refunded'].some((status) => invoices.some((invoice) => invoice.status === status)) && <section className="invoice-group">
+            <h3>Hóa đơn đã thanh toán</h3>
+            {invoices.filter((invoice) => ['Paid', 'Refunded'].includes(invoice.status)).map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
+              <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{invoiceStatusLabels[invoice.status] || invoice.status}</span></div>
+              <p>{formatDateTime(invoice.paymentDate || invoice.createdAt)} · {invoice.paymentMethod}</p>
+              <p>Bàn: {invoiceTables[invoice._id]?.tableNumber || 'Chưa có thông tin bàn'}</p>
+              <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
+              <div className="dashboard-invoice__total"><span>Tiền cọc: {formatMoney(invoice.depositAmount)}</span><strong>{formatMoney(invoice.finalAmount)}</strong></div>
+            </article>)}
+          </section>}
+          {invoices.some((invoice) => !['Paid', 'Refunded'].includes(invoice.status)) && <section className="invoice-group">
+            <h3>Hóa đơn chưa thanh toán</h3>
+            {invoices.filter((invoice) => !['Paid', 'Refunded'].includes(invoice.status)).map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
+              <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{invoiceStatusLabels[invoice.status] || invoice.status}</span></div>
+              <p>{formatDateTime(invoice.createdAt)} · {invoice.paymentMethod}</p>
+              <p>Bàn đã đặt: {invoiceTables[invoice._id]?.tableNumber || 'Chưa có thông tin bàn'}</p>
+              <p>Trạng thái bàn: {reservationStatusLabels[invoice.reservationId?.status] || 'Đang chờ cập nhật'}</p>
+              <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
+              <div className="dashboard-invoice__total"><span>Tiền cọc: {formatMoney(invoice.depositAmount)}</span><strong>Còn phải trả: {formatMoney(invoice.finalAmount)}</strong></div>
+            </article>)}
+          </section>}
+        </section>
+      </div>}
 
       <section className="restaurant-section" aria-labelledby="restaurant-heading">
         <div className="section-heading">

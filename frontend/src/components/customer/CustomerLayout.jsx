@@ -24,7 +24,7 @@ function CustomerLayout() {
           <nav className="site-nav" aria-label="Điều hướng chính">
             <NavLink to="/restaurants">Nhà hàng</NavLink>
             <NavLink to="/bookings">Đặt bàn của tôi</NavLink>
-            <NavLink className="site-nav__invoice-button" to="/restaurants#restaurant-invoices-title">Hóa đơn của tôi</NavLink>
+            <NavLink className="site-nav__invoice-button" to="/restaurants" state={{ openInvoices: true }}>Hóa đơn của tôi</NavLink>
             {isStaffRole(user?.role) && <NavLink to="/staff/check-in">Check-in</NavLink>}
             {isAdminRole(user?.role) && <NavLink to="/admin">Quản trị</NavLink>}
           </nav>
