@@ -100,11 +100,10 @@ menuSchema.pre("save", async function () {
   }
 });
 
-menuSchema.pre(/^find/, function (next) {
+menuSchema.pre(/^find/, async function () {
   if (this.getFilter().isDeleted === undefined) {
     this.where({ isDeleted: false });
   }
-  next();
 });
 
 menuSchema.index(

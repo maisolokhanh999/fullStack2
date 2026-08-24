@@ -10,6 +10,12 @@ const fieldLabel = (field) => ({
   startDate: 'Ngày bắt đầu', endDate: 'Ngày kết thúc',
 }[field] || field)
 
+const displayValue = (value) => {
+  if (value === undefined || value === null || value === '') return '—'
+  if (typeof value !== 'object') return value
+  return value.reservationCode || value.tableNumber || value.name || value._id || '—'
+}
+
 function ResourceForm({ config, initial, onCancel, onSubmit }) {
   const [form, setForm] = useState(() => Object.fromEntries(config.fields.map((field) => [field, initial?.[field] ?? ''])))
   const [imageFile, setImageFile] = useState(null)
@@ -59,6 +65,6 @@ export default function AdminResourcePanel({ config }) {
     {message && <p className="admin-row-error">{message}</p>}
     {editing && <ResourceForm config={config} initial={editing === 'new' ? null : editing} onCancel={() => setEditing(null)} onSubmit={(payload) => run(editing === 'new' ? config.create : config.update, editing === 'new' ? null : editing._id, payload)} />}
     <div className="admin-resource-toolbar"><button type="button" className="admin-btn" onClick={() => setEditing('new')}>Thêm {config.title}</button></div>
-    {items.length === 0 ? <AdminPanelEmpty message={`Chưa có ${config.title}.`} /> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{config.columns.map((column) => <th key={column[0]}>{column[1]}</th>)}<th>Hành động</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}>{config.columns.map(([field]) => <td key={field}>{Array.isArray(item[field]) ? item[field].length : item[field] ?? '—'}</td>)}<td><div className="admin-action-row"><button type="button" className="admin-btn" onClick={() => setEditing(item)}>Sửa</button>{config.restore && item.isDeleted && <button type="button" className="admin-btn" onClick={() => run(config.restore, item._id)}>Khôi phục</button>}{config.remove && <button type="button" className="admin-btn admin-btn--danger" onClick={() => window.confirm('Xác nhận xóa?') && run(config.remove, item._id)}>Xóa</button>}</div></td></tr>)}</tbody></table></div>}
+    {items.length === 0 ? <AdminPanelEmpty message={`Chưa có ${config.title}.`} /> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{config.columns.map((column) => <th key={column[0]}>{column[1]}</th>)}<th>Hành động</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}>{config.columns.map(([field]) => <td key={field}>{Array.isArray(item[field]) ? item[field].length : displayValue(item[field])}</td>)}<td><div className="admin-action-row"><button type="button" className="admin-btn" onClick={() => setEditing(item)}>Sửa</button>{config.restore && item.isDeleted && <button type="button" className="admin-btn" onClick={() => run(config.restore, item._id)}>Khôi phục</button>}{config.remove && <button type="button" className="admin-btn admin-btn--danger" onClick={() => window.confirm('Xác nhận xóa?') && run(config.remove, item._id)}>Xóa</button>}</div></td></tr>)}</tbody></table></div>}
   </>
 }
