@@ -6,8 +6,11 @@ import { uploadFile } from '../../services/uploadService.js'
 const emptyCategories = async () => ({ categories: [] })
 
 const fieldLabel = (field) => ({
-  categoryId: 'Mã danh mục', tableNumber: 'Số bàn', servingUnit: 'Đơn vị',
+  categoryId: 'Danh mục', tableNumber: 'Số bàn', servingUnit: 'Đơn vị',
   startDate: 'Ngày bắt đầu', endDate: 'Ngày kết thúc',
+  name: 'Tên', code: 'Mã', type: 'Loại', description: 'Mô tả',
+  price: 'Giá', discount: 'Giảm giá (%)', stock: 'Tồn kho', image: 'Ảnh',
+  status: 'Trạng thái', capacity: 'Sức chứa', location: 'Khu vực', note: 'Ghi chú',
 }[field] || field)
 
 const displayValue = (value) => {
@@ -53,7 +56,10 @@ export default function AdminResourcePanel({ config }) {
   const run = async (callback, id, payload) => {
     try {
       setMessage('')
-      const result = await callback(id, payload)
+      // create* nhận (payload, signal) còn update*/delete* nhận (id, payload, signal).
+      // Gọi chung một kiểu thì lúc tạo mới, payload rơi vào ô signal và fetch ném
+      // TypeError — biểu hiện ra ngoài thành "Không kết nối được máy chủ".
+      const result = id === null ? await callback(payload) : await callback(id, payload)
       if (!id) setItems((current) => [result, ...current])
       else if (callback === config.remove) setItems((current) => current.filter((item) => item._id !== id))
       else setItems((current) => current.map((item) => item._id === id ? { ...item, ...result } : item))
