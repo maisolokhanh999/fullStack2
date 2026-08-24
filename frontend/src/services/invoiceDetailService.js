@@ -1,5 +1,16 @@
 import { apiRequest } from './apiClient.js'
 import { encodePathSegment, jsonBody, unwrapEntity } from './serviceHelpers.js'
+import { unwrapCollection } from './serviceHelpers.js'
+
+export async function getInvoiceDetailsByInvoice(invoiceId, signal) {
+  const response = await apiRequest(
+    `/invoice-details/invoice/${encodePathSegment(invoiceId, 'invoiceId')}`,
+    { auth: true, signal },
+    'Không thể tải các món trong hóa đơn.',
+  )
+
+  return unwrapCollection(response, 'invoiceDetails')
+}
 
 export async function getInvoiceDetailById(id, signal) {
   const response = await apiRequest(

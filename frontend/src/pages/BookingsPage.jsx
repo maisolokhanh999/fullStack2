@@ -1,15 +1,59 @@
+import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useBookingDraft } from '../context/bookingDraftStore.js'
-import { reservationApiNotice } from '../services/reservationService.js'
+import { useAuth } from '../hooks/useAuth.js'
+import { getReservations } from '../services/reservationService.js'
+import { getReservationTables } from '../services/reservationTableService.js'
+import { formatDateTime, formatMoney } from '../components/admin/adminUtils.js'
 import { calculateBookingEstimate, formatCurrency } from '../utils/booking.js'
 
 function BookingsPage() {
   const location = useLocation()
+  const { user } = useAuth()
   const { draft, clearDraft } = useBookingDraft()
+  const [reservations, setReservations] = useState([])
+  const [reservationTables, setReservationTables] = useState({})
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const hasDraft = Boolean(draft.visitDate || draft.visitTime || draft.items.length)
   const estimate = calculateBookingEstimate({ items: draft.items, guests: draft.guests })
+
+  useEffect(() => {
+    if (!user?.phone) {
+      setIsLoading(false)
+      return undefined
+    }
+
+    const controller = new AbortController()
+    const loadReservations = async () => {
+      try {
+        const { reservations: customerReservations } = await getReservations(
+          { query: user.phone },
+          controller.signal,
+        )
+        const tableEntries = await Promise.all(customerReservations.map(async (reservation) => {
+          const result = await getReservationTables(
+            { reservationId: reservation._id },
+            controller.signal,
+          )
+          return [reservation._id, result.reservationTables.map((entry) => entry.tableId)]
+        }))
+        if (!controller.signal.aborted) {
+          setReservations(customerReservations)
+          setReservationTables(Object.fromEntries(tableEntries))
+        }
+      } catch (requestError) {
+        if (requestError.name !== 'AbortError') setLoadError(requestError.message)
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false)
+      }
+    }
+
+    loadReservations()
+    return () => controller.abort()
+  }, [user?.phone])
 
   return (
     <main className="customer-main bookings-page">
@@ -18,20 +62,27 @@ function BookingsPage() {
         <div>
           <span className="customer-kicker">Lịch hẹn của bạn</span>
           <h1>Đặt bàn của tôi</h1>
-          <p>Các lượt đặt bàn đã được xác nhận sẽ xuất hiện tại đây khi hệ thống hoàn tất kết nối.</p>
+          <p>Các lượt đặt bàn và bàn đã chọn của bạn được lưu tại đây.</p>
         </div>
         <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
           Tạo đặt bàn mới
         </Link>
       </div>
 
-      <div className="api-pending-notice" role="status">
-        <span><UiIcon name="info" /></span>
-        <div>
-          <strong>Chưa có dữ liệu đặt bàn từ máy chủ</strong>
-          <p>{reservationApiNotice} Bản nháp chưa có mã đặt bàn và chưa được nhà hàng xác nhận.</p>
-        </div>
-      </div>
+      {loadError && <div className="api-pending-notice" role="alert"><span><UiIcon name="info" /></span><div><strong>Không thể tải đặt bàn</strong><p>{loadError}</p></div></div>}
+
+      {!isLoading && reservations.length > 0 && <section className="draft-booking-card">
+        <div className="draft-booking-card__header"><div><span>Đặt bàn đã gửi</span><h2>Lịch sử đặt bàn</h2></div></div>
+        {reservations.map((reservation) => <article key={reservation._id} className="review-card">
+          <div className="draft-booking-card__header"><div><span>{reservation.reservationCode || reservation._id}</span><h2>{DEFAULT_RESTAURANT.name}</h2></div><span className="draft-pill">{reservation.status}</span></div>
+          <dl>
+            <div><dt>Thời gian</dt><dd>{formatDateTime(reservation.expectedCheckInTime)}</dd></div>
+            <div><dt>Số khách</dt><dd>{reservation.numberOfGuests} người</dd></div>
+            <div><dt>Bàn</dt><dd>{(reservationTables[reservation._id] || []).map((table) => `Bàn ${table?.tableNumber}`).join(', ') || 'Đang chờ gán bàn'}</dd></div>
+            <div><dt>Tiền cọc</dt><dd>{formatMoney(reservation.depositAmount)}</dd></div>
+          </dl>
+        </article>)}
+      </section>}
 
       {hasDraft ? (
         <section className="draft-booking-card">

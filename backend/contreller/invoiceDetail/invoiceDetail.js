@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import InvoiceDetail from "../../model/invoiceDetail.js"; // chỉnh lại path cho đúng
 import Invoice from "../../model/invoice.js";
 import Menu from "../../model/menu.js"; // chỉnh lại path nếu tên khác
+import Dish from "../../model/dish.js";
 import handleError from "../../middlewares/handleError/handleError.js";
 
 // Helper: tính lại totalAmount của Invoice dựa trên tổng các InvoiceDetail
@@ -14,7 +15,10 @@ const recalculateInvoiceTotal = async (invoiceId) => {
   if (!invoice) return;
 
   invoice.totalAmount = totalAmount;
-  invoice.finalAmount = totalAmount - (invoice.discountAmount || 0);
+  invoice.finalAmount = Math.max(
+    totalAmount - (invoice.discountAmount || 0) - (invoice.depositAmount || 0),
+    0
+  );
 
   if (invoice.paymentMethod === "Cash") {
     invoice.changeAmount = Math.max(
@@ -30,7 +34,7 @@ const recalculateInvoiceTotal = async (invoiceId) => {
 // @route   POST /api/invoice-details
 export const createInvoiceDetail = async (req, res) => {
   try {
-    const { invoiceId, menuId, quantity, discount = 0, note } = req.body;
+    const { invoiceId, dishId, menuId, quantity, discount = 0, note } = req.body;
 
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
@@ -47,21 +51,28 @@ export const createInvoiceDetail = async (req, res) => {
       });
     }
 
-    const menu = await Menu.findById(menuId);
-    if (!menu) {
+    const dish = dishId ? await Dish.findById(dishId) : null;
+    const legacyMenu = !dish && menuId ? await Menu.findById(menuId) : null;
+    if (!dish && !legacyMenu) {
       return res.status(404).json({
         success: false,
         message: "Không tìm thấy món ăn",
       });
     }
 
-    const unitPrice = menu.price; // giả sử Menu có field price, chỉnh lại nếu tên khác
+    const unitPrice = dish?.price ?? legacyMenu?.price;
+    if (unitPrice === undefined) {
+      return res.status(400).json({
+        success: false,
+        message: "Món ăn chưa có giá bán hợp lệ",
+      });
+    }
     const totalAmount = unitPrice * quantity * (1 - discount / 100);
 
     const detail = await InvoiceDetail.create({
       invoiceId,
-      menuId,
-      itemName: menu.name, // giả sử Menu có field name
+      ...(dish ? { dishId } : { menuId }),
+      itemName: dish?.name || legacyMenu.name,
       unitPrice,
       discount,
       quantity,
@@ -85,7 +96,7 @@ export const createInvoiceDetail = async (req, res) => {
 // @route   POST /api/invoice-details/bulk
 export const createInvoiceDetailsBulk = async (req, res) => {
   try {
-    const { invoiceId, items } = req.body; // items: [{ menuId, quantity, discount, note }]
+    const { invoiceId, items } = req.body; // items: [{ dishId, quantity, discount, note }]
 
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
@@ -109,28 +120,28 @@ export const createInvoiceDetailsBulk = async (req, res) => {
       });
     }
 
-    const menuIds = items.map((i) => i.menuId);
-    const menus = await Menu.find({ _id: { $in: menuIds } });
-    const menuMap = new Map(menus.map((m) => [m._id.toString(), m]));
+    const dishIds = items.map((i) => i.dishId).filter(Boolean);
+    const dishes = await Dish.find({ _id: { $in: dishIds } });
+    const dishMap = new Map(dishes.map((dish) => [dish._id.toString(), dish]));
 
     const docsToInsert = [];
     for (const item of items) {
-      const menu = menuMap.get(item.menuId);
-      if (!menu) {
+      const dish = dishMap.get(item.dishId);
+      if (!dish) {
         return res.status(404).json({
           success: false,
-          message: `Không tìm thấy món ăn với id ${item.menuId}`,
+          message: `Không tìm thấy món ăn với id ${item.dishId}`,
         });
       }
 
       const discount = item.discount || 0;
-      const totalAmount = menu.price * item.quantity * (1 - discount / 100);
+      const totalAmount = dish.price * item.quantity * (1 - discount / 100);
 
       docsToInsert.push({
         invoiceId,
-        menuId: item.menuId,
-        itemName: menu.name,
-        unitPrice: menu.price,
+        dishId: item.dishId,
+        itemName: dish.name,
+        unitPrice: dish.price,
         discount,
         quantity: item.quantity,
         totalAmount,
@@ -158,7 +169,7 @@ export const getInvoiceDetailsByInvoice = async (req, res) => {
   try {
     const details = await InvoiceDetail.find({
       invoiceId: req.params.invoiceId,
-    }).sort({ createdAt: 1 });
+    }).populate("dishId").sort({ createdAt: 1 });
 
     res.status(200).json({
       success: true,

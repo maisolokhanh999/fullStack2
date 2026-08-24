@@ -8,10 +8,14 @@ const invoiceDetailSchema = new mongoose.Schema(
       required: [true, "Invoice is required"],
     },
 
+    dishId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Dish",
+    },
+
     menuId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Menu",
-      required: [true, "Menu item is required"],
     },
 
     itemName: {

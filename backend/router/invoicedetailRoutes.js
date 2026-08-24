@@ -12,6 +12,7 @@ const router = express.Router();
 
 router.post("/", authMiddleware, adminMiddleware, createInvoiceDetail);
 router.post("/bulk", authMiddleware, adminMiddleware,createInvoiceDetailsBulk);
+router.get("/invoice/:invoiceId", getInvoiceDetailsByInvoice);
 router.get("/:id", getInvoiceDetailById);
 router.put("/:id", authMiddleware, adminMiddleware, updateInvoiceDetail);
 router.delete("/:id", authMiddleware, adminMiddleware, deleteInvoiceDetail);
