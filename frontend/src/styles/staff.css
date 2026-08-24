@@ -2,13 +2,13 @@
   min-height: 100svh;
   color: var(--ink);
   background:
-    radial-gradient(circle at 90% 12%, rgba(165, 129, 63, 0.14), transparent 25rem),
+    radial-gradient(circle at 90% 12%, rgba(79, 70, 229, 0.08), transparent 25rem),
     var(--bg);
 }
 
 .staff-header {
   border-bottom: 1px solid var(--line);
-  background: rgba(255, 253, 251, 0.88);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(18px);
 }
 
@@ -108,7 +108,7 @@
   padding: 15px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: rgba(255, 253, 251, 0.8);
+  background: rgba(255, 255, 255, 0.8);
 }
 
 .staff-status i {
@@ -144,7 +144,7 @@
   padding: clamp(23px, 4vw, 38px);
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 253, 251, 0.92);
+  background: rgba(255, 255, 255, 0.92);
   box-shadow: var(--shadow-md);
 }
 
@@ -213,7 +213,7 @@
   margin: 13px 0 0;
   padding: 11px;
   border-radius: var(--radius-sm);
-  color: #6b4a1f;
+  color: #92400e;
   background: var(--warning-soft);
   font-size: 12px;
   line-height: 1.55;
@@ -263,7 +263,7 @@
 .staff-warning {
   padding: 12px;
   border-left: 3px solid var(--warning);
-  color: #6b4a1f;
+  color: #92400e;
   background: var(--warning-soft);
   font-size: 12px;
   line-height: 1.6;

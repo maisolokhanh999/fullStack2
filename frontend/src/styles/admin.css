@@ -2,7 +2,7 @@
   min-height: 100svh;
   color: var(--ink);
   background:
-    radial-gradient(circle at 90% 12%, rgba(165, 129, 63, 0.14), transparent 25rem),
+    radial-gradient(circle at 90% 12%, rgba(79, 70, 229, 0.08), transparent 25rem),
     var(--bg);
 }
 
@@ -35,9 +35,9 @@
   gap: 12px;
   margin: 22px 0;
   padding: 13px 15px;
-  border: 1px solid #ecd8ab;
+  border: 1px solid #fde68a;
   border-radius: var(--radius-md);
-  color: #6b4a1f;
+  color: #92400e;
   background: var(--warning-soft);
   font-size: 13px;
   line-height: 1.55;
@@ -65,7 +65,7 @@
 .admin-security-notice code {
   padding: 1px 5px;
   border-radius: 5px;
-  background: rgba(107, 74, 31, 0.12);
+  background: rgba(180, 83, 9, 0.14);
   font-size: 12px;
 }
 
@@ -101,7 +101,7 @@
   overflow-x: auto;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: rgba(255, 253, 251, 0.92);
+  background: rgba(255, 255, 255, 0.92);
   box-shadow: var(--shadow-sm);
 }
 
@@ -158,7 +158,7 @@
 }
 
 .admin-status-badge[data-status='Pending'] {
-  color: #7a5417;
+  color: #92400e;
   background: var(--warning-soft);
 }
 
@@ -170,14 +170,14 @@
 
 .admin-status-badge[data-status='Paid'],
 .admin-status-badge[data-status='Completed'] {
-  color: #2f4b28;
+  color: #166534;
   background: var(--success-soft);
 }
 
 .admin-status-badge[data-status='Cancelled'],
 .admin-status-badge[data-status='NoShow'],
 .admin-status-badge[data-status='Refunded'] {
-  color: #7a291d;
+  color: #991b1b;
   background: var(--danger-soft);
 }
 
@@ -214,7 +214,7 @@
 }
 
 .admin-btn--danger:hover:not(:disabled) {
-  border-color: #eeccc2;
+  border-color: #fecaca;
   background: var(--danger-soft);
 }
 
@@ -243,7 +243,7 @@
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: rgba(255, 253, 251, 0.92);
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .admin-lookup-panel input,
@@ -277,7 +277,7 @@
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background: rgba(255, 253, 251, 0.92);
+  background: rgba(255, 255, 255, 0.92);
 }
 
 .admin-resource-form label {

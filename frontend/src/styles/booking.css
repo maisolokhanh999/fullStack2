@@ -45,7 +45,7 @@
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   color: var(--muted);
-  background: rgba(255, 253, 251, 0.66);
+  background: rgba(255, 255, 255, 0.66);
   transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease, transform 150ms ease;
 }
 
@@ -91,7 +91,7 @@
   border-color: var(--accent-soft);
   color: var(--accent-dark);
   background: var(--accent-softer);
-  box-shadow: 0 8px 24px rgba(122, 52, 24, 0.1);
+  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.12);
   transform: translateY(-1px);
 }
 
@@ -110,7 +110,7 @@
 }
 
 .booking-steps li.is-complete {
-  color: #3f6338;
+  color: #166534;
   background: var(--success-soft);
 }
 
@@ -118,7 +118,7 @@
   padding: clamp(24px, 5vw, 48px);
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 253, 251, 0.9);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow-md);
   animation: card-enter 420ms var(--ease) both;
 }
@@ -209,7 +209,7 @@
 }
 
 .booking-field__control:has(input[aria-invalid='true']) {
-  border-color: #c97a63;
+  border-color: #f87171;
 }
 
 .booking-field__control input,
@@ -451,7 +451,7 @@
 }
 
 .unavailable-label {
-  color: #8a6a52;
+  color: #667085;
   font-size: 11px;
   font-weight: 800;
 }
@@ -573,7 +573,7 @@
 }
 
 .deposit-estimate__heading > div > span {
-  color: #7a4a2c;
+  color: #362fa3;
   font-size: 12px;
   font-weight: 700;
 }
@@ -595,7 +595,7 @@
 
 .deposit-estimate > p {
   margin: 15px 0 0;
-  color: #8a6449;
+  color: #667085;
   font-size: 12px;
   line-height: 1.55;
 }
@@ -606,9 +606,9 @@
   gap: 12px;
   margin-top: 15px;
   padding: 14px;
-  border: 1px solid #ecd8ab;
+  border: 1px solid #fde68a;
   border-radius: var(--radius-md);
-  color: #6b4a1f;
+  color: #92400e;
   background: var(--warning-soft);
 }
 
@@ -657,7 +657,7 @@
   padding: clamp(22px, 4vw, 34px);
   border: 1px solid var(--line);
   border-radius: var(--radius-xl);
-  background: rgba(255, 253, 251, 0.9);
+  background: rgba(255, 255, 255, 0.9);
   box-shadow: var(--shadow-md);
 }
 
@@ -686,7 +686,7 @@
 }
 
 .draft-pill {
-  color: #8d6530;
+  color: #92400e;
   background: var(--warning-soft);
 }
 

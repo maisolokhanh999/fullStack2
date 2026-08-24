@@ -2,50 +2,54 @@
   --font-sans: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
   --font-display: 'Be Vietnam Pro', 'Segoe UI', Arial, sans-serif;
   font-family: var(--font-sans);
-  color: #2b211b;
-  background: #faf6f1;
+  color: #101828;
+  background: #ffffff;
   font-synthesis: weight style;
   font-kerning: normal;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 
-  /* Warm minimalist palette — Bàn Việt premium */
-  --bg: #faf6f1;
-  --bg-alt: #f3ece2;
-  --surface: #fffdfb;
-  --surface-alt: #fbf6ef;
-  --ink: #2b211b;
-  --ink-strong: #1c140f;
-  --muted: #8a7a6c;
-  --muted-soft: #ab9d8f;
-  --line: #e8ded0;
-  --line-soft: #f0e8dc;
+  /* Neutral modern palette — trắng/xám trung tính + 1 màu nhấn indigo,
+     kiểu SaaS quốc tế (Linear/Stripe/Notion) thay cho tông ấm trước đó. */
+  --bg: #ffffff;
+  --bg-alt: #f6f7f9;
+  --surface: #ffffff;
+  --surface-alt: #f9fafb;
+  --ink: #101828;
+  --ink-strong: #030712;
+  --muted: #667085;
+  --muted-soft: #98a2b3;
+  --line: #e4e7ec;
+  --line-soft: #eef1f5;
 
-  --accent: #b9542e;
-  --accent-dark: #98431f;
-  --accent-darker: #7a3418;
-  --accent-soft: #f4ddcc;
-  --accent-softer: #fbf0e6;
+  --accent: #4f46e5;
+  --accent-dark: #4338ca;
+  --accent-darker: #362fa3;
+  --accent-soft: #e0e2fc;
+  --accent-softer: #f1f1fd;
 
-  --gold: #a5813f;
-  --gold-soft: #f1e6d0;
+  --gold: var(--accent-dark);
+  --gold-soft: var(--accent-soft);
 
-  --success: #57794c;
-  --success-soft: #e7efe0;
-  --warning: #b07f2c;
-  --warning-soft: #faeed7;
-  --danger: #a23b2c;
-  --danger-soft: #f8e3dc;
+  --success: #17803d;
+  --success-soft: #dcfce7;
+  --success-strong: #166534;
+  --warning: #b45309;
+  --warning-soft: #fef3c7;
+  --warning-strong: #92400e;
+  --danger: #dc2626;
+  --danger-soft: #fee2e2;
+  --danger-strong: #991b1b;
 
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 18px;
-  --radius-xl: 26px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-pill: 999px;
 
-  --shadow-sm: 0 2px 10px rgba(43, 30, 20, 0.06);
-  --shadow-md: 0 12px 28px rgba(43, 30, 20, 0.1);
-  --shadow-lg: 0 26px 64px rgba(43, 30, 20, 0.16);
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.08);
+  --shadow-md: 0 8px 24px rgba(16, 24, 40, 0.08);
+  --shadow-lg: 0 24px 56px rgba(16, 24, 40, 0.14);
 
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -112,6 +116,6 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 a:focus-visible {
-  outline: 3px solid rgba(185, 84, 46, 0.3);
+  outline: 3px solid rgba(79, 70, 229, 0.35);
   outline-offset: 2px;
 }
