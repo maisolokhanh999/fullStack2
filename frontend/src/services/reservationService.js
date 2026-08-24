@@ -1,5 +1,4 @@
 import { apiRequest } from './apiClient.js'
-import { getReservationTables, releaseReservationTable } from './reservationTableService.js'
 import {
   encodePathSegment,
   jsonBody,
@@ -34,8 +33,26 @@ export async function getReservations(query = {}, signal) {
   return unwrapCollection(response, 'reservations')
 }
 
+// Số điện thoại được lưu ở hai dạng: đặt bàn tạo từ app lấy `user.phone` mà
+// User.phone là Number nên mất số 0 đầu ("909709537"), còn đặt bàn nhập trực
+// tiếp thì giữ nguyên chuỗi ("0909709537"). Backend lại so khớp tuyệt đối, nên
+// nhân viên gõ đúng số khách đọc vẫn có thể không ra kết quả. Thử cả hai dạng
+// cho tới khi backend thống nhất kiểu dữ liệu.
+const phoneVariants = (value) => {
+  if (!/^\d+$/.test(value)) return []
+  return value.startsWith('0') ? [value.replace(/^0+/, '')] : [`0${value}`]
+}
+
 export const searchReservations = async (query, signal) => {
-  const { reservations } = await getReservations({ query }, signal)
+  const searchValue = String(query).trim()
+  const { reservations } = await getReservations({ query: searchValue }, signal)
+  if (reservations.length) return reservations
+
+  for (const variant of phoneVariants(searchValue)) {
+    const fallback = await getReservations({ query: variant }, signal)
+    if (fallback.reservations.length) return fallback.reservations
+  }
+
   return reservations
 }
 
@@ -95,26 +112,12 @@ export const checkInReservation = (id, payload = {}, signal) =>
 export const completeReservation = (id, payload = {}, signal) =>
   runReservationAction(id, 'complete', payload, signal, 'Không thể hoàn tất lượt đặt bàn.')
 
+// Backend tự giải phóng bàn khi huỷ / no-show / xoá đặt bàn
+// (releaseReservationTables trong reservationController), nên client không
+// gọi lại nữa: gọi thêm chỉ tốn request và có thể khiến thao tác đã thành công
+// bị báo lỗi nếu bước dọn bàn thừa đó thất bại.
 export const cancelReservation = (id, payload = {}, signal) =>
-  cancelAndReleaseTables(id, payload, signal)
-
-const cancelAndReleaseTables = async (id, payload, signal) => {
-  const reservation = await runReservationAction(id, 'cancel', payload, signal, 'Không thể hủy lượt đặt bàn.')
-  await releaseTablesForReservation(id, signal)
-  return reservation
-}
+  runReservationAction(id, 'cancel', payload, signal, 'Không thể hủy lượt đặt bàn.')
 
 export const markReservationNoShow = (id, payload = {}, signal) =>
-  noShowAndReleaseTables(id, payload, signal)
-
-const noShowAndReleaseTables = async (id, payload, signal) => {
-  const reservation = await runReservationAction(id, 'no-show', payload, signal, 'Không thể đánh dấu khách không đến.')
-  await releaseTablesForReservation(id, signal)
-  return reservation
-}
-
-const releaseTablesForReservation = async (reservationId, signal) => {
-  const { reservationTables } = await getReservationTables({ reservationId }, signal)
-  const activeTables = reservationTables.filter((item) => item.status === 'Active')
-  await Promise.all(activeTables.map((item) => releaseReservationTable(item._id, {}, signal)))
-}
+  runReservationAction(id, 'no-show', payload, signal, 'Không thể đánh dấu khách không đến.')

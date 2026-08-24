@@ -5,7 +5,7 @@ import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { checkInReservation, searchReservations } from '../services/reservationService.js'
 import { getReservationTables } from '../services/reservationTableService.js'
-import { formatDateTime, formatMoney } from '../components/admin/adminUtils.js'
+import { RESERVATION_STATUS_LABELS, formatDateTime, formatMoney, labelFor } from '../components/admin/adminUtils.js'
 
 function StaffCheckInPage() {
   const navigate = useNavigate()
@@ -80,6 +80,7 @@ function StaffCheckInPage() {
           </Link>
           <span className="staff-portal-label">Cổng vận hành nhà hàng</span>
           <nav>
+            <Link to="/restaurants">Trang nhà hàng</Link>
             <Link to="/dashboard">{user?.name || 'Tài khoản'}</Link>
             <button type="button" onClick={logout}>Đăng xuất</button>
           </nav>
@@ -136,7 +137,7 @@ function StaffCheckInPage() {
             <p>Mã: {reservation.reservationCode || reservation._id}</p>
             <p>{formatDateTime(reservation.expectedCheckInTime)} · {reservation.numberOfGuests} khách · Cọc {formatMoney(reservation.depositAmount)}</p>
             <p>Bàn chờ check: {(reservationTables[reservation._id] || []).map((table) => `Bàn ${table?.tableNumber || table?._id}`).join(', ') || 'Chưa gán bàn'}</p>
-            <p>Trạng thái: {reservation.status}</p>
+            <p>Trạng thái: {labelFor(RESERVATION_STATUS_LABELS, reservation.status)}</p>
             {['Pending', 'Confirmed'].includes(reservation.status) && <button className="customer-primary-button" type="button" onClick={() => checkIn(reservation._id)} disabled={isCheckingIn}>{isCheckingIn ? 'Đang check-in...' : 'Xác nhận check-in'}</button>}
           </div>)}
         </div>
