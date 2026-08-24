@@ -26,6 +26,20 @@ export const assignTableToReservation = async (req, res) => {
       });
     }
 
+    if (table.status !== "Available") {
+      return res.status(400).json({
+        success: false,
+        message: "Bàn này không còn khả dụng",
+      });
+    }
+
+    if (table.capacity < reservation.numberOfGuests) {
+      return res.status(400).json({
+        success: false,
+        message: "Bàn không đủ chỗ cho số khách",
+      });
+    }
+
     // Kiểm tra bàn đã được gán (Active) cho reservation khác chưa
     const existingActive = await ReservationTable.findOne({
       tableId,

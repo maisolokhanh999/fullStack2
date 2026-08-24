@@ -8,6 +8,8 @@ import { useBookingDraft } from '../context/bookingDraftStore.js'
 import { useDishes } from '../hooks/useDishes.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { createReservation } from '../services/reservationService.js'
+import { createReservationTable } from '../services/reservationTableService.js'
+import { getTables } from '../services/tableService.js'
 import {
   calculateBookingEstimate,
   formatCurrency,
@@ -50,6 +52,8 @@ function BookingPage() {
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [tables, setTables] = useState([])
+  const [tableError, setTableError] = useState('')
   const { draft, updateInfo, setItemQuantity, reconcileItems, clearDraft } = useBookingDraft()
   const { dishes, isLoading, error, retry } = useDishes()
 
@@ -63,6 +67,17 @@ function BookingPage() {
 
     reconcileItems(dishes)
   }, [dishes, error, isLoading, reconcileItems])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    getTables({ status: 'Available' }, controller.signal)
+      .then(({ tables: availableTables }) => setTables(availableTables))
+      .catch((requestError) => {
+        if (requestError.name !== 'AbortError') setTableError(requestError.message)
+      })
+
+    return () => controller.abort()
+  }, [])
 
   if (!isDefaultRestaurant(restaurantId)) {
     return (
@@ -111,6 +126,12 @@ function BookingPage() {
     if (Number(draft.guests) < 1 || Number(draft.guests) > 20) {
       nextErrors.guests = 'Số khách cần từ 1 đến 20 người.'
     }
+    const selectedTable = tables.find((table) => table._id === draft.tableId)
+    if (!selectedTable) {
+      nextErrors.tableId = 'Vui lòng chọn bàn.'
+    } else if (selectedTable.capacity < Number(draft.guests)) {
+      nextErrors.tableId = 'Bàn đã chọn không đủ chỗ cho số khách.'
+    }
     setErrors(nextErrors)
     return Object.keys(nextErrors).length === 0
   }
@@ -147,7 +168,7 @@ function BookingPage() {
     setSubmitError('')
 
     try {
-      await createReservation({
+      const reservation = await createReservation({
         customerName: user.name,
         customerPhone: user.phone,
         numberOfGuests: draft.guests,
@@ -155,6 +176,10 @@ function BookingPage() {
         reservationType: 'Online',
         note: draft.note,
         depositAmount: estimate.estimatedDeposit,
+      })
+      await createReservationTable({
+        reservationId: reservation._id,
+        tableId: draft.tableId,
       })
       clearDraft()
       navigate('/bookings', { replace: true, state: { reservationSubmitted: true } })
@@ -241,6 +266,29 @@ function BookingPage() {
                   ))}
                 </select>
                 {errors.guests && <small>{errors.guests}</small>}
+              </label>
+
+              <label className="booking-field">
+                <span>Chọn bàn</span>
+                <select
+                  name="tableId"
+                  value={draft.tableId}
+                  onChange={updateDraftField}
+                  disabled={!tables.length}
+                  aria-invalid={Boolean(errors.tableId)}
+                  required
+                >
+                  <option value="">{tables.length ? 'Chọn bàn phù hợp' : 'Không có bàn khả dụng'}</option>
+                  {tables
+                    .filter((table) => table.capacity >= Number(draft.guests))
+                    .map((table) => (
+                      <option value={table._id} key={table._id}>
+                        Bàn {table.tableNumber} · {table.capacity} chỗ{table.location ? ` · ${table.location}` : ''}
+                      </option>
+                    ))}
+                </select>
+                {tableError && <small>{tableError}</small>}
+                {errors.tableId && !tableError && <small>{errors.tableId}</small>}
               </label>
 
               <label className="booking-field booking-field--note">
@@ -371,6 +419,7 @@ function BookingPage() {
                   <div><dt>Ngày đến</dt><dd>{draft.visitDate || 'Chưa chọn'}</dd></div>
                   <div><dt>Giờ đến</dt><dd>{draft.visitTime || 'Chưa chọn'}</dd></div>
                   <div><dt>Số khách</dt><dd>{draft.guests} người</dd></div>
+                  <div><dt>Bàn</dt><dd>{tables.find((table) => table._id === draft.tableId)?.tableNumber || 'Chưa chọn'}</dd></div>
                   {draft.note && <div><dt>Ghi chú</dt><dd>{draft.note}</dd></div>}
                 </dl>
               </div>

@@ -33,8 +33,10 @@ export async function getReservations(query = {}, signal) {
   return unwrapCollection(response, 'reservations')
 }
 
-export const searchReservations = (query, signal) =>
-  getReservations({ query }, signal)
+export const searchReservations = async (query, signal) => {
+  const { reservations } = await getReservations({ query }, signal)
+  return reservations
+}
 
 export async function getReservationById(id, signal) {
   const response = await apiRequest(
