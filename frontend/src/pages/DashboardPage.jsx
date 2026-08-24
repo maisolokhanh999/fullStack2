@@ -1,12 +1,8 @@
-import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { getLandingPath, isStaffRole } from '../utils/roleNavigation.js'
-import { getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
-import { getInvoices } from '../services/invoiceService.js'
-import { formatDateTime, formatMoney } from '../components/admin/adminUtils.js'
 
 const roleLabels = {
   admin: 'Quản lý',
@@ -29,39 +25,6 @@ function DashboardPage() {
     retryVerification,
     endSession,
   } = useAuth()
-  const [paidInvoices, setPaidInvoices] = useState([])
-  const [invoiceDetails, setInvoiceDetails] = useState({})
-  const [invoiceError, setInvoiceError] = useState('')
-
-  useEffect(() => {
-    if (!user || isStaffRole(user.role)) return undefined
-
-    const controller = new AbortController()
-    const loadInvoices = async () => {
-      try {
-        const { invoices } = await getInvoices({ status: 'Paid' }, controller.signal)
-        const detailEntries = await Promise.all(invoices.map(async (invoice) => {
-          try {
-            const result = await getInvoiceDetailsByInvoice(invoice._id, controller.signal)
-            return [invoice._id, result.invoiceDetails]
-          } catch (requestError) {
-            if (requestError.name === 'AbortError') throw requestError
-            return [invoice._id, []]
-          }
-        }))
-        if (!controller.signal.aborted) {
-          setPaidInvoices(invoices)
-          setInvoiceDetails(Object.fromEntries(detailEntries))
-        }
-      } catch (requestError) {
-        if (requestError.name !== 'AbortError') setInvoiceError(requestError.message)
-      }
-    }
-
-    loadInvoices()
-    return () => controller.abort()
-  }, [user])
-
   const logout = () => {
     endSession()
     navigate('/login', { replace: true })
@@ -94,10 +57,7 @@ function DashboardPage() {
         </div>
       ) : (
         <div className="welcome-card">
-          <div className="dashboard-topline">
-            <span className="success-icon"><UiIcon name="check" /></span>
-            <a className="dashboard-invoice-link" href="#dashboard-invoices-title">Hóa đơn của tôi</a>
-          </div>
+          <span className="success-icon"><UiIcon name="check" /></span>
           <span className="section-label">Đã xác thực</span>
           <h1>Xin chào, {user?.name || 'bạn'}</h1>
           <p>
@@ -125,23 +85,6 @@ function DashboardPage() {
             Đăng xuất
           </button>
 
-          <section className="dashboard-invoices" aria-labelledby="dashboard-invoices-title">
-            <div className="dashboard-invoices__heading">
-              <div>
-                <span className="section-label">Lịch sử thanh toán</span>
-                <h2 id="dashboard-invoices-title">Hóa đơn của tôi</h2>
-              </div>
-              <Link to="/bookings">Xem đặt bàn</Link>
-            </div>
-            {invoiceError && <p className="dashboard-invoices__error">{invoiceError}</p>}
-            {!invoiceError && !paidInvoices.length && <p className="dashboard-invoices__empty">Chưa có hóa đơn đã thanh toán.</p>}
-            {paidInvoices.map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
-              <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>Đã thanh toán</span></div>
-              <p>{formatDateTime(invoice.paymentDate)} · {invoice.paymentMethod}</p>
-              <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
-              <div className="dashboard-invoice__total"><span>Tiền cọc: {formatMoney(invoice.depositAmount)}</span><strong>{formatMoney(invoice.finalAmount)}</strong></div>
-            </article>)}
-          </section>
         </div>
       )}
     </AuthLayout>

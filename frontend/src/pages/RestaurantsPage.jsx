@@ -1,9 +1,56 @@
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DataSourceNotice from '../components/customer/DataSourceNotice.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
+import { useAuth } from '../hooks/useAuth.js'
+import { getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
+import { getInvoices } from '../services/invoiceService.js'
+import { formatDateTime, formatMoney } from '../components/admin/adminUtils.js'
+
+const invoiceStatusLabels = {
+  Pending: 'Chờ thanh toán',
+  Finalized: 'Đã chốt',
+  Paid: 'Đã thanh toán',
+  Cancelled: 'Đã hủy',
+  Refunded: 'Đã hoàn tiền',
+}
 
 function RestaurantsPage() {
+  const { user } = useAuth()
+  const [invoices, setInvoices] = useState([])
+  const [invoiceDetails, setInvoiceDetails] = useState({})
+  const [invoiceError, setInvoiceError] = useState('')
+
+  useEffect(() => {
+    if (!user) return undefined
+
+    const controller = new AbortController()
+    const loadInvoices = async () => {
+      try {
+        const { invoices: customerInvoices } = await getInvoices({}, controller.signal)
+        const detailEntries = await Promise.all(customerInvoices.map(async (invoice) => {
+          try {
+            const result = await getInvoiceDetailsByInvoice(invoice._id, controller.signal)
+            return [invoice._id, result.invoiceDetails]
+          } catch (requestError) {
+            if (requestError.name === 'AbortError') throw requestError
+            return [invoice._id, []]
+          }
+        }))
+        if (!controller.signal.aborted) {
+          setInvoices(customerInvoices)
+          setInvoiceDetails(Object.fromEntries(detailEntries))
+        }
+      } catch (requestError) {
+        if (requestError.name !== 'AbortError') setInvoiceError(requestError.message)
+      }
+    }
+
+    loadInvoices()
+    return () => controller.abort()
+  }, [user])
+
   return (
     <main className="customer-main">
       <section className="customer-hero">
@@ -23,6 +70,24 @@ function RestaurantsPage() {
       </section>
 
       <DataSourceNotice />
+
+      <section className="dashboard-invoices restaurant-invoices" aria-labelledby="restaurant-invoices-title">
+        <div className="dashboard-invoices__heading">
+          <div>
+            <span className="customer-kicker">Lịch sử hóa đơn</span>
+            <h2 id="restaurant-invoices-title">Hóa đơn của tôi</h2>
+          </div>
+          <Link to="/bookings">Xem đặt bàn</Link>
+        </div>
+        {invoiceError && <p className="dashboard-invoices__error">{invoiceError}</p>}
+        {!invoiceError && !invoices.length && <p className="dashboard-invoices__empty">Chưa có hóa đơn nào.</p>}
+        {invoices.map((invoice) => <article className="dashboard-invoice" key={invoice._id}>
+          <div className="dashboard-invoice__top"><strong>Hóa đơn #{invoice._id}</strong><span>{invoiceStatusLabels[invoice.status] || invoice.status}</span></div>
+          <p>{formatDateTime(invoice.paymentDate || invoice.createdAt)} · {invoice.paymentMethod}</p>
+          <ul>{(invoiceDetails[invoice._id] || []).map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatMoney(detail.totalAmount)}</strong></li>)}</ul>
+          <div className="dashboard-invoice__total"><span>Tiền cọc: {formatMoney(invoice.depositAmount)}</span><strong>{formatMoney(invoice.finalAmount)}</strong></div>
+        </article>)}
+      </section>
 
       <section className="restaurant-section" aria-labelledby="restaurant-heading">
         <div className="section-heading">

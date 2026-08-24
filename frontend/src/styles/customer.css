@@ -58,6 +58,10 @@
   background: var(--accent-softer);
 }
 
+.site-nav__invoice-button {
+  color: inherit;
+}
+
 .site-account {
   display: flex;
   align-items: center;
