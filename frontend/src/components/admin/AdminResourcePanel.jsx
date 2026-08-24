@@ -17,7 +17,8 @@ const displayValue = (value) => {
 }
 
 function ResourceForm({ config, initial, onCancel, onSubmit }) {
-  const [form, setForm] = useState(() => Object.fromEntries(config.fields.map((field) => [field, initial?.[field] ?? ''])))
+  const fields = config.fields || []
+  const [form, setForm] = useState(() => Object.fromEntries(fields.map((field) => [field, initial?.[field] ?? ''])))
   const [imageFile, setImageFile] = useState(null)
   const [uploading, setUploading] = useState(false)
   const categoryResult = useAdminCollection(config.categoryLoader || emptyCategories, 'categories')
@@ -33,7 +34,7 @@ function ResourceForm({ config, initial, onCancel, onSubmit }) {
     } finally { setUploading(false) }
   }
   return <form className="admin-resource-form" onSubmit={submit}>
-    {config.fields.map((field) => (
+    {fields.map((field) => (
       <label key={field}>{fieldLabel(field)}
         {field === 'categoryId' && config.categoryLoader ? <select value={form[field]?._id || form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn danh mục</option>{categoryResult.items.map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}</select> :
           field === 'status' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)}><option value="">Chọn trạng thái</option>{(config.statuses || []).map((value) => <option key={value} value={value}>{value}</option>)}</select> :
@@ -64,7 +65,7 @@ export default function AdminResourcePanel({ config }) {
   return <>
     {message && <p className="admin-row-error">{message}</p>}
     {editing && <ResourceForm config={config} initial={editing === 'new' ? null : editing} onCancel={() => setEditing(null)} onSubmit={(payload) => run(editing === 'new' ? config.create : config.update, editing === 'new' ? null : editing._id, payload)} />}
-    <div className="admin-resource-toolbar"><button type="button" className="admin-btn" onClick={() => setEditing('new')}>Thêm {config.title}</button></div>
-    {items.length === 0 ? <AdminPanelEmpty message={`Chưa có ${config.title}.`} /> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{config.columns.map((column) => <th key={column[0]}>{column[1]}</th>)}<th>Hành động</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}>{config.columns.map(([field]) => <td key={field}>{Array.isArray(item[field]) ? item[field].length : displayValue(item[field])}</td>)}<td><div className="admin-action-row"><button type="button" className="admin-btn" onClick={() => setEditing(item)}>Sửa</button>{config.restore && item.isDeleted && <button type="button" className="admin-btn" onClick={() => run(config.restore, item._id)}>Khôi phục</button>}{config.remove && <button type="button" className="admin-btn admin-btn--danger" onClick={() => window.confirm('Xác nhận xóa?') && run(config.remove, item._id)}>Xóa</button>}</div></td></tr>)}</tbody></table></div>}
+    {config.create && config.fields?.length > 0 && <div className="admin-resource-toolbar"><button type="button" className="admin-btn" onClick={() => setEditing('new')}>Thêm {config.title}</button></div>}
+    {items.length === 0 ? <AdminPanelEmpty message={`Chưa có ${config.title}.`} /> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{config.columns.map((column) => <th key={column[0]}>{column[1]}</th>)}<th>Hành động</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}>{config.columns.map(([field]) => <td key={field}>{Array.isArray(item[field]) ? item[field].length : displayValue(item[field])}</td>)}<td><div className="admin-action-row">{config.update && config.fields?.length > 0 && <button type="button" className="admin-btn" onClick={() => setEditing(item)}>Sửa</button>}{config.restore && item.isDeleted && <button type="button" className="admin-btn" onClick={() => run(config.restore, item._id)}>Khôi phục</button>}{config.remove && <button type="button" className="admin-btn admin-btn--danger" onClick={() => window.confirm('Xác nhận xóa?') && run(config.remove, item._id)}>Xóa</button>}</div></td></tr>)}</tbody></table></div>}
   </>
 }

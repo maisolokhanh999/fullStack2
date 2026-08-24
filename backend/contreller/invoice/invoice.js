@@ -251,14 +251,27 @@ export const payInvoice = async (req, res) => {
       });
     }
 
-    if (invoice.status !== "Pending") {
+    if (invoice.status !== "Finalized") {
       return res.status(400).json({
         success: false,
-        message: `Không thể thanh toán vì trạng thái hiện tại là "${invoice.status}"`,
+        message: `Chỉ có thể thanh toán hóa đơn đã chốt. Trạng thái hiện tại là "${invoice.status}"`,
+      });
+    }
+
+    const paymentMethod = req.body.paymentMethod || invoice.paymentMethod;
+    const cashReceived = req.body.cashReceived ?? invoice.cashReceived ?? 0;
+
+    if (paymentMethod === "Cash" && cashReceived < invoice.finalAmount) {
+      return res.status(400).json({
+        success: false,
+        message: "Số tiền mặt khách đưa không đủ để thanh toán",
       });
     }
 
     invoice.status = "Paid";
+    invoice.paymentMethod = paymentMethod;
+    invoice.cashReceived = paymentMethod === "Cash" ? cashReceived : 0;
+    invoice.changeAmount = paymentMethod === "Cash" ? cashReceived - invoice.finalAmount : 0;
     invoice.paymentDate = new Date();
     await invoice.save();
 
@@ -354,6 +367,36 @@ export const deleteInvoice = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Xoá hoá đơn thành công",
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+// @desc    Chốt hóa đơn (Pending -> Finalized)
+// @route   PATCH /api/invoices/:id/finalize
+export const finalizeInvoice = async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+
+    if (!invoice) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy hoá đơn" });
+    }
+
+    if (invoice.status !== "Pending") {
+      return res.status(400).json({
+        success: false,
+        message: `Không thể chốt vì trạng thái hiện tại là "${invoice.status}"`,
+      });
+    }
+
+    invoice.status = "Finalized";
+    await invoice.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Chốt hoá đơn thành công",
+      data: invoice,
     });
   } catch (error) {
     handleError(res, error);

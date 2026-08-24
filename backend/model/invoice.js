@@ -75,7 +75,7 @@ const invoiceSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Pending", "Paid", "Cancelled", "Refunded"],
+      enum: ["Pending", "Finalized", "Paid", "Cancelled", "Refunded"],
       default: "Pending",
     },
   },

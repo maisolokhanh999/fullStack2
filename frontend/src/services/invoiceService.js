@@ -67,6 +67,9 @@ const runInvoiceAction = async (id, action, payload, signal, fallbackMessage) =>
 export const payInvoice = (id, payload = {}, signal) =>
   runInvoiceAction(id, 'pay', payload, signal, 'Không thể thanh toán hóa đơn.')
 
+export const finalizeInvoice = (id, payload = {}, signal) =>
+  runInvoiceAction(id, 'finalize', payload, signal, 'Không thể chốt hóa đơn.')
+
 export const cancelInvoice = (id, payload = {}, signal) =>
   runInvoiceAction(id, 'cancel', payload, signal, 'Không thể hủy hóa đơn.')
 

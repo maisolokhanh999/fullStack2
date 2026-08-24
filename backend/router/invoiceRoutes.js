@@ -4,6 +4,7 @@ import {
   getInvoices,
   getInvoiceById,
   updateInvoice,
+  finalizeInvoice,
   payInvoice,
   cancelInvoice,
   refundInvoice,
@@ -16,6 +17,7 @@ router.post("/", authMiddleware, adminMiddleware, createInvoice);
 router.get("/", authMiddleware, getInvoices);
 router.get("/:id", authMiddleware, getInvoiceById);
 router.put("/:id", authMiddleware, updateInvoice);
+router.patch("/:id/finalize", authMiddleware, finalizeInvoice);
 router.patch("/:id/pay", authMiddleware, payInvoice);
 router.patch("/:id/cancel", authMiddleware, cancelInvoice);
 router.patch("/:id/refund", authMiddleware, refundInvoice);

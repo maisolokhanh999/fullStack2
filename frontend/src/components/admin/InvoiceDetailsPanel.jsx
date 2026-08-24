@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { getInvoiceById, getInvoices, payInvoice } from '../../services/invoiceService.js'
+import { finalizeInvoice, getInvoiceById, getInvoices, payInvoice } from '../../services/invoiceService.js'
 import { createInvoiceDetail, getInvoiceDetailsByInvoice } from '../../services/invoiceDetailService.js'
 import { getDishes } from '../../services/dishService.js'
 import useAdminCollection from './useAdminCollection.js'
@@ -14,6 +14,8 @@ export default function InvoiceDetailsPanel() {
   const [dishes, setDishes] = useState([])
   const [dishId, setDishId] = useState('')
   const [quantity, setQuantity] = useState(1)
+  const [paymentMethod, setPaymentMethod] = useState('Cash')
+  const [cashReceived, setCashReceived] = useState('')
   const [lookupError, setLookupError] = useState('')
   const [actionError, setActionError] = useState('')
   const [isAdding, setIsAdding] = useState(false)
@@ -64,16 +66,32 @@ export default function InvoiceDetailsPanel() {
   }
 
   const pay = async () => {
-    if (!invoice || !window.confirm(`Xác nhận thanh toán ${formatMoney(invoice.finalAmount)}?`)) return
+    const received = Number(cashReceived)
+    if (!invoice || (paymentMethod === 'Cash' && (!Number.isFinite(received) || received < invoice.finalAmount))) {
+      setActionError('Vui lòng nhập số tiền mặt đủ để thanh toán.')
+      return
+    }
+    if (!window.confirm(`Xác nhận thanh toán ${formatMoney(invoice.finalAmount)}?`)) return
     try {
       setIsPaying(true)
       setActionError('')
-      await payInvoice(invoice._id)
+      await payInvoice(invoice._id, { paymentMethod, cashReceived: paymentMethod === 'Cash' ? received : 0 })
       await loadInvoiceData(invoice._id)
     } catch (requestError) {
       setActionError(requestError.message)
     } finally {
       setIsPaying(false)
+    }
+  }
+
+  const finalize = async () => {
+    if (!invoice || !window.confirm('Chốt hóa đơn? Sau khi chốt sẽ không thể thêm hoặc sửa món.')) return
+    try {
+      setActionError('')
+      await finalizeInvoice(invoice._id)
+      await loadInvoiceData(invoice._id)
+    } catch (requestError) {
+      setActionError(requestError.message)
     }
   }
 
@@ -102,8 +120,18 @@ export default function InvoiceDetailsPanel() {
           <input type="number" min="1" max="99" value={quantity} onChange={(event) => setQuantity(event.target.value)} aria-label="Số lượng món" required />
           <button type="submit" className="admin-btn" disabled={isAdding}>{isAdding ? 'Đang thêm...' : 'Thêm món'}</button>
         </form>
-        <button type="button" className="admin-btn" onClick={pay} disabled={isPaying}>{isPaying ? 'Đang thanh toán...' : `Thanh toán ${formatMoney(invoice.finalAmount)}`}</button>
+        <button type="button" className="admin-btn" onClick={finalize}>Chốt hóa đơn</button>
       </>}
+      {invoice.status === 'Finalized' && <div className="admin-action-row">
+        <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} aria-label="Phương thức thanh toán">
+          <option value="Cash">Tiền mặt</option>
+          <option value="BankTransfer">Chuyển khoản</option>
+          <option value="Card">Thẻ</option>
+          <option value="EWallet">Ví điện tử</option>
+        </select>
+        {paymentMethod === 'Cash' && <input type="number" min={invoice.finalAmount} value={cashReceived} onChange={(event) => setCashReceived(event.target.value)} placeholder="Tiền khách đưa" aria-label="Tiền khách đưa" />}
+        <button type="button" className="admin-btn" onClick={pay} disabled={isPaying}>{isPaying ? 'Đang thanh toán...' : `Thanh toán ${formatMoney(invoice.finalAmount)}`}</button>
+      </div>}
     </>}
   </div>
 }

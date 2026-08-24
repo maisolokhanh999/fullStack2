@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { getInvoices, payInvoice, cancelInvoice, refundInvoice } from '../../services/invoiceService.js'
+import { getInvoices, cancelInvoice, refundInvoice } from '../../services/invoiceService.js'
 import useAdminCollection from './useAdminCollection.js'
 import { AdminPanelEmpty, AdminPanelError, AdminPanelLoading, RowActionError } from './AdminShared.jsx'
 import { formatMoney } from './adminUtils.js'
 
-const actions = { Pending: [['Thanh toán', payInvoice], ['Hủy', cancelInvoice]], Paid: [['Hoàn tiền', refundInvoice]] }
+const actions = { Pending: [['Hủy', cancelInvoice]], Finalized: [], Paid: [['Hoàn tiền', refundInvoice]] }
 export default function InvoicesPanel() {
   const { items, setItems, isLoading, error, retry } = useAdminCollection(getInvoices, 'invoices')
   const [errors, setErrors] = useState({})
