@@ -103,6 +103,8 @@ export const getInvoices = async (req, res) => {
     const { status, paymentMethod, fromDate, toDate } = req.query;
     const filter = {};
 
+    if (req.user?.role !== "admin") filter.userId = req.user._id;
+
     if (status) filter.status = status;
     if (paymentMethod) filter.paymentMethod = paymentMethod;
 
