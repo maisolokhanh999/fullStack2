@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { getInvoices, cancelInvoice, refundInvoice } from '../../services/invoiceService.js'
+import { getInvoices, finalizeInvoice, payInvoice, cancelInvoice, refundInvoice } from '../../services/invoiceService.js'
 import useAdminCollection from './useAdminCollection.js'
 import { AdminPanelEmpty, AdminPanelError, AdminPanelLoading, RowActionError } from './AdminShared.jsx'
 import { INVOICE_STATUS_LABELS, formatMoney, labelFor } from './adminUtils.js'
 
-const actions = { Pending: [['Hủy', cancelInvoice]], Finalized: [], Paid: [['Hoàn tiền', refundInvoice]] }
+// Vòng đời hoá đơn ở backend: Pending -> Finalized -> Paid (huỷ chỉ khi còn Pending).
+const actions = { Pending: [['Chốt hóa đơn', finalizeInvoice], ['Hủy', cancelInvoice]], Finalized: [['Thanh toán', payInvoice]], Paid: [['Hoàn tiền', refundInvoice]] }
+const dangerLabels = ['Hủy', 'Hoàn tiền']
 export default function InvoicesPanel() {
   const { items, setItems, isLoading, error, retry } = useAdminCollection(getInvoices, 'invoices')
   const [errors, setErrors] = useState({})
@@ -12,5 +14,5 @@ export default function InvoicesPanel() {
   if (isLoading) return <AdminPanelLoading label="Đang tải danh sách hóa đơn..." />
   if (error) return <AdminPanelError message={error} onRetry={retry} />
   if (!items.length) return <AdminPanelEmpty message="Chưa có hóa đơn nào." />
-  return <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Người thanh toán</th><th>Điện thoại</th><th>Tổng tiền</th><th>Tiền cọc</th><th>Còn phải trả</th><th>Phương thức</th><th>Trạng thái</th><th>Hành động</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}><td>{item.payerName}</td><td>{item.phoneNumber}</td><td>{formatMoney(item.totalAmount)}</td><td>{formatMoney(item.depositAmount)}</td><td>{formatMoney(item.finalAmount)}</td><td>{item.paymentMethod}</td><td><span className="admin-status-badge" data-status={item.status}>{labelFor(INVOICE_STATUS_LABELS, item.status)}</span></td><td><div className="admin-action-row">{(actions[item.status] || []).map(([label, callback]) => <button key={label} type="button" className={label !== 'Thanh toán' ? 'admin-btn admin-btn--danger' : 'admin-btn'} onClick={() => (label === 'Thanh toán' || window.confirm(`Xác nhận: ${label}?`)) && run(item._id, callback)}>{label}</button>)}</div><RowActionError message={errors[item._id]} /></td></tr>)}</tbody></table></div>
+  return <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Người thanh toán</th><th>Điện thoại</th><th>Tổng tiền</th><th>Tiền cọc</th><th>Còn phải trả</th><th>Phương thức</th><th>Trạng thái</th><th>Hành động</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}><td>{item.payerName}</td><td>{item.phoneNumber}</td><td>{formatMoney(item.totalAmount)}</td><td>{formatMoney(item.depositAmount)}</td><td>{formatMoney(item.finalAmount)}</td><td>{item.paymentMethod}</td><td><span className="admin-status-badge" data-status={item.status}>{labelFor(INVOICE_STATUS_LABELS, item.status)}</span></td><td><div className="admin-action-row">{(actions[item.status] || []).map(([label, callback]) => <button key={label} type="button" className={dangerLabels.includes(label) ? 'admin-btn admin-btn--danger' : 'admin-btn'} onClick={() => window.confirm(`Xác nhận: ${label}?`) && run(item._id, callback)}>{label}</button>)}</div><RowActionError message={errors[item._id]} /></td></tr>)}</tbody></table></div>
 }

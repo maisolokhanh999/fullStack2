@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Env: chỉ .env.example được commit. Mọi VITE_* đều lộ trong bundle client,
+# nên không đặt secret vào đây.
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
