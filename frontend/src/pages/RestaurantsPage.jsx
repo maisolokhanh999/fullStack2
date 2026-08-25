@@ -2,7 +2,6 @@ import { Link } from 'react-router-dom'
 import DataSourceNotice from '../components/customer/DataSourceNotice.jsx'
 import LandingHero from '../components/customer/LandingHero.jsx'
 import MenuPreview from '../components/customer/MenuPreview.jsx'
-import ServingSequence from '../components/customer/ServingSequence.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 
@@ -19,11 +18,7 @@ function RestaurantsPage() {
 
       <div className="customer-main">
         <MenuPreview />
-      </div>
 
-      <ServingSequence />
-
-      <div className="customer-main">
         <section className="landing-section" aria-labelledby="restaurant-heading">
           <div className="landing-section__head">
             <div>
