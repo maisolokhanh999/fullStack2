@@ -221,7 +221,7 @@ function BookingPage() {
 
     clearDraft()
     setIsSubmitting(false)
-    navigate('/bookings', { replace: true, state: { reservationSubmitted: true } })
+    navigate('/bookings', { replace: true, state: { reservationSubmitted: true, reservationCode: reservation.reservationCode } })
   }
 
   return (

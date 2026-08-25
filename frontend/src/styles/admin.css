@@ -504,6 +504,44 @@
   border-color: var(--son);
 }
 
+/* Ô thêm món tại bàn: rộng rãi và tách khỏi hàng nút Chốt/Hủy bên dưới,
+   thay vì bị nhét chung một .admin-action-row 6px như trước. */
+.admin-order-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(176, 133, 68, 0.24);
+  border-radius: var(--radius-md);
+  background: var(--surface-alt);
+}
+
+.admin-order-form .admin-field {
+  flex: 1 1 220px;
+}
+
+.admin-order-form .admin-field--narrow {
+  flex: 0 1 96px;
+}
+
+.admin-order-form .admin-field > span {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.admin-order-form .admin-field select,
+.admin-order-form .admin-field input {
+  min-height: 42px;
+}
+
+.admin-order-form .admin-btn {
+  flex: 0 0 auto;
+  min-height: 42px;
+  padding: 0 18px;
+  font-size: 12px;
+}
+
 .admin-btn--link {
   border-color: transparent;
   background: transparent;
