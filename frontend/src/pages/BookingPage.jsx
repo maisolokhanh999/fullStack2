@@ -30,6 +30,10 @@ const steps = [
 
 const OPENING_TIME = '10:00'
 const LAST_BOOKING_TIME = '21:30'
+const TIME_SLOTS = Array.from({ length: 24 }, (_, index) => {
+  const minutes = 10 * 60 + index * 30
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+})
 
 const isValidDateString = (value) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
@@ -276,15 +280,16 @@ function BookingPage() {
 
               <label className="booking-field">
                 <span>Giờ đến</span>
-                <input
+                <select
                   name="visitTime"
-                  type="time"
-                  min={OPENING_TIME}
-                  max={LAST_BOOKING_TIME}
                   value={draft.visitTime}
                   onChange={updateDraftField}
                   aria-invalid={Boolean(errors.visitTime)}
-                />
+                  required
+                >
+                  <option value="">Chọn giờ đến</option>
+                  {TIME_SLOTS.map((time) => <option key={time} value={time}>{time}</option>)}
+                </select>
                 {errors.visitTime && <small>{errors.visitTime}</small>}
               </label>
 

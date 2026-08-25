@@ -839,3 +839,8 @@
     flex-direction: column;
   }
 }
+
+.customer-inline-button { border: 0; border-radius: 7px; padding: 5px 10px; color: #fff; background: var(--accent-darker); font: inherit; cursor: pointer; }
+.customer-modal-backdrop { position: fixed; z-index: 20; inset: 0; display: grid; place-items: center; padding: 24px; background: rgba(21, 27, 22, .58); }
+.customer-modal { width: min(100%, 520px); max-height: min(720px, 90vh); overflow: auto; padding: 28px; border-radius: 16px; background: #fffdf8; box-shadow: 0 20px 70px rgba(0,0,0,.28); }
+.customer-modal__close { float: right; border: 0; background: transparent; color: var(--bv-tea); font: inherit; cursor: pointer; }

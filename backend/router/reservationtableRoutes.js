@@ -13,8 +13,8 @@ const router = express.Router();
 
 router.post("/", assignTableToReservation);
 router.get("/", getReservationTables);
-router.get("/:id", getReservationTableById);
 router.get("/reservations/:reservationId/tables", getTablesByReservation);
+router.get("/:id", getReservationTableById);
 router.patch("/:id/release", releaseTable);
 router.patch("/:id/block", blockReservationTable);
 router.delete("/:id", deleteReservationTable);

@@ -2,6 +2,7 @@ import express from "express";
 import {
   createInvoice,
   getInvoices,
+  getInvoiceByReservation,
   getInvoiceById,
   updateInvoice,
   finalizeInvoice,
@@ -15,6 +16,7 @@ const router = express.Router();
 
 router.post("/", authMiddleware, adminMiddleware, createInvoice);
 router.get("/", authMiddleware, getInvoices);
+router.get("/reservation/:reservationId", authMiddleware, getInvoiceByReservation);
 router.get("/:id", authMiddleware, getInvoiceById);
 router.put("/:id", authMiddleware, updateInvoice);
 router.patch("/:id/finalize", authMiddleware, finalizeInvoice);

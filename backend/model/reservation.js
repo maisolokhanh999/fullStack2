@@ -21,6 +21,14 @@ const reservationSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Tài khoản tạo lượt đặt, dùng để nhà hàng nhận diện người đặt thay vì
+    // chỉ dựa vào tên người đến dùng bữa.
+    bookedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     numberOfGuests: {
       type: Number,
       required: [true, "Number of guests is required"],

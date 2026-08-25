@@ -1,7 +1,5 @@
 import Invoice from "../../model/invoice.js"; // chỉnh lại path cho đúng
 import Reservation from "../../model/reservation.js";
-import ReservationTable from "../../model/reservationTable.js";
-import Table from "../../model/table.js";
 import handleError from "../../middlewares/handleError/handleError.js";
 
 // @desc    Tạo hoá đơn mới
@@ -279,22 +277,8 @@ export const payInvoice = async (req, res) => {
     invoice.paymentDate = new Date();
     await invoice.save();
 
-    const assignedTables = await ReservationTable.find({
-      reservationId: invoice.reservationId,
-      status: "Active",
-    }).select("tableId");
-    const tableIds = assignedTables.map((assignment) => assignment.tableId);
-
-    if (tableIds.length > 0) {
-      await ReservationTable.updateMany(
-        { reservationId: invoice.reservationId, status: "Active" },
-        { status: "Inactive" }
-      );
-      await Table.updateMany(
-        { _id: { $in: tableIds } },
-        { status: "Available" }
-      );
-    }
+    // Thanh toán trước ngày đến không được giải phóng bàn. Bàn chỉ được trả
+    // về Available khi lượt đặt đã hoàn tất, hủy hoặc no-show.
 
     res.status(200).json({
       success: true,
@@ -419,6 +403,31 @@ export const finalizeInvoice = async (req, res) => {
       message: "Chốt hoá đơn thành công",
       data: invoice,
     });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+// @desc    Lấy hóa đơn hiện tại của một lượt đặt bàn
+// @route   GET /api/invoices/reservation/:reservationId
+export const getInvoiceByReservation = async (req, res) => {
+  try {
+    const invoice = await Invoice.findOne({ reservationId: req.params.reservationId })
+      .populate("reservationId")
+      .populate("userId", "name");
+
+    if (!invoice) {
+      return res.status(404).json({ success: false, message: "Lượt đặt bàn này chưa có hóa đơn" });
+    }
+
+    const bookedBy = invoice.reservationId?.bookedBy;
+    const isOwner = String(invoice.userId?._id || invoice.userId) === String(req.user._id)
+      || (bookedBy && String(bookedBy) === String(req.user._id));
+    if (req.user.role !== "admin" && !isOwner) {
+      return res.status(403).json({ success: false, message: "Không có quyền xem hóa đơn này" });
+    }
+
+    res.status(200).json({ success: true, data: invoice });
   } catch (error) {
     handleError(res, error);
   }

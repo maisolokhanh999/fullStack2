@@ -24,6 +24,11 @@ const dangerActions = ['Hủy', 'Không đến']
 
 const reservationIdOf = (invoice) => String(invoice?.reservationId?._id || invoice?.reservationId || '')
 
+const reservationStatusLabel = (reservation, invoice) => {
+  if (['Completed', 'Cancelled', 'NoShow'].includes(reservation.status)) return labelFor(RESERVATION_STATUS_LABELS, reservation.status)
+  return invoice?.status === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'
+}
+
 /* Hoá đơn của một lượt đặt: phiếu, thêm món khi còn Pending, chốt rồi thanh toán. */
 function InvoiceForReservation({ invoice, onInvoiceChange }) {
   const [details, setDetails] = useState([])
@@ -267,7 +272,7 @@ export default function OperationsPanel() {
           <thead>
             <tr>
               <th>Mã đặt bàn</th><th>Khách</th><th>Điện thoại</th><th>Số khách</th>
-              <th>Giờ hẹn</th><th>Trạng thái</th><th>Hóa đơn</th><th>Hành động</th>
+              <th>Người đặt bàn</th><th>Giờ hẹn</th><th>Trạng thái</th><th>Hành động</th>
             </tr>
           </thead>
           <tbody>
@@ -280,23 +285,16 @@ export default function OperationsPanel() {
                   <td>{item.customerName}</td>
                   <td>{item.customerPhone}</td>
                   <td>{item.numberOfGuests}</td>
+                  <td>{item.bookedBy?.name || item.customerName}</td>
                   <td>{formatDateTime(item.expectedCheckInTime)}</td>
                   <td>
                     <span className="admin-status-badge" data-status={item.status}>
-                      {labelFor(RESERVATION_STATUS_LABELS, item.status)}
+                      {reservationStatusLabel(item, invoice)}
                     </span>
                   </td>
                   <td>
-                    {invoice ? (
-                      <button type="button" className="admin-btn admin-btn--link"
-                        aria-expanded={isOpen}
-                        onClick={() => setOpenId(isOpen ? '' : item._id)}>
-                        {isOpen ? 'Đóng' : labelFor(INVOICE_STATUS_LABELS, invoice.status)}
-                      </button>
-                    ) : <span className="admin-muted">Chưa có</span>}
-                  </td>
-                  <td>
                     <div className="admin-action-row">
+                      {invoice && <button type="button" className="admin-btn admin-btn--link" aria-expanded={isOpen} onClick={() => setOpenId(isOpen ? '' : item._id)}>{isOpen ? 'Đóng hóa đơn' : 'Xem hóa đơn'}</button>}
                       {(reservationActions[item.status] || []).map(([label, action]) => (
                         <button key={label} type="button"
                           className={dangerActions.includes(label) ? 'admin-btn admin-btn--danger' : 'admin-btn'}

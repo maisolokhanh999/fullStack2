@@ -11,12 +11,22 @@ import { getMenus, createMenu, updateMenu, deleteMenu, restoreMenu } from '../se
 import { getTables, createTable, updateTable, deleteTable } from '../services/tableService.js'
 import { getReservationTables, deleteReservationTable } from '../services/reservationTableService.js'
 
+// Tab này là danh sách bàn đang được giữ, không phải lịch sử gán bàn.
+// Loại luôn các bản ghi cũ bị mất liên kết tới bàn để tránh hiển thị "—".
+const getActiveReservationTables = async (_query, signal) => {
+  const result = await getReservationTables({ status: 'Active' }, signal)
+  return {
+    ...result,
+    reservationTables: result.reservationTables.filter((item) => item.tableId),
+  }
+}
+
 const resources = {
   categories: { title: 'danh mục', key: 'categories', loader: getCategories, create: createCategory, update: updateCategory, remove: deleteCategory, fields: ['name', 'description', 'status'], statuses: ['active', 'inactive'], columns: [['name', 'Tên'], ['description', 'Mô tả'], ['status', 'Trạng thái']] },
   dishes: { title: 'món ăn', key: 'dishes', loader: getDishes, categoryLoader: getCategories, create: createDish, update: updateDish, remove: deleteDish, restore: restoreDish, fields: ['categoryId', 'code', 'name', 'type', 'servingUnit', 'price', 'discount', 'stock', 'image'], columns: [['code', 'Mã'], ['name', 'Tên món'], ['price', 'Giá'], ['status', 'Trạng thái']] },
   menus: { title: 'thực đơn', key: 'menus', loader: getMenus, create: createMenu, update: updateMenu, remove: deleteMenu, restore: restoreMenu, fields: ['name', 'description', 'image', 'status', 'startDate', 'endDate'], statuses: ['Active', 'Inactive'], columns: [['name', 'Tên'], ['status', 'Trạng thái'], ['items', 'Số món']] },
   tables: { title: 'bàn', key: 'tables', loader: getTables, create: createTable, update: updateTable, remove: deleteTable, fields: ['tableNumber', 'capacity', 'location', 'note', 'status'], statuses: ['Available', 'Occupied', 'Reserved', 'Cleaning'], columns: [['tableNumber', 'Số bàn'], ['capacity', 'Sức chứa'], ['location', 'Khu vực'], ['status', 'Trạng thái']] },
-  'reservation-tables': { title: 'bàn đã gán', key: 'reservationTables', loader: getReservationTables, remove: deleteReservationTable, columns: [['reservationId', 'Đặt bàn'], ['tableId', 'Bàn'], ['status', 'Trạng thái']] },
+  'reservation-tables': { title: 'bàn đã gán', key: 'reservationTables', loader: getActiveReservationTables, remove: deleteReservationTable, columns: [['reservationId', 'Đặt bàn'], ['tableId', 'Bàn'], ['status', 'Trạng thái']] },
 }
 
 // Bốn nhóm theo công việc thật, thay cho tám tab ngang hàng. Nhóm nào có nhiều

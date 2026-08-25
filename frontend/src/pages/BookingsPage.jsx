@@ -4,7 +4,8 @@ import UiIcon from '../components/UiIcon.jsx'
 import { RESERVATION_STATUS_LABELS, formatDateTime, labelFor } from '../components/admin/adminUtils.js'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { getInvoices } from '../services/invoiceService.js'
+import { getInvoiceByReservation, getInvoices } from '../services/invoiceService.js'
+import { getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
 import { searchReservations } from '../services/reservationService.js'
 import { getReservationTables } from '../services/reservationTableService.js'
 import { useBookingDraft } from '../context/bookingDraftStore.js'
@@ -17,6 +18,10 @@ function BookingsPage() {
   const [reservations, setReservations] = useState([])
   const [tables, setTables] = useState({})
   const [invoiceMap, setInvoiceMap] = useState({})
+  const [selectedInvoice, setSelectedInvoice] = useState(null)
+  const [invoiceDetails, setInvoiceDetails] = useState([])
+  const [isInvoiceLoading, setIsInvoiceLoading] = useState(false)
+  const [invoiceError, setInvoiceError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const hasDraft = Boolean(draft.visitDate || draft.visitTime || draft.items.length)
@@ -89,17 +94,36 @@ function BookingsPage() {
     return () => controller.abort()
   }, [user])
 
+  const viewInvoice = async (invoice, reservationId) => {
+    setSelectedInvoice(invoice || { reservationId })
+    setInvoiceDetails([])
+    setInvoiceError('')
+    setIsInvoiceLoading(true)
+    try {
+      const currentInvoice = invoice || await getInvoiceByReservation(reservationId)
+      setSelectedInvoice(currentInvoice)
+      const result = await getInvoiceDetailsByInvoice(currentInvoice._id)
+      setInvoiceDetails(result.invoiceDetails || [])
+    } catch (requestError) {
+      setInvoiceError(requestError.message)
+    } finally {
+      setIsInvoiceLoading(false)
+    }
+  }
+
+  const closeInvoice = () => {
+    setSelectedInvoice(null)
+    setInvoiceDetails([])
+    setInvoiceError('')
+  }
+
   return (
     <main className="customer-main bookings-page">
       {location.state?.reservationSubmitted && <div className="api-pending-notice" role="status"><span><UiIcon name="check" /></span><div><strong>Đã gửi yêu cầu đặt bàn</strong><p>Nhà hàng sẽ kiểm tra và xác nhận thông tin đặt bàn của bạn.</p></div></div>}
       <div className="page-title-row">
         <div>
           <span className="customer-kicker">Lịch hẹn của bạn</span>
-          <h1>Đặt bàn của tôi</h1>
-          <p>
-            Bản nháp đang soạn được giữ trên trình duyệt này. Lượt đã gửi đi nằm ở{' '}
-            <Link to="/invoices">Hoá đơn của tôi</Link>.
-          </p>
+          <h1>Đặt bàn</h1>
         </div>
         <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
           Tạo đặt bàn mới
@@ -150,7 +174,6 @@ function BookingsPage() {
       {!isLoading && !error && reservations.length > 0 && reservations.map((reservation) => {
         const invoice = invoiceMap[String(reservation._id)]
         const assignment = tables[String(reservation._id)]
-        const paymentState = invoice && (invoice.status === 'Paid' || invoice.status === 'Finalized') ? 'Đã thanh toán' : 'Chưa thanh toán'
 
         return (
           <section className="draft-booking-card" key={reservation._id}>
@@ -165,16 +188,9 @@ function BookingsPage() {
               <div><dt>Thời gian</dt><dd>{formatDateTime(reservation.expectedCheckInTime)}</dd></div>
               <div><dt>Số khách</dt><dd>{reservation.numberOfGuests} người</dd></div>
               <div><dt>Bàn</dt><dd>{assignment ? `Bàn ${assignment.tableNumber || assignment._id}` : 'Chưa gán'}</dd></div>
-              <div><dt>Thanh toán</dt><dd>{paymentState}</dd></div>
+              <div><dt>Hóa đơn</dt><dd><button type="button" className="customer-inline-button" onClick={() => viewInvoice(invoice, reservation._id)}>Xem</button></dd></div>
               <div><dt>Ghi chú</dt><dd>{reservation.note || 'Không có'}</dd></div>
             </dl>
-            {invoice && (invoice.status === 'Paid' || invoice.status === 'Finalized') && (
-              <div className="draft-booking-card__actions">
-                <Link className="customer-primary-link" to="/invoices">
-                  Xem hóa đơn
-                </Link>
-              </div>
-            )}
           </section>
         )
       })}
@@ -191,11 +207,19 @@ function BookingsPage() {
             <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
               Bắt đầu đặt bàn
             </Link>
-            <Link className="customer-secondary-link" to="/invoices">
-              Xem lượt đã đặt
-            </Link>
           </div>
         </section>
+      )}
+      {selectedInvoice && (
+        <div className="customer-modal-backdrop" role="presentation" onMouseDown={closeInvoice}>
+          <section className="customer-modal" role="dialog" aria-modal="true" aria-label="Thông tin hóa đơn" onMouseDown={(event) => event.stopPropagation()}>
+            <button type="button" className="customer-modal__close" onClick={closeInvoice}>Đóng</button>
+            <span className="customer-kicker">Hóa đơn</span>
+            <h2>{selectedInvoice.reservationId?.reservationCode || 'Chi tiết hóa đơn'}</h2>
+            <p>Trạng thái: {selectedInvoice.status === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
+            {isInvoiceLoading ? <div className="menu-state" role="status"><span className="spinner" aria-hidden="true" /><p>Đang tải thông tin hóa đơn...</p></div> : invoiceError ? <p className="invoice-section__error" role="alert">{invoiceError}</p> : <><ul className="invoice-card__items">{invoiceDetails.length ? invoiceDetails.map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatCurrency(detail.totalAmount)}</strong></li>) : <li><span>Chưa có món đặt trước</span></li>}</ul><footer className="invoice-card__total"><span>Tiền cọc {formatCurrency(selectedInvoice.depositAmount)}</span><div><span>Còn phải trả</span><strong>{formatCurrency(selectedInvoice.finalAmount)}</strong></div></footer></>}
+          </section>
+        </div>
       )}
     </main>
   )

@@ -73,6 +73,7 @@ export const createReservation = async (req, res) => {
     const reservation = await Reservation.create({
       customerName,
       customerPhone,
+      bookedBy: req.user._id,
       numberOfGuests,
       depositAmount,
       expectedCheckInTime,
@@ -140,9 +141,11 @@ export const getReservations = async (req, res) => {
     if (reservationType) filter.reservationType = reservationType;
     if (query?.trim()) {
       const searchValue = query.trim();
+      const escaped = searchValue.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       filter.$or = [
-        { reservationCode: searchValue },
-        { customerPhone: searchValue },
+        { reservationCode: { $regex: `^${escaped}$`, $options: "i" } },
+        { customerPhone: { $regex: `^${escaped}$` } },
+        { customerName: { $regex: escaped, $options: "i" } },
       ];
     }
 
@@ -155,7 +158,7 @@ export const getReservations = async (req, res) => {
       filter.expectedCheckInTime = { $gte: start, $lte: end };
     }
 
-    const reservations = await Reservation.find(filter).sort({
+    const reservations = await Reservation.find(filter).populate("bookedBy", "name phone").sort({
       expectedCheckInTime: 1,
     });
 
@@ -275,6 +278,11 @@ export const checkInReservation = async (req, res) => {
     reservation.actualCheckInTime = new Date();
     await reservation.save();
 
+    await Table.updateMany(
+      { _id: { $in: await ReservationTable.find({ reservationId: reservation._id, status: "Active" }).distinct("tableId") } },
+      { status: "Occupied" }
+    );
+
     res.status(200).json({
       success: true,
       message: "Check-in thành công",
@@ -305,8 +313,17 @@ export const completeReservation = async (req, res) => {
       });
     }
 
+    const invoice = await Invoice.findOne({ reservationId: reservation._id });
+    if (!invoice || invoice.status !== "Paid") {
+      return res.status(400).json({
+        success: false,
+        message: "Cần thanh toán hóa đơn trước khi hoàn tất lượt đặt bàn",
+      });
+    }
+
     reservation.status = "Completed";
     await reservation.save();
+    await releaseReservationTables(reservation._id);
 
     res.status(200).json({
       success: true,

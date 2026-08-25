@@ -27,6 +27,15 @@ export async function getInvoiceById(id, signal) {
   return unwrapEntity(response, 'invoice')
 }
 
+export async function getInvoiceByReservation(reservationId, signal) {
+  const response = await apiRequest(
+    `/invoices/reservation/${encodePathSegment(reservationId, 'reservationId')}`,
+    { auth: true, signal },
+    'Không thể tải hóa đơn hiện tại.',
+  )
+  return unwrapEntity(response, 'invoice')
+}
+
 export async function createInvoice(payload, signal) {
   const response = await apiRequest(
     '/invoices',

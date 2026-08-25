@@ -3,6 +3,8 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../AuthIcons.jsx'
 import { useAuth } from '../../hooks/useAuth.js'
 import { isAdminRole, isStaffRole } from '../../utils/roleNavigation.js'
+import SiteFooter from './SiteFooter.jsx'
+import SiteHeader from './SiteHeader.jsx'
 
 function CustomerLayout() {
   const navigate = useNavigate()
@@ -32,15 +34,14 @@ function CustomerLayout() {
 
   const links = [
     { to: '/restaurants', label: 'Nhà hàng', end: true },
-    { to: '/bookings', label: 'Đặt bàn của tôi' },
-    { to: '/invoices', label: 'Hóa đơn của tôi' },
+    { to: '/bookings', label: 'Đặt bàn' },
     ...(isStaffRole(user?.role) ? [{ to: '/staff/check-in', label: 'Check-in' }] : []),
     ...(isAdminRole(user?.role) ? [{ to: '/admin', label: 'Quản trị' }] : []),
   ]
 
   return (
     <div className="customer-app">
-      <header className={`site-header${isMenuOpen ? ' is-open' : ''}`}>
+      <SiteHeader isOpen={isMenuOpen}>
         <div className="site-header__inner">
           <div className="site-header__lead">
             <NavLink className="site-brand" to="/restaurants" aria-label="Bàn Việt - Nhà hàng">
@@ -84,14 +85,12 @@ function CustomerLayout() {
             <button type="button" onClick={logout}>Đăng xuất</button>
           </div>
         </div>
-      </header>
+      </SiteHeader>
 
       <Outlet />
 
-      <footer className="site-footer">
-        <span>Bàn Việt</span>
-        <p>Đặt bàn trước, tận hưởng trọn vẹn khi đến nơi.</p>
-      </footer>
+      <SiteFooter />
+
     </div>
   )
 }

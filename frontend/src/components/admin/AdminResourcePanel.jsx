@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import useAdminCollection from './useAdminCollection.js'
 import { AdminPanelEmpty, AdminPanelError, AdminPanelLoading } from './AdminShared.jsx'
 import { uploadFile } from '../../services/uploadService.js'
+import { getDishes } from '../../services/dishService.js'
+import { getMenuById, addDishToMenu, removeDishFromMenu } from '../../services/menuService.js'
 
 const emptyCategories = async () => ({ categories: [] })
 
@@ -41,7 +43,9 @@ function ResourceForm({ config, initial, onCancel, onSubmit }) {
       <label key={field}>{fieldLabel(field)}
         {field === 'categoryId' && config.categoryLoader ? <select value={form[field]?._id || form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn danh mục</option>{categoryResult.items.map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}</select> :
           field === 'status' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)}><option value="">Chọn trạng thái</option>{(config.statuses || []).map((value) => <option key={value} value={value}>{value}</option>)}</select> :
-            field === 'image' ? <><input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] || null)} />{form.image && <small>Ảnh hiện tại: {form.image}</small>}</> :
+            field === 'type' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn loại</option>{['MainCourse', 'SideDish', 'Drink', 'Dessert'].map((value) => <option key={value} value={value}>{value}</option>)}</select> :
+              field === 'servingUnit' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn đơn vị</option>{['Phần', 'Suất', 'Đĩa', 'Tô', 'Bát', 'Ly', 'Cốc', 'Chai', 'Lon', 'Miếng', 'Cái'].map((value) => <option key={value} value={value}>{value}</option>)}</select> :
+              field === 'image' ? <><input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] || null)} />{form.image && <small>Ảnh hiện tại: {form.image}</small>}</> :
               <input type={['price', 'discount', 'stock', 'capacity'].includes(field) ? 'number' : field.toLowerCase().includes('date') ? 'date' : 'text'} value={form[field]} onChange={(event) => change(field, event.target.value)} required={['name', 'code', 'categoryId', 'price', 'capacity'].includes(field)} />}
       </label>
     ))}
@@ -49,10 +53,35 @@ function ResourceForm({ config, initial, onCancel, onSubmit }) {
   </form>
 }
 
+function MenuItemsEditor({ menu, onClose, onChanged }) {
+  const [dishes, setDishes] = useState([])
+  const [current, setCurrent] = useState(menu)
+  const [dishId, setDishId] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    Promise.all([getDishes({ status: 'Available' }), getMenuById(menu._id)])
+      .then(([dishResult, menuResult]) => { setDishes(dishResult.dishes); setCurrent(menuResult) })
+      .catch((requestError) => setError(requestError.message))
+  }, [menu._id])
+
+  const changeItems = async (action) => {
+    try {
+      setError('')
+      const updated = await action()
+      setCurrent(updated)
+      onChanged(updated)
+    } catch (requestError) { setError(requestError.message) }
+  }
+  const used = new Set((current.items || []).map((item) => String(item.dishId?._id || item.dishId)))
+  return <section className="admin-resource-form"><h3>Món trong thực đơn: {current.name}</h3>{error && <p className="admin-row-error">{error}</p>}<div className="admin-action-row"><select value={dishId} onChange={(event) => setDishId(event.target.value)}><option value="">Chọn món để thêm</option>{dishes.filter((dish) => !used.has(String(dish._id))).map((dish) => <option key={dish._id} value={dish._id}>{dish.name}</option>)}</select><button type="button" className="admin-btn" disabled={!dishId} onClick={() => changeItems(() => addDishToMenu(current._id, dishId))}>Thêm món</button><button type="button" className="admin-btn" onClick={onClose}>Đóng</button></div><ul>{(current.items || []).map((item) => <li key={item.dishId?._id || item.dishId}>{item.dishId?.name || item.dishId} <button type="button" className="admin-btn admin-btn--danger" onClick={() => changeItems(() => removeDishFromMenu(current._id, item.dishId?._id || item.dishId))}>Bỏ</button></li>)}</ul></section>
+}
+
 export default function AdminResourcePanel({ config }) {
   const { items, setItems, isLoading, error, retry } = useAdminCollection(config.loader, config.key)
   const [editing, setEditing] = useState(null)
   const [message, setMessage] = useState('')
+  const [menuEditing, setMenuEditing] = useState(null)
   const run = async (callback, id, payload) => {
     try {
       setMessage('')
@@ -71,7 +100,9 @@ export default function AdminResourcePanel({ config }) {
   return <>
     {message && <p className="admin-row-error">{message}</p>}
     {editing && <ResourceForm config={config} initial={editing === 'new' ? null : editing} onCancel={() => setEditing(null)} onSubmit={(payload) => run(editing === 'new' ? config.create : config.update, editing === 'new' ? null : editing._id, payload)} />}
+    {menuEditing && <MenuItemsEditor menu={menuEditing} onClose={() => setMenuEditing(null)} onChanged={(updated) => setItems((current) => current.map((item) => item._id === updated._id ? updated : item))} />}
     {config.create && config.fields?.length > 0 && <div className="admin-resource-toolbar"><button type="button" className="admin-btn" onClick={() => setEditing('new')}>Thêm {config.title}</button></div>}
+    {config.key === 'menus' && items.length > 0 && <div className="admin-resource-toolbar"><label>Chọn thực đơn <select defaultValue="" onChange={(event) => setMenuEditing(items.find((item) => item._id === event.target.value) || null)}><option value="">Quản lý món trong thực đơn</option>{items.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></label></div>}
     {items.length === 0 ? <AdminPanelEmpty message={`Chưa có ${config.title}.`} /> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{config.columns.map((column) => <th key={column[0]}>{column[1]}</th>)}<th>Hành động</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}>{config.columns.map(([field]) => <td key={field}>{Array.isArray(item[field]) ? item[field].length : displayValue(item[field])}</td>)}<td><div className="admin-action-row">{config.update && config.fields?.length > 0 && <button type="button" className="admin-btn" onClick={() => setEditing(item)}>Sửa</button>}{config.restore && item.isDeleted && <button type="button" className="admin-btn" onClick={() => run(config.restore, item._id)}>Khôi phục</button>}{config.remove && <button type="button" className="admin-btn admin-btn--danger" onClick={() => window.confirm('Xác nhận xóa?') && run(config.remove, item._id)}>Xóa</button>}</div></td></tr>)}</tbody></table></div>}
   </>
 }
