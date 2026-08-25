@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useAuth } from '../hooks/useAuth.js'
@@ -104,9 +104,6 @@ function InvoiceCard({ invoice, table, details, isSettled, onCancel, isCancellin
 }
 
 function InvoicesPage() {
-  const location = useLocation()
-  const [isSuccessVisible, setIsSuccessVisible] = useState(Boolean(location.state?.reservationSubmitted))
-  const reservationCode = location.state?.reservationCode
   const { user } = useAuth()
   const [invoices, setInvoices] = useState([])
   const [details, setDetails] = useState({})
@@ -216,27 +213,6 @@ function InvoicesPage() {
 
   return (
     <main className="customer-main">
-      {isSuccessVisible && (
-        <div className="booking-success" role="status">
-          <span className="booking-success__icon"><UiIcon name="check" /></span>
-          <div className="booking-success__body">
-            <strong>Đã gửi yêu cầu đặt bàn</strong>
-            <p>
-              Nhà hàng sẽ kiểm tra và xác nhận thông tin đặt bàn của bạn.
-              {reservationCode && <> Mã đặt bàn của bạn là <code>{reservationCode}</code>.</>}
-            </p>
-          </div>
-          <button
-            type="button"
-            className="booking-success__close"
-            onClick={() => setIsSuccessVisible(false)}
-            aria-label="Đóng thông báo"
-          >
-            <UiIcon name="close" />
-          </button>
-        </div>
-      )}
-
       <div className="page-title-row">
         <div>
           <span className="customer-kicker">Hoá đơn của tôi</span>

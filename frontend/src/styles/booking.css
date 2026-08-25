@@ -630,6 +630,89 @@
   flex-wrap: wrap;
 }
 
+.bookings-page {
+  max-width: 980px;
+}
+
+.bookings-page .page-title-row {
+  align-items: center;
+}
+
+.draft-booking-card {
+  margin-top: 18px;
+  padding: clamp(22px, 4vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 253, 251, 0.9);
+  box-shadow: var(--shadow-md);
+}
+
+.draft-booking-card__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(176, 133, 68, 0.3);
+}
+
+.draft-booking-card__header > div > span {
+  color: var(--accent-dark);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.draft-booking-card h2 {
+  margin: 5px 0 0;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: 29px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.draft-pill {
+  color: #8d6530;
+  background: var(--warning-soft);
+}
+
+.draft-booking-card > dl {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 9px;
+  margin: 24px 0;
+}
+
+.draft-booking-card > dl > div {
+  padding: 12px 0 12px 14px;
+  border-left: 1px solid rgba(176, 133, 68, 0.3);
+}
+
+.draft-booking-card > dl > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.draft-booking-card dt {
+  margin-bottom: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.draft-booking-card dd {
+  margin: 0;
+  color: var(--ink-strong);
+  font-family: var(--font-data);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
 .danger-text-button {
   color: var(--danger);
 }
@@ -671,6 +754,10 @@
   .booking-dish-list {
     grid-template-columns: 1fr;
     max-height: none;
+  }
+
+  .draft-booking-card > dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -718,5 +805,9 @@
   .deposit-estimate__heading {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .draft-booking-card > dl {
+    grid-template-columns: 1fr;
   }
 }

@@ -14,6 +14,8 @@ function BookingsPage() {
   const location = useLocation()
   const { user } = useAuth()
   const { draft, clearDraft } = useBookingDraft()
+  const [isSuccessVisible, setIsSuccessVisible] = useState(Boolean(location.state?.reservationSubmitted))
+  const reservationCode = location.state?.reservationCode
   const [reservations, setReservations] = useState([])
   const [tables, setTables] = useState({})
   const [invoiceMap, setInvoiceMap] = useState({})
@@ -91,7 +93,26 @@ function BookingsPage() {
 
   return (
     <main className="customer-main bookings-page">
-      {location.state?.reservationSubmitted && <div className="api-pending-notice" role="status"><span><UiIcon name="check" /></span><div><strong>Đã gửi yêu cầu đặt bàn</strong><p>Nhà hàng sẽ kiểm tra và xác nhận thông tin đặt bàn của bạn.</p></div></div>}
+      {isSuccessVisible && (
+        <div className="booking-success" role="status">
+          <span className="booking-success__icon"><UiIcon name="check" /></span>
+          <div className="booking-success__body">
+            <strong>Đã gửi yêu cầu đặt bàn</strong>
+            <p>
+              Nhà hàng sẽ kiểm tra và xác nhận thông tin đặt bàn của bạn.
+              {reservationCode && <> Mã đặt bàn của bạn là <code>{reservationCode}</code>.</>}
+            </p>
+          </div>
+          <button
+            type="button"
+            className="booking-success__close"
+            onClick={() => setIsSuccessVisible(false)}
+            aria-label="Đóng thông báo"
+          >
+            <UiIcon name="close" />
+          </button>
+        </div>
+      )}
       <div className="page-title-row">
         <div>
           <span className="customer-kicker">Lịch hẹn của bạn</span>
