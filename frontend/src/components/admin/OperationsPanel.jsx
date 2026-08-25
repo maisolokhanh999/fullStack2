@@ -155,7 +155,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
       {invoice.status === 'Pending' && (
         <div className="admin-invoice__work">
           <h4>Thêm món khách gọi tại bàn</h4>
-          <form className="admin-action-row" onSubmit={addDish}>
+          <form className="admin-order-form" onSubmit={addDish}>
             <label className="admin-field">
               <span>Món</span>
               <select value={dishId} onChange={(event) => setDishId(event.target.value)} required>
@@ -170,7 +170,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
               <input type="number" min="1" max="99" value={quantity}
                 onChange={(event) => setQuantity(event.target.value)} required />
             </label>
-            <button type="submit" className="admin-btn" disabled={busy === 'add'}>
+            <button type="submit" className="admin-btn admin-btn--primary" disabled={busy === 'add'}>
               {busy === 'add' ? 'Đang thêm...' : 'Thêm món'}
             </button>
           </form>

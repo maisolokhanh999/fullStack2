@@ -32,7 +32,6 @@ function CustomerLayout() {
 
   const links = [
     { to: '/restaurants', label: 'Nhà hàng', end: true },
-    { to: '/bookings', label: 'Đặt bàn của tôi' },
     { to: '/invoices', label: 'Hóa đơn của tôi' },
     ...(isStaffRole(user?.role) ? [{ to: '/staff/check-in', label: 'Check-in' }] : []),
     ...(isAdminRole(user?.role) ? [{ to: '/admin', label: 'Quản trị' }] : []),

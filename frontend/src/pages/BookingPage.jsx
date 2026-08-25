@@ -217,7 +217,7 @@ function BookingPage() {
 
     clearDraft()
     setIsSubmitting(false)
-    navigate('/bookings', { replace: true, state: { reservationSubmitted: true } })
+    navigate('/invoices', { replace: true, state: { reservationSubmitted: true, reservationCode: reservation.reservationCode } })
   }
 
   return (
@@ -502,7 +502,6 @@ function BookingPage() {
               <button className="customer-secondary-button" type="button" onClick={() => setStep(2)}>
                 Chỉnh sửa
               </button>
-              <Link className="customer-secondary-link" to="/bookings">Xem bản nháp</Link>
               <button className="customer-primary-button" type="button" onClick={submitReservation} disabled={isSubmitting}>
                 {isSubmitting ? 'Đang gửi yêu cầu...' : 'Gửi yêu cầu đặt bàn'}
               </button>

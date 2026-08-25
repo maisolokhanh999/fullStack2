@@ -3,7 +3,6 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import AdminDashboardPage from '../pages/AdminDashboardPage.jsx'
 import DashboardPage from '../pages/DashboardPage.jsx'
 import BookingPage from '../pages/BookingPage.jsx'
-import BookingsPage from '../pages/BookingsPage.jsx'
 import InvoicesPage from '../pages/InvoicesPage.jsx'
 import LoginPage from '../pages/LoginPage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
@@ -66,7 +65,8 @@ function AppRouter() {
           <Route path="/restaurants" element={<RestaurantsPage />} />
           <Route path="/restaurants/:restaurantId" element={<RestaurantDetailPage />} />
           <Route path="/booking/:restaurantId" element={<BookingPage />} />
-          <Route path="/bookings" element={<BookingsPage />} />
+          {/* Trang cũ đã bỏ — hoá đơn của lượt đặt bàn đã nằm ở /invoices */}
+          <Route path="/bookings" element={<Navigate to="/invoices" replace />} />
           <Route path="/invoices" element={<InvoicesPage />} />
         </Route>
         <Route element={<RoleRoute allowedRoles={['staff', 'admin']} />}>
