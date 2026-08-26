@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import DishGridState from '../components/customer/DishGridState.jsx'
 import DishVisual from '../components/customer/DishVisual.jsx'
@@ -58,6 +58,8 @@ function BookingPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [tables, setTables] = useState([])
   const [tableError, setTableError] = useState('')
+  const [isTablesLoading, setIsTablesLoading] = useState(true)
+  const [tablesRequestId, setTablesRequestId] = useState(0)
   const { draft, updateInfo, setItemQuantity, reconcileItems, clearDraft } = useBookingDraft()
   const { dishes, isLoading, error, retry } = useDishes()
 
@@ -74,14 +76,21 @@ function BookingPage() {
 
   useEffect(() => {
     const controller = new AbortController()
+    setIsTablesLoading(true)
+    setTableError('')
     getTables({ status: 'Available' }, controller.signal)
       .then(({ tables: availableTables }) => setTables(availableTables))
       .catch((requestError) => {
         if (requestError.name !== 'AbortError') setTableError(requestError.message)
       })
+      .finally(() => {
+        if (!controller.signal.aborted) setIsTablesLoading(false)
+      })
 
     return () => controller.abort()
-  }, [])
+  }, [tablesRequestId])
+
+  const retryTables = useCallback(() => setTablesRequestId((value) => value + 1), [])
 
   if (!isDefaultRestaurant(restaurantId)) {
     return (
@@ -309,11 +318,17 @@ function BookingPage() {
                   name="tableId"
                   value={draft.tableId}
                   onChange={updateDraftField}
-                  disabled={!tables.length}
-                  aria-invalid={Boolean(errors.tableId)}
+                  disabled={isTablesLoading || Boolean(tableError) || !tables.length}
+                  aria-invalid={Boolean(errors.tableId) || Boolean(tableError)}
                   required
                 >
-                  <option value="">{tables.length ? 'Chọn bàn phù hợp' : 'Không có bàn khả dụng'}</option>
+                  <option value="">
+                    {isTablesLoading
+                      ? 'Đang tải danh sách bàn...'
+                      : tableError
+                        ? 'Không tải được danh sách bàn'
+                        : tables.length ? 'Chọn bàn phù hợp' : 'Không có bàn khả dụng'}
+                  </option>
                   {tables
                     .filter((table) => table.capacity >= Number(draft.guests))
                     .map((table) => (
@@ -322,7 +337,14 @@ function BookingPage() {
                       </option>
                     ))}
                 </select>
-                {tableError && <small>{tableError}</small>}
+                {tableError && (
+                  <small>
+                    {tableError}{' '}
+                    <button type="button" className="customer-inline-button" onClick={retryTables}>
+                      Thử lại
+                    </button>
+                  </small>
+                )}
                 {errors.tableId && !tableError && <small>{errors.tableId}</small>}
               </label>
 
