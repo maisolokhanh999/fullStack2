@@ -134,6 +134,12 @@
   border-bottom: 0;
 }
 
+/* Hai cột thời gian đứng cạnh nhau; để chúng vắt dòng thì hàng nào cũng cao
+   một kiểu khác nhau. Bảng đã có overflow-x nên cứ cho cuộn ngang. */
+.admin-cell--time {
+  white-space: nowrap;
+}
+
 .admin-table select {
   padding: 6px 8px;
   border: 1px solid var(--line);

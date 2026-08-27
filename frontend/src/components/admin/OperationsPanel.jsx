@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   getReservations, confirmReservation, checkInReservation,
   completeReservation, cancelReservation, markReservationNoShow,
@@ -23,6 +23,24 @@ const reservationActions = {
 const dangerActions = ['Hủy', 'Không đến']
 
 const reservationIdOf = (invoice) => String(invoice?.reservationId?._id || invoice?.reservationId || '')
+
+// Mốc để xếp một lượt đặt: lúc khách bấm đặt, rơi về giờ hẹn nếu bản ghi cũ
+// chưa có timestamps. Phải trả về số hợp lệ trong mọi trường hợp — chỉ một
+// createdAt hỏng lọt vào là hàm so sánh trả NaN và cả bảng xáo lung tung.
+const orderedAt = (reservation) => {
+  for (const value of [reservation?.createdAt, reservation?.expectedCheckInTime]) {
+    const time = new Date(value ?? '').getTime()
+    if (Number.isFinite(time)) return time
+  }
+  return 0
+}
+
+// Backend sắp theo giờ hẹn tăng dần, hợp cho màn hình đón khách nhưng không hợp
+// ở đây: lượt đã xong từ mấy hôm trước nằm trên cùng, đơn khách vừa đặt bị đẩy
+// xuống tận cuối bảng.
+const newestOrderFirst = (reservations) => [...reservations].sort((a, b) => (
+  orderedAt(b) - orderedAt(a) || String(b._id).localeCompare(String(a._id))
+))
 
 const reservationStatusLabel = (reservation, invoice) => {
   if (['Completed', 'Cancelled', 'NoShow'].includes(reservation.status)) return labelFor(RESERVATION_STATUS_LABELS, reservation.status)
@@ -238,6 +256,7 @@ export default function OperationsPanel() {
   const invoices = useAdminCollection(getInvoices, 'invoices')
   const [openId, setOpenId] = useState('')
   const [errors, setErrors] = useState({})
+  const orderedReservations = useMemo(() => newestOrderFirst(reservations.items), [reservations.items])
 
   const runReservation = async (id, action) => {
     try {
@@ -272,11 +291,11 @@ export default function OperationsPanel() {
           <thead>
             <tr>
               <th>Mã đặt bàn</th><th>Khách</th><th>Điện thoại</th><th>Số khách</th>
-              <th>Người đặt bàn</th><th>Giờ hẹn</th><th>Trạng thái</th><th>Hành động</th>
+              <th>Người đặt bàn</th><th>Đặt lúc</th><th>Giờ hẹn</th><th>Trạng thái</th><th>Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {reservations.items.map((item) => {
+            {orderedReservations.map((item) => {
               const invoice = invoices.items.find((entry) => reservationIdOf(entry) === item._id)
               const isOpen = openId === item._id
               return [
@@ -286,7 +305,8 @@ export default function OperationsPanel() {
                   <td>{item.customerPhone}</td>
                   <td>{item.numberOfGuests}</td>
                   <td>{item.bookedBy?.name || item.customerName}</td>
-                  <td>{formatDateTime(item.expectedCheckInTime)}</td>
+                  <td className="admin-cell--time">{formatDateTime(item.createdAt)}</td>
+                  <td className="admin-cell--time">{formatDateTime(item.expectedCheckInTime)}</td>
                   <td>
                     <span className="admin-status-badge" data-status={item.status}>
                       {reservationStatusLabel(item, invoice)}
@@ -309,7 +329,7 @@ export default function OperationsPanel() {
                 </tr>,
                 isOpen && invoice ? (
                   <tr key={`${item._id}-invoice`} className="admin-table__expand">
-                    <td colSpan={8}>
+                    <td colSpan={9}>
                       <InvoiceForReservation invoice={invoice} onInvoiceChange={replaceInvoice} />
                     </td>
                   </tr>
