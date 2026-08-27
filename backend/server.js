@@ -18,11 +18,14 @@ app.use(cors());
 app.use(express.json());
 await cloudinary.config();
 await connectDB();
-await expireLateReservations();
-setInterval(
-  () => expireLateReservations().catch((error) => console.error("Auto cancel error:", error)),
-  60 * 1000
-);
+// Quét lượt đặt quá giờ. Lượt quét không bao giờ được phép làm chết tiến trình:
+// lần quét lúc khởi động mà ném lỗi thì app.listen bên dưới không chạy nữa và
+// cả API tắt theo, dù lỗi chỉ nằm ở một bản ghi hỏng.
+const sweepLateReservations = () =>
+  expireLateReservations().catch((error) => console.error("Auto cancel error:", error));
+
+await sweepLateReservations();
+setInterval(sweepLateReservations, 60 * 1000);
 
 app.use("/", routes);
 
