@@ -214,7 +214,9 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
       {invoice.status === 'Finalized' && (
         <div className="admin-invoice__work">
           <h4>Thanh toán</h4>
-          <div className="admin-action-row">
+          {/* Cùng là ô nhập của khu hoá đơn nên dùng chung thẻ với ô thêm món,
+              không để hai bước liền nhau của một luồng lại khác kiểu. */}
+          <div className="admin-order-form">
             <label className="admin-field">
               <span>Phương thức</span>
               <select value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)}>

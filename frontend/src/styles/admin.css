@@ -462,13 +462,18 @@
   letter-spacing: -0.02em;
 }
 
+/* Khu làm việc dưới phiếu: tiêu đề, ô nhập, rồi hàng nút kết thúc hoá đơn.
+   Dùng grid + gap để ba khối luôn có khoảng thở, thay vì dựa vào margin của
+   từng phần tử — trước đây hàng nút Chốt/Hủy dính sát đáy ô thêm món. */
 .admin-invoice__work {
-  padding-top: 16px;
+  display: grid;
+  gap: 16px;
+  padding-top: 18px;
   border-top: 1px dashed var(--line);
 }
 
 .admin-invoice__work h4 {
-  margin: 0 0 12px;
+  margin: 0;
   color: var(--ink-strong);
   font-family: var(--font-display);
   font-size: 16px;
@@ -510,25 +515,31 @@
   border-color: var(--son);
 }
 
-/* Ô thêm món tại bàn: rộng rãi và tách khỏi hàng nút Chốt/Hủy bên dưới,
-   thay vì bị nhét chung một .admin-action-row 6px như trước. */
+/* Ô nhập của khu hoá đơn (thêm món tại bàn, thu tiền). Nền phải sáng hơn nền
+   hàng mở rộng — trước đây cả hai cùng --surface-alt nên cái ô không nổi lên
+   được, nhìn như mấy input rơi tự do giữa nền. Chặn bề ngang để ô chọn món
+   không kéo dài cả nghìn pixel trên màn hình rộng rồi lệch hẳn với ô số lượng
+   bé xíu bên cạnh. */
 .admin-order-form {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
   gap: 14px;
-  padding: 16px;
-  border: 1px solid rgba(176, 133, 68, 0.24);
+  max-width: 760px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  background: var(--surface-alt);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
 }
 
 .admin-order-form .admin-field {
-  flex: 1 1 220px;
+  flex: 1 1 240px;
 }
 
 .admin-order-form .admin-field--narrow {
-  flex: 0 1 96px;
+  flex: 0 0 104px;
+  max-width: 104px;
 }
 
 .admin-order-form .admin-field > span {
@@ -536,14 +547,35 @@
   text-transform: uppercase;
 }
 
+/* Thẻ đã là nền sáng nên ô nhập phải lõm xuống bằng nền ngà, không thì viền
+   --line trên nền --surface gần như tàng hình và ô chọn món trông như chữ
+   trôi nổi giữa thẻ. */
 .admin-order-form .admin-field select,
 .admin-order-form .admin-field input {
   min-height: 42px;
+  color: var(--ink);
+  background: var(--surface-alt);
 }
 
 .admin-order-form .admin-btn {
   flex: 0 0 auto;
   min-height: 42px;
+  padding: 0 20px;
+  font-size: 12px;
+}
+
+/* Chốt và Hủy hoá đơn là việc khác hẳn với thêm món, nên tách bằng một đường
+   kẻ và cho nút cao bằng nút trong ô nhập — không để hai cỡ nút 31px và 42px
+   nằm chồng lên nhau. */
+.admin-order-form + .admin-action-row {
+  gap: 10px;
+  max-width: 760px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+
+.admin-order-form + .admin-action-row .admin-btn {
+  min-height: 40px;
   padding: 0 18px;
   font-size: 12px;
 }
