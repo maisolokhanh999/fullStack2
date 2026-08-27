@@ -472,7 +472,11 @@
   gap: 18px;
 }
 
+/* Thẻ món là một cột: ảnh trên cùng, phần chữ giãn ra chiếm hết chỗ còn lại.
+   Nhờ vậy hàng giá luôn tụt xuống đáy thẻ thay vì trôi theo độ dài mô tả. */
 .dish-card {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -489,8 +493,13 @@
   opacity: 0.68;
 }
 
+/* Ảnh món do bếp tải lên đủ mọi tỉ lệ — dọc, ngang, vuông. Khung ảnh phải tự
+   quyết chiều cao theo bề ngang thẻ; nếu để ảnh quyết định thì mỗi thẻ trong
+   lưới cao một kiểu, thẻ ảnh dọc dài gấp ba thẻ ảnh ngang. */
 .dish-visual {
-  min-height: 190px;
+  position: relative;
+  aspect-ratio: 3 / 2;
+  max-height: 300px;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -500,7 +509,12 @@
     linear-gradient(150deg, var(--lacquer-mid) 0%, var(--lacquer-deep) 100%);
 }
 
+/* place-items: center ở trên là để canh chữ cái thay ảnh. Ảnh thì tách khỏi
+   dòng chảy để phủ kín đúng khung rồi mới cắt — nếu vẫn nằm trong lưới, ảnh
+   giữ tỉ lệ gốc và tự kéo khung cao ra theo. */
 .dish-visual img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -518,6 +532,9 @@
 }
 
 .dish-card__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   padding: 18px;
 }
 
@@ -527,6 +544,18 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+/* Chừa sẵn chỗ cho nhãn phân loại dài hai dòng, để tên món ở mọi thẻ đều bắt
+   đầu tại cùng một độ cao. */
+.dish-card__topline {
+  min-height: 31px;
+}
+
+/* Giá bám đáy thẻ; min-height giữ chỗ cho dòng tồn kho khi nó xuống hai dòng. */
+.dish-card__footer {
+  min-height: 32px;
+  margin-top: auto;
 }
 
 .dish-card__topline > span:first-child {
@@ -564,13 +593,20 @@
   background: var(--line-soft);
 }
 
+/* Tên món luôn chiếm đúng hai dòng: tên ngắn vẫn giữ chỗ, tên dài bị cắt bớt.
+   Cùng cách làm với đoạn mô tả ngay bên dưới. */
 .dish-card h3 {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 2.6em;
   margin: 13px 0 7px;
   color: var(--ink-strong);
   font-family: var(--font-display);
   font-size: 21px;
   font-weight: 700;
   line-height: 1.3;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .dish-card__body > p {
@@ -588,6 +624,7 @@
 .dish-card__footer strong {
   color: var(--accent-dark);
   font-size: 14px;
+  white-space: nowrap;
 }
 
 .dish-card__price {
@@ -598,10 +635,13 @@
   letter-spacing: -0.02em;
 }
 
+/* Con số tiền không bao giờ được vắt dòng — vắt là hàng giá cao thêm một dòng
+   và thẻ đó lệch hẳn so với các thẻ bên cạnh. */
 .dish-card__footer del {
   color: var(--muted-soft);
   font-family: var(--font-data);
   font-size: 11px;
+  white-space: nowrap;
 }
 
 .dish-card__inventory {
