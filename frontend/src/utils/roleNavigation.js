@@ -4,11 +4,17 @@ export const isStaffRole = (role) => ['staff', 'admin'].includes(normalizeRole(r
 
 export const isAdminRole = (role) => normalizeRole(role) === 'admin'
 
+// Khu làm việc theo vai trò. Dùng cho nút "về khu của tôi" ở trang tài khoản và
+// cho chỗ đá người vào nhầm route không đủ quyền — không phải đích sau đăng nhập.
 export const getLandingPath = (user) => {
   if (isAdminRole(user?.role)) return '/admin'
   if (isStaffRole(user?.role)) return '/staff/check-in'
   return '/restaurants'
 }
+
+// Đăng nhập hay đăng ký xong thì mọi vai trò đều vào trang nhà hàng trước, kể cả
+// quản trị và nhân viên — khu làm việc của họ vẫn mở được từ thanh điều hướng.
+export const POST_AUTH_LANDING = '/restaurants'
 
 const getInternalDestination = (from) => {
   if (!from) return null
@@ -31,7 +37,7 @@ const getInternalDestination = (from) => {
 }
 
 export const getPostAuthPath = (from, user) => {
-  const fallback = getLandingPath(user)
+  const fallback = POST_AUTH_LANDING
   const destination = getInternalDestination(from)
 
   if (!destination || ['/login', '/register', '/'].includes(destination)) {
