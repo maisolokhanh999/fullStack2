@@ -8,7 +8,8 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"nodemon server.js\""
+    "dev": "concurrently \"nodemon server.js\"",
+    "seed:menu": "node scripts/seedMenu.js"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
