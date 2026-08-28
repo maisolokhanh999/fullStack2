@@ -589,10 +589,13 @@
   font-size: 12px;
 }
 
+/* Thẻ tự xếp theo bề ngang màn hình thay vì khoá cứng 3 cột. Với thực đơn vài
+   chục món, 3 cột trên màn rộng cho ra thẻ ~475px — to quá, chữ không lấp nổi
+   nên thẻ nào cũng trống hoác. */
 .dish-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 /* Thẻ món là một cột: ảnh trên cùng, phần chữ giãn ra chiếm hết chỗ còn lại.
@@ -624,7 +627,7 @@
 .dish-visual {
   position: relative;
   aspect-ratio: 3 / 2;
-  max-height: 300px;
+  max-height: 240px;
   display: grid;
   place-items: center;
   overflow: hidden;
@@ -646,21 +649,21 @@
 }
 
 .dish-visual > span {
-  width: 85px;
-  height: 85px;
+  width: 68px;
+  height: 68px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(176, 133, 68, 0.45);
   border-radius: 50%;
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: 26px;
 }
 
 .dish-card__body {
   display: flex;
   flex: 1;
   flex-direction: column;
-  padding: 18px;
+  padding: 14px;
 }
 
 .dish-card__topline,
@@ -674,26 +677,36 @@
 /* Chừa sẵn chỗ cho nhãn phân loại dài hai dòng, để tên món ở mọi thẻ đều bắt
    đầu tại cùng một độ cao. */
 .dish-card__topline {
-  min-height: 31px;
+  min-height: 26px;
 }
 
-/* Giá bám đáy thẻ; min-height giữ chỗ cho dòng tồn kho khi nó xuống hai dòng. */
+/* Giá bám đáy thẻ. Chừa sẵn hai dòng cho phần tồn kho: ở thẻ hẹp, món nào có
+   giá gạch ngang thì cụm giá chiếm gần hết bề ngang và đẩy "Còn 50 tô" xuống
+   dòng hai — không giữ chỗ thì thẻ đó cao hơn hàng xóm 9px. */
 .dish-card__footer {
-  min-height: 32px;
+  min-height: 31px;
   margin-top: auto;
 }
 
 /* Bám theo class chứ không theo vị trí con: nhãn này còn dùng lại ở đầu trang
-   chi tiết món, nơi nó không phải con của .dish-card__topline. */
+   chi tiết món, nơi nó không phải con của .dish-card__topline. Gói gọn một dòng
+   vì trong thẻ hẹp, tên nhóm món dài mà xuống dòng là thẻ đó cao hơn hàng xóm. */
 .dish-card__category {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
+  display: -webkit-box;
+  overflow: hidden;
+  min-width: 0;
   color: var(--muted);
   font-size: 11px;
   font-weight: 700;
   line-height: 1.4;
-  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+/* -webkit-box không hiểu gap nên phải tự chừa khoảng cách sau ngôi sao và sau
+   nhãn "Nổi bật ·". */
+.dish-card__category > * {
+  margin-right: 5px;
 }
 
 .dish-detail__topline .dish-card__category {
@@ -708,9 +721,9 @@
 
 .dish-status {
   flex: 0 0 auto;
-  padding: 5px 7px;
+  padding: 4px 7px;
   border-radius: var(--radius-pill);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 800;
 }
 
@@ -730,10 +743,10 @@
   display: -webkit-box;
   overflow: hidden;
   min-height: 2.6em;
-  margin: 13px 0 7px;
+  margin: 10px 0 6px;
   color: var(--ink-strong);
   font-family: var(--font-display);
-  font-size: 21px;
+  font-size: 17px;
   font-weight: 700;
   line-height: 1.3;
   -webkit-box-orient: vertical;
@@ -741,20 +754,20 @@
 }
 
 .dish-card__body > p {
-  min-height: 42px;
+  min-height: 38px;
   display: -webkit-box;
   overflow: hidden;
-  margin: 0 0 17px;
+  margin: 0 0 12px;
   color: var(--muted);
-  font-size: 13px;
-  line-height: 1.55;
+  font-size: 12.5px;
+  line-height: 1.5;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
 
 .dish-card__footer strong {
   color: var(--accent-dark);
-  font-size: 14px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -1046,9 +1059,6 @@
     display: none;
   }
 
-  .dish-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 700px) {
@@ -1098,14 +1108,6 @@
 
   .back-link {
     margin-bottom: 26px;
-  }
-
-  .dish-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .dish-visual {
-    min-height: 220px;
   }
 
   .sticky-booking-bar {

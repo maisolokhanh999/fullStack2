@@ -28,9 +28,11 @@ function DishCard({ dish, showInventory = false }) {
       <DishVisual dish={dish} />
       <div className="dish-card__body">
         <div className="dish-card__topline">
-          <span className="dish-card__category">
+          {/* Chỉ ngôi sao, không kèm chữ "Nổi bật ·": thẻ hẹp thì hai chữ đó ăn hết
+              chỗ và tên nhóm món bị cắt cụt thành "Mó…". Trang chi tiết rộng rãi
+              nên vẫn ghi đủ chữ. */}
+          <span className="dish-card__category" title={dish.isFeatured ? 'Món nổi bật' : undefined}>
             {dish.isFeatured && <UiIcon name="star" />}
-            {dish.isFeatured && <span>Nổi bật ·</span>}
             {getDishCategoryLabel(dish)}
           </span>
           <span className={'dish-status dish-status--' + (available ? 'available' : 'unavailable')}>
@@ -50,11 +52,12 @@ function DishCard({ dish, showInventory = false }) {
               <del>{formatCurrency(dish.price)}</del>
             )}
           </div>
-          {showInventory && (servingUnit || stock !== null) && (
+          {/* Thẻ hẹp nên chỉ để số còn lại — đơn vị đã nằm sẵn trong chính câu đó,
+              thêm "Đơn vị: Phần ·" nữa là lặp chữ và vắt dòng. Trang chi tiết mới
+              tách riêng hai ô đơn vị và tồn kho. */}
+          {showInventory && stock !== null && (
             <span className="dish-card__inventory">
-              {servingUnit && `Đơn vị: ${servingUnit}`}
-              {servingUnit && stock !== null && ' · '}
-              {stock !== null && `Còn ${stock}${servingUnit ? ` ${servingUnit.toLowerCase()}` : ''}`}
+              Còn {stock}{servingUnit ? ` ${servingUnit.toLowerCase()}` : ''}
             </span>
           )}
         </div>
