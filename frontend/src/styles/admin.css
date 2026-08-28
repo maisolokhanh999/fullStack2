@@ -293,7 +293,8 @@
 }
 
 .admin-resource-form input,
-.admin-resource-form select {
+.admin-resource-form select,
+.admin-resource-form textarea {
   min-width: 0;
   padding: 8px 10px;
   border: 1px solid var(--line);
@@ -302,6 +303,18 @@
   background: var(--surface);
   font: inherit;
   font-size: 12px;
+}
+
+/* Ô mô tả chứa tới 500 ký tự — nhét vào một cột 180px thì người nhập không đọc
+   lại nổi thứ mình vừa gõ, nên cho nó trải hết bề ngang form. */
+.admin-resource-form label:has(textarea) {
+  grid-column: 1 / -1;
+}
+
+.admin-resource-form textarea {
+  min-height: 68px;
+  line-height: 1.5;
+  resize: vertical;
 }
 
 .admin-resource-form .admin-action-row {

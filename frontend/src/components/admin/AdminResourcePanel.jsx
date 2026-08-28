@@ -46,6 +46,9 @@ function ResourceForm({ config, initial, onCancel, onSubmit }) {
             field === 'type' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn loại</option>{['MainCourse', 'SideDish', 'Drink', 'Dessert'].map((value) => <option key={value} value={value}>{value}</option>)}</select> :
               field === 'servingUnit' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn đơn vị</option>{['Phần', 'Suất', 'Đĩa', 'Tô', 'Bát', 'Ly', 'Cốc', 'Chai', 'Lon', 'Miếng', 'Cái'].map((value) => <option key={value} value={value}>{value}</option>)}</select> :
               field === 'image' ? <><input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] || null)} />{form.image && <small>Ảnh hiện tại: {form.image}</small>}</> :
+              /* Mô tả và ghi chú dài tới 500 ký tự — nhét vào input một dòng thì
+                 người nhập không đọc lại được thứ mình vừa gõ. */
+              ['description', 'note'].includes(field) ? <textarea rows={3} maxLength={500} value={form[field]} onChange={(event) => change(field, event.target.value)} /> :
               <input type={['price', 'discount', 'stock', 'capacity'].includes(field) ? 'number' : field.toLowerCase().includes('date') ? 'date' : 'text'} value={form[field]} onChange={(event) => change(field, event.target.value)} required={['name', 'code', 'categoryId', 'price', 'capacity'].includes(field)} />}
       </label>
     ))}

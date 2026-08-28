@@ -12,9 +12,10 @@ export const getLandingPath = (user) => {
   return '/restaurants'
 }
 
-// Đăng nhập hay đăng ký xong thì mọi vai trò đều vào trang nhà hàng trước, kể cả
-// quản trị và nhân viên — khu làm việc của họ vẫn mở được từ thanh điều hướng.
-export const POST_AUTH_LANDING = '/restaurants'
+// Đăng nhập hay đăng ký xong: quản trị vào thẳng cổng quản trị vì đó là việc họ
+// mở máy lên để làm; các vai trò còn lại vào trang nhà hàng.
+export const getPostAuthLanding = (user) =>
+  (isAdminRole(user?.role) ? '/admin' : '/restaurants')
 
 const getInternalDestination = (from) => {
   if (!from) return null
@@ -37,7 +38,7 @@ const getInternalDestination = (from) => {
 }
 
 export const getPostAuthPath = (from, user) => {
-  const fallback = POST_AUTH_LANDING
+  const fallback = getPostAuthLanding(user)
   const destination = getInternalDestination(from)
 
   if (!destination || ['/login', '/register', '/'].includes(destination)) {
