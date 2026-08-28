@@ -1,15 +1,9 @@
 import { Link } from 'react-router-dom'
-import DishVisual from './DishVisual.jsx'
+import DishCard from './DishCard.jsx'
 import UiIcon from '../UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../../config/restaurant.js'
 import { useDishes } from '../../hooks/useDishes.js'
-import {
-  formatCurrency,
-  getDishCategoryLabel,
-  getDishId,
-  getDishPrice,
-  isDishAvailable,
-} from '../../utils/booking.js'
+import { getDishId, isDishAvailable } from '../../utils/booking.js'
 
 const PREVIEW_LIMIT = 6
 
@@ -33,8 +27,8 @@ function MenuPreview() {
           <h2 id="menu-preview-heading">Thực đơn hôm nay</h2>
         </div>
         <p>
-          Bạn có thể đặt bàn trước mà không cần chọn món. Muốn chọn sẵn thì chọn ngay
-          trong lúc đặt.
+          Bấm vào một món để xem mô tả chi tiết. Bạn có thể đặt bàn trước mà không cần
+          chọn món.
         </p>
       </div>
 
@@ -63,41 +57,9 @@ function MenuPreview() {
       {!isLoading && !error && preview.length > 0 && (
         <>
           <div className="dish-grid">
-            {preview.map((dish) => {
-              const available = isDishAvailable(dish)
-              const price = getDishPrice(dish)
-
-              return (
-                <article
-                  className={'dish-card' + (available ? '' : ' dish-card--unavailable')}
-                  key={getDishId(dish)}
-                >
-                  <DishVisual dish={dish} />
-                  <div className="dish-card__body">
-                    <div className="dish-card__topline">
-                      <span className="dish-card__category">
-                        {dish.isFeatured && <UiIcon name="star" />}
-                        {dish.isFeatured && <span>Nổi bật ·</span>}
-                        {getDishCategoryLabel(dish)}
-                      </span>
-                      <span className={'dish-status dish-status--' + (available ? 'available' : 'unavailable')}>
-                        {available ? 'Có thể đặt trước' : 'Tạm hết'}
-                      </span>
-                    </div>
-                    <h3>{dish.name}</h3>
-                    <p>{dish.description || 'Mô tả món ăn đang được cập nhật.'}</p>
-                    <div className="dish-card__footer">
-                      <div className="dish-card__price">
-                        <strong>{formatCurrency(price)}</strong>
-                        {Number(dish.discount) > 0 && Number(dish.price) !== price && (
-                          <del>{formatCurrency(dish.price)}</del>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              )
-            })}
+            {preview.map((dish) => (
+              <DishCard key={getDishId(dish)} dish={dish} />
+            ))}
           </div>
 
           <div className="landing-section__more">

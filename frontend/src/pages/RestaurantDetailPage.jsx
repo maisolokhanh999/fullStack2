@@ -1,23 +1,39 @@
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import DataSourceNotice from '../components/customer/DataSourceNotice.jsx'
+import DishCard from '../components/customer/DishCard.jsx'
 import DishGridState from '../components/customer/DishGridState.jsx'
-import DishVisual from '../components/customer/DishVisual.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT, isDefaultRestaurant } from '../config/restaurant.js'
 import { useDishes } from '../hooks/useDishes.js'
 import {
-  formatCurrency,
-  getDishCategoryLabel,
+  buildDishCategories,
+  dishMatchesQuery,
+  getDishCategoryKey,
   getDishId,
-  getDishPrice,
-  getDishServingUnit,
-  getDishStock,
-  isDishAvailable,
 } from '../utils/booking.js'
+
+const ALL_CATEGORIES = 'all'
 
 function RestaurantDetailPage() {
   const { restaurantId } = useParams()
   const { dishes, isLoading, error, retry } = useDishes()
+  const [query, setQuery] = useState('')
+  const [categoryKey, setCategoryKey] = useState(ALL_CATEGORIES)
+
+  const categories = useMemo(() => buildDishCategories(dishes), [dishes])
+  const visibleDishes = useMemo(() => dishes.filter((dish) => (
+    (categoryKey === ALL_CATEGORIES || getDishCategoryKey(dish) === categoryKey)
+    && dishMatchesQuery(dish, query)
+  )), [dishes, categoryKey, query])
+
+  // Thực đơn tải lại mà danh mục đang lọc không còn món nào thì lưới trắng trơn
+  // và cái nút để bấm quay ra cũng biến mất cùng nó — tự trả về "Tất cả".
+  useEffect(() => {
+    if (categoryKey !== ALL_CATEGORIES && !categories.some((item) => item.key === categoryKey)) {
+      setCategoryKey(ALL_CATEGORIES)
+    }
+  }, [categories, categoryKey])
 
   if (!isDefaultRestaurant(restaurantId)) {
     return (
@@ -30,6 +46,12 @@ function RestaurantDetailPage() {
         </div>
       </main>
     )
+  }
+
+  const hasDishes = !isLoading && !error && dishes.length > 0
+  const clearFilters = () => {
+    setQuery('')
+    setCategoryKey(ALL_CATEGORIES)
   }
 
   return (
@@ -68,7 +90,7 @@ function RestaurantDetailPage() {
             <span className="customer-kicker">Từ bếp Bàn Việt</span>
             <h2 id="menu-heading">Thực đơn hôm nay</h2>
           </div>
-          <p>Bạn có thể đặt bàn trước mà không cần chọn món.</p>
+          <p>Bấm vào một món để xem mô tả chi tiết. Đặt bàn không bắt buộc chọn món trước.</p>
         </div>
 
         <DishGridState
@@ -78,50 +100,74 @@ function RestaurantDetailPage() {
           onRetry={retry}
         />
 
-        {!isLoading && !error && dishes.length > 0 && (
-          <div className="dish-grid">
-            {dishes.map((dish) => {
-              const available = isDishAvailable(dish)
-              const price = getDishPrice(dish)
-              const categoryName = getDishCategoryLabel(dish)
-              const servingUnit = getDishServingUnit(dish)
-              const stock = getDishStock(dish)
+        {hasDishes && (
+          <div className="menu-toolbar">
+            <div className="menu-search">
+              <UiIcon name="search" />
+              <input
+                type="search"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Tìm món theo tên, mô tả hoặc danh mục"
+                aria-label="Tìm món ăn"
+              />
+              {query && (
+                <button
+                  type="button"
+                  className="menu-search__clear"
+                  onClick={() => setQuery('')}
+                  aria-label="Xoá từ khoá tìm kiếm"
+                >
+                  <UiIcon name="close" />
+                </button>
+              )}
+            </div>
 
-              return (
-                <article className={'dish-card' + (!available ? ' dish-card--unavailable' : '')} key={getDishId(dish)}>
-                  <DishVisual dish={dish} />
-                  <div className="dish-card__body">
-                    <div className="dish-card__topline">
-                      <span className="dish-card__category">
-                        {dish.isFeatured && <UiIcon name="star" />}
-                        {dish.isFeatured && <span>Nổi bật ·</span>}
-                        {categoryName}
-                      </span>
-                      <span className={'dish-status dish-status--' + (available ? 'available' : 'unavailable')}>
-                        {available ? 'Có thể đặt trước' : 'Tạm hết'}
-                      </span>
-                    </div>
-                    <h3>{dish.name}</h3>
-                    <p>{dish.description || 'Mô tả món ăn đang được cập nhật.'}</p>
-                    <div className="dish-card__footer">
-                      <div className="dish-card__price">
-                        <strong>{formatCurrency(price)}</strong>
-                        {Number(dish.discount) > 0 && Number(dish.price) !== price && (
-                          <del>{formatCurrency(dish.price)}</del>
-                        )}
-                      </div>
-                      {(servingUnit || stock !== null) && (
-                        <span className="dish-card__inventory">
-                          {servingUnit && `Đơn vị: ${servingUnit}`}
-                          {servingUnit && stock !== null && ' · '}
-                          {stock !== null && `Còn ${stock}${servingUnit ? ` ${servingUnit.toLowerCase()}` : ''}`}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </article>
-              )
-            })}
+            <div className="menu-categories" role="group" aria-label="Lọc theo danh mục">
+              <button
+                type="button"
+                className={'menu-chip' + (categoryKey === ALL_CATEGORIES ? ' is-active' : '')}
+                aria-pressed={categoryKey === ALL_CATEGORIES}
+                onClick={() => setCategoryKey(ALL_CATEGORIES)}
+              >
+                Tất cả<span>{dishes.length}</span>
+              </button>
+              {categories.map((category) => (
+                <button
+                  key={category.key}
+                  type="button"
+                  className={'menu-chip' + (categoryKey === category.key ? ' is-active' : '')}
+                  aria-pressed={categoryKey === category.key}
+                  onClick={() => setCategoryKey(category.key)}
+                >
+                  {category.label}<span>{category.count}</span>
+                </button>
+              ))}
+            </div>
+
+            <p className="menu-toolbar__count" role="status">
+              {visibleDishes.length === dishes.length
+                ? `${dishes.length} món trong thực đơn`
+                : `${visibleDishes.length}/${dishes.length} món khớp bộ lọc`}
+            </p>
+          </div>
+        )}
+
+        {hasDishes && visibleDishes.length === 0 && (
+          <div className="menu-state">
+            <strong>Không có món nào khớp</strong>
+            <p>Thử một từ khoá khác, hoặc bỏ lọc danh mục để xem lại toàn bộ thực đơn.</p>
+            <button type="button" className="outline-action" onClick={clearFilters}>
+              Xoá bộ lọc
+            </button>
+          </div>
+        )}
+
+        {hasDishes && visibleDishes.length > 0 && (
+          <div className="dish-grid">
+            {visibleDishes.map((dish) => (
+              <DishCard key={getDishId(dish)} dish={dish} showInventory />
+            ))}
           </div>
         )}
       </section>

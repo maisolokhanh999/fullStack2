@@ -76,3 +76,46 @@ export const getTodayString = () => {
   const offset = today.getTimezoneOffset()
   return new Date(today.getTime() - offset * 60000).toISOString().slice(0, 10)
 }
+
+export const getDishDetailPath = (dish, restaurantId = DEFAULT_RESTAURANT.id) =>
+  `/restaurants/${restaurantId}/dishes/${getDishId(dish)}`
+
+// Bỏ dấu trước khi so khớp: khách tìm nhanh thường gõ "pho bo", "ca phe" chứ
+// không bỏ công gõ đủ dấu. NFD tách được dấu thanh nhưng không tách chữ đ nên
+// phải thay riêng.
+export const normalizeText = (value) =>
+  String(value ?? '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .trim()
+
+// Khoá gom nhóm của một món: ưu tiên id danh mục thật, rơi về loại món cho
+// những món chưa gắn danh mục — khớp với thứ getDishCategoryLabel hiển thị.
+export const getDishCategoryKey = (dish) =>
+  String(dish?.categoryId?._id || dish?.categoryId || dish?.type || 'khac')
+
+// Danh mục dựng từ chính danh sách món đang có, không gọi thêm API. Nhờ vậy
+// không bao giờ hiện một thư mục rỗng để khách bấm vào rồi chẳng thấy gì.
+export const buildDishCategories = (dishes) => {
+  const groups = new Map()
+
+  for (const dish of dishes) {
+    const key = getDishCategoryKey(dish)
+    const group = groups.get(key)
+
+    if (group) group.count += 1
+    else groups.set(key, { key, label: getDishCategoryLabel(dish), count: 1 })
+  }
+
+  return [...groups.values()].sort((a, b) => a.label.localeCompare(b.label, 'vi'))
+}
+
+export const dishMatchesQuery = (dish, query) => {
+  const needle = normalizeText(query)
+  if (!needle) return true
+
+  return [dish?.name, dish?.description, getDishCategoryLabel(dish), dish?.code]
+    .some((field) => normalizeText(field).includes(needle))
+}

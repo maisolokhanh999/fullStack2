@@ -466,6 +466,129 @@
   color: var(--gold-pale);
 }
 
+/* Thanh lọc thực đơn: ô tìm kiếm và dải danh mục, đặt ngay trên lưới để kết
+   quả đổi ngay dưới tay người đang gõ. */
+.menu-toolbar {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.menu-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 480px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.menu-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-softer);
+}
+
+.menu-search > .ui-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: var(--muted);
+}
+
+.menu-search input {
+  min-width: 0;
+  min-height: 46px;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font-size: 13px;
+}
+
+/* Chrome tự vẽ nút xoá riêng cho input[type=search]; đã có nút của mình rồi. */
+.menu-search input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.menu-search__clear {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  color: var(--muted);
+  background: var(--surface-alt);
+  cursor: pointer;
+}
+
+.menu-search__clear:hover {
+  color: var(--accent-dark);
+  background: var(--accent-softer);
+}
+
+.menu-search__clear .ui-icon {
+  width: 13px;
+  height: 13px;
+}
+
+.menu-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.menu-chip {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.menu-chip:hover {
+  border-color: var(--accent-soft);
+  background: var(--accent-softer);
+}
+
+/* Số đếm là thông tin phụ nên luôn nhạt hơn tên danh mục một bậc, kể cả khi
+   chip đang được chọn. */
+.menu-chip > span {
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.menu-chip.is-active {
+  border-color: var(--accent-dark);
+  color: var(--egg-bright);
+  background: var(--accent-dark);
+}
+
+.menu-chip.is-active > span {
+  color: rgba(255, 253, 247, 0.72);
+}
+
+.menu-toolbar__count {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 .dish-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -480,7 +603,9 @@
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
+  color: inherit;
   background: rgba(255, 253, 251, 0.92);
+  text-decoration: none;
   transition: box-shadow 150ms ease, transform 150ms ease;
 }
 
@@ -558,7 +683,9 @@
   margin-top: auto;
 }
 
-.dish-card__topline > span:first-child {
+/* Bám theo class chứ không theo vị trí con: nhãn này còn dùng lại ở đầu trang
+   chi tiết món, nơi nó không phải con của .dish-card__topline. */
+.dish-card__category {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -567,6 +694,10 @@
   font-weight: 700;
   line-height: 1.4;
   white-space: normal;
+}
+
+.dish-detail__topline .dish-card__category {
+  font-size: 12px;
 }
 
 .dish-card__category .ui-icon {
@@ -650,6 +781,124 @@
   font-weight: 700;
   line-height: 1.4;
   text-align: right;
+}
+
+/* Trang chi tiết một món: ảnh một bên, thông tin một bên. */
+.dish-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  align-items: start;
+  gap: clamp(24px, 3.5vw, 48px);
+}
+
+.dish-detail__media {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+/* Ở đây ảnh là nhân vật chính nên cho cao hơn ảnh trong lưới thực đơn.
+   width: 100% là bắt buộc: khung ảnh trong thẻ món là flex item nên bị kéo
+   giãn sẵn, còn ở đây nó là block thường — không chốt bề ngang thì max-height
+   truyền ngược qua aspect-ratio và bóp luôn chiều rộng, chừa một dải nền
+   thừa bên phải. */
+.dish-detail__media .dish-visual {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  max-height: 460px;
+}
+
+.dish-detail__topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.dish-detail__body h1 {
+  margin: 14px 0 0;
+  color: var(--ink-strong);
+  font-family: var(--font-display);
+  font-size: clamp(31px, 4.2vw, 46px);
+  font-weight: 700;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+}
+
+.dish-detail__price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 15px;
+}
+
+.dish-detail__price strong {
+  color: var(--accent-dark);
+  font-family: var(--font-data);
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
+}
+
+.dish-detail__price del {
+  color: var(--muted-soft);
+  font-family: var(--font-data);
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.dish-detail__discount {
+  padding: 4px 9px;
+  border-radius: var(--radius-pill);
+  color: var(--accent-dark);
+  background: var(--accent-softer);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.dish-detail__description {
+  max-width: 560px;
+  margin: 18px 0 0;
+  color: var(--ink);
+  font-size: 14.5px;
+  line-height: 1.75;
+}
+
+.dish-detail__facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 26px 0 0;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.dish-detail__facts dt {
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.dish-detail__facts dd {
+  margin: 0;
+  color: var(--ink-strong);
+  font-family: var(--font-data);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.dish-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin-top: 28px;
 }
 
 .menu-state {
@@ -780,6 +1029,12 @@
 .site-footer p {
   margin: 0;
   font-size: 11px;
+}
+
+@media (max-width: 860px) {
+  .dish-detail {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 920px) {

@@ -4,6 +4,7 @@ import AdminDashboardPage from '../pages/AdminDashboardPage.jsx'
 import DashboardPage from '../pages/DashboardPage.jsx'
 import BookingPage from '../pages/BookingPage.jsx'
 import BookingsPage from '../pages/BookingsPage.jsx'
+import DishDetailPage from '../pages/DishDetailPage.jsx'
 import LoginPage from '../pages/LoginPage.jsx'
 import NotFoundPage from '../pages/NotFoundPage.jsx'
 import RegisterPage from '../pages/RegisterPage.jsx'
@@ -64,6 +65,7 @@ function AppRouter() {
         <Route element={<CustomerLayout />}>
           <Route path="/restaurants" element={<RestaurantsPage />} />
           <Route path="/restaurants/:restaurantId" element={<RestaurantDetailPage />} />
+          <Route path="/restaurants/:restaurantId/dishes/:dishId" element={<DishDetailPage />} />
           <Route path="/booking/:restaurantId" element={<BookingPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
         </Route>
