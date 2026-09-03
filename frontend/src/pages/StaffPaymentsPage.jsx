@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../components/AuthIcons.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
-import { getInvoices, payInvoice } from '../services/invoiceService.js'
+import { finalizeInvoice, getInvoices, payInvoice } from '../services/invoiceService.js'
 import { formatMoney, labelFor, INVOICE_STATUS_LABELS } from '../components/admin/adminUtils.js'
 
 function StaffPaymentsPage() {
@@ -50,6 +50,19 @@ function StaffPaymentsPage() {
     }
   }
 
+  const finalize = async (invoice) => {
+    try {
+      setBusyId(invoice._id)
+      setError('')
+      const updated = await finalizeInvoice(invoice._id)
+      setInvoices((current) => current.map((item) => item._id === invoice._id ? updated : item))
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setBusyId('')
+    }
+  }
+
   const visibleInvoices = invoices.filter((invoice) => {
     const normalizedQuery = query.trim().toLowerCase()
     if (!normalizedQuery) return true
@@ -82,6 +95,8 @@ function StaffPaymentsPage() {
               <div><span className="customer-kicker">Hóa đơn</span><h2>{invoice.reservationId?.reservationCode || invoice._id}</h2><p>{invoice.payerName} · {invoice.phoneNumber}</p></div>
               <span className="admin-status-badge" data-status={invoice.status}>{labelFor(INVOICE_STATUS_LABELS, invoice.status)}</span>
               <strong className="staff-invoice-card__amount">{formatMoney(invoice.finalAmount)}</strong>
+              {invoice.paidBy && <p className="staff-invoice-card__paid-by">Nhân viên thanh toán: {invoice.paidBy.name || invoice.paidBy._id} ({invoice.paidBy._id})</p>}
+              {invoice.status === 'Pending' && <div className="staff-invoice-card__action"><button type="button" className="customer-primary-button" onClick={() => finalize(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang chốt...' : 'Chốt hóa đơn để thanh toán'}</button></div>}
               {invoice.status === 'Finalized' && <div className="staff-invoice-card__action"><label>Tiền khách đưa<input type="number" min={invoice.finalAmount} value={cashReceived[invoice._id] || ''} onChange={(event) => setCashReceived((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label><button type="button" className="customer-primary-button" onClick={() => pay(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang thanh toán...' : 'Xác nhận thanh toán'}</button></div>}
             </article>
           ))}

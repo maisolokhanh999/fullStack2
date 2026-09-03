@@ -19,7 +19,7 @@ router.get("/", authMiddleware, getInvoices);
 router.get("/reservation/:reservationId", authMiddleware, getInvoiceByReservation);
 router.get("/:id", authMiddleware, getInvoiceById);
 router.put("/:id", authMiddleware, updateInvoice);
-router.patch("/:id/finalize", authMiddleware, finalizeInvoice);
+router.patch("/:id/finalize", authMiddleware, staffMiddleware, finalizeInvoice);
 router.patch("/:id/pay", authMiddleware, staffMiddleware, payInvoice);
 router.patch("/:id/cancel", authMiddleware, cancelInvoice);
 router.patch("/:id/refund", authMiddleware, refundInvoice);

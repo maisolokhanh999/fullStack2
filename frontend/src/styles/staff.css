@@ -302,6 +302,16 @@
   font-size: 18px;
 }
 
+.staff-invoice-card__paid-by {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line-soft);
+  color: var(--muted);
+  font-family: var(--font-data);
+  font-size: 11px;
+}
+
 .staff-invoice-card__action {
   grid-column: 1 / -1;
   display: flex;

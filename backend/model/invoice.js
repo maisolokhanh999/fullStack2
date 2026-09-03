@@ -84,6 +84,12 @@ const invoiceSchema = new mongoose.Schema(
       min: 0,
     },
 
+    paidBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
     status: {
       type: String,
       enum: ["Pending", "Finalized", "Paid", "Cancelled", "Refunded"],

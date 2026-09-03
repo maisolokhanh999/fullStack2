@@ -119,6 +119,7 @@ export const getInvoices = async (req, res) => {
     const invoices = await Invoice.find(filter)
       .populate("reservationId")
       .populate("userId", "-password")
+      .populate("paidBy", "name role")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -137,7 +138,8 @@ export const getInvoiceById = async (req, res) => {
   try {
     const invoice = await Invoice.findById(req.params.id)
       .populate("reservationId")
-      .populate("userId", "-password");
+      .populate("userId", "-password")
+      .populate("paidBy", "name role");
 
     if (!invoice) {
       return res.status(404).json({
@@ -283,6 +285,7 @@ export const payInvoice = async (req, res) => {
     invoice.cashReceived = paymentMethod === "Cash" ? cashReceived : 0;
     invoice.changeAmount = paymentMethod === "Cash" ? cashReceived - invoice.finalAmount : 0;
     invoice.paymentDate = new Date();
+    invoice.paidBy = req.user._id;
     await invoice.save();
 
     // Thanh toán trước ngày đến không được giải phóng bàn. Bàn chỉ được trả
@@ -422,7 +425,8 @@ export const getInvoiceByReservation = async (req, res) => {
   try {
     const invoice = await Invoice.findOne({ reservationId: req.params.reservationId })
       .populate("reservationId")
-      .populate("userId", "name");
+      .populate("userId", "name")
+      .populate("paidBy", "name role");
 
     if (!invoice) {
       return res.status(404).json({ success: false, message: "Lượt đặt bàn này chưa có hóa đơn" });
