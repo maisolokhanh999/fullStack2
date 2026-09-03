@@ -35,6 +35,14 @@ const recalculateInvoiceTotal = async (invoiceId) => {
 export const createInvoiceDetail = async (req, res) => {
   try {
     const { invoiceId, dishId, menuId, quantity, discount = 0, note } = req.body;
+    const parsedQuantity = Number(quantity);
+
+    if (!Number.isInteger(parsedQuantity) || parsedQuantity < 1 || parsedQuantity > 99) {
+      return res.status(400).json({
+        success: false,
+        message: "Số lượng phải là số nguyên từ 1 đến 99",
+      });
+    }
 
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) {
@@ -67,7 +75,25 @@ export const createInvoiceDetail = async (req, res) => {
         message: "Món ăn chưa có giá bán hợp lệ",
       });
     }
-    const totalAmount = unitPrice * quantity * (1 - discount / 100);
+    const itemFilter = dish ? { invoiceId, dishId } : { invoiceId, menuId };
+    const existingDetail = await InvoiceDetail.findOne(itemFilter);
+
+    if (existingDetail) {
+      existingDetail.quantity += parsedQuantity;
+      existingDetail.totalAmount = existingDetail.unitPrice * existingDetail.quantity
+        * (1 - existingDetail.discount / 100);
+      if (note !== undefined) existingDetail.note = note;
+      await existingDetail.save();
+      await recalculateInvoiceTotal(invoiceId);
+
+      return res.status(200).json({
+        success: true,
+        message: "Đã cộng dồn số lượng món trong hóa đơn",
+        data: existingDetail,
+      });
+    }
+
+    const totalAmount = unitPrice * parsedQuantity * (1 - discount / 100);
 
     const detail = await InvoiceDetail.create({
       invoiceId,
@@ -75,7 +101,7 @@ export const createInvoiceDetail = async (req, res) => {
       itemName: dish?.name || legacyMenu.name,
       unitPrice,
       discount,
-      quantity,
+      quantity: parsedQuantity,
       totalAmount,
       note,
     });
