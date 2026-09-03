@@ -47,8 +47,10 @@ function AppRouter() {
           <Route path="/booking/:restaurantId" element={<BookingPage />} />
           <Route path="/bookings" element={<BookingsPage />} />
         </Route>
-        <Route element={<RoleRoute allowedRoles={['staff', 'admin']} />}>
+        <Route element={<RoleRoute allowedRoles={['staff']} />}>
           <Route path="/staff/check-in" element={<StaffCheckInPage />} />
+        </Route>
+        <Route element={<RoleRoute allowedRoles={['staff', 'admin']} />}>
           <Route path="/staff/payments" element={<StaffPaymentsPage />} />
         </Route>
         <Route element={<RoleRoute allowedRoles={['admin']} />}>

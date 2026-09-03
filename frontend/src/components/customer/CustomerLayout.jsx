@@ -2,7 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../AuthIcons.jsx'
 import { useAuth } from '../../hooks/useAuth.js'
-import { isAdminRole, isStaffRole } from '../../utils/roleNavigation.js'
+import { isAdminRole } from '../../utils/roleNavigation.js'
 import SiteFooter from './SiteFooter.jsx'
 import SiteHeader from './SiteHeader.jsx'
 
@@ -36,7 +36,7 @@ function CustomerLayout() {
     { to: '/', label: 'Trang chủ', end: true },
     { to: '/restaurants', label: 'Nhà hàng', end: true },
     { to: '/bookings', label: 'Đặt bàn' },
-    ...(isStaffRole(user?.role) ? [{ to: '/staff/check-in', label: 'Check-in' }] : []),
+    ...(String(user?.role).toLowerCase() === 'staff' ? [{ to: '/staff/check-in', label: 'Check-in' }] : []),
     ...(isAdminRole(user?.role) ? [{ to: '/admin', label: 'Quản trị' }] : []),
   ]
 

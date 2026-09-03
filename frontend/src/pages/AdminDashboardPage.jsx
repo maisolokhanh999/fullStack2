@@ -65,7 +65,6 @@ export default function AdminDashboardPage() {
           <span className="staff-portal-label">Cổng quản trị</span>
           <nav>
             <Link to="/restaurants">Trang nhà hàng</Link>
-            <Link to="/staff/check-in">Tra cứu / Check-in</Link>
             <Link to="/admin">Thanh toán</Link>
             <Link to="/dashboard">{user?.name || 'Tài khoản'}</Link>
             <button type="button" onClick={logout}>Đăng xuất</button>
