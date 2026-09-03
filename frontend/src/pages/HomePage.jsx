@@ -4,6 +4,7 @@ import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { useDishes } from '../hooks/useDishes.js'
+import { isStaffRole } from '../utils/roleNavigation.js'
 import { formatCurrency, getDishId, getDishPrice } from '../utils/booking.js'
 
 const menuHighlights = [
@@ -36,6 +37,7 @@ function HomePage() {
             <a href="#menu">Thực đơn</a>
             <a href="#stories">Câu chuyện</a>
             <Link className="home-nav-cta" to="/restaurants">Đặt món</Link>
+            {isStaffRole(user?.role) && <><Link className="home-staff-link" to="/staff/check-in">Tra cứu</Link><Link className="home-staff-link" to={user?.role === 'admin' ? '/admin' : '/staff/payments'}>Thanh toán</Link></>}
             {user ? (
               <div className="home-account">
                 <Link to="/dashboard" className="home-account__name">{user.name || user.email}</Link>

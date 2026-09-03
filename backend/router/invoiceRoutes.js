@@ -11,7 +11,7 @@ import {
   refundInvoice,
   deleteInvoice,
 } from "../contreller/invoice/invoice.js";
-import { authMiddleware, adminMiddleware } from "../middlewares/authMiddleware/authMiddleware.js";
+import { authMiddleware, adminMiddleware, staffMiddleware } from "../middlewares/authMiddleware/authMiddleware.js";
 const router = express.Router();
 
 router.post("/", authMiddleware, adminMiddleware, createInvoice);
@@ -20,7 +20,7 @@ router.get("/reservation/:reservationId", authMiddleware, getInvoiceByReservatio
 router.get("/:id", authMiddleware, getInvoiceById);
 router.put("/:id", authMiddleware, updateInvoice);
 router.patch("/:id/finalize", authMiddleware, finalizeInvoice);
-router.patch("/:id/pay", authMiddleware, payInvoice);
+router.patch("/:id/pay", authMiddleware, staffMiddleware, payInvoice);
 router.patch("/:id/cancel", authMiddleware, cancelInvoice);
 router.patch("/:id/refund", authMiddleware, refundInvoice);
 router.delete("/:id", authMiddleware, adminMiddleware, deleteInvoice);

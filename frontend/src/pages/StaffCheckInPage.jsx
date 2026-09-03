@@ -81,6 +81,7 @@ function StaffCheckInPage() {
           <span className="staff-portal-label">Cổng vận hành nhà hàng</span>
           <nav>
             <Link to="/restaurants">Trang nhà hàng</Link>
+            <Link to="/staff/payments">Thanh toán</Link>
             <Link to="/dashboard">{user?.name || 'Tài khoản'}</Link>
             <button type="button" onClick={logout}>Đăng xuất</button>
           </nav>

@@ -11,6 +11,7 @@ import NotFoundPage from '../pages/NotFoundPage.jsx'
 import RegisterPage from '../pages/RegisterPage.jsx'
 import RestaurantsPage from '../pages/RestaurantsPage.jsx'
 import StaffCheckInPage from '../pages/StaffCheckInPage.jsx'
+import StaffPaymentsPage from '../pages/StaffPaymentsPage.jsx'
 import CustomerLayout from '../components/customer/CustomerLayout.jsx'
 import ProtectedRoute from './ProtectedRoute.jsx'
 import RoleRoute from './RoleRoute.jsx'
@@ -48,6 +49,7 @@ function AppRouter() {
         </Route>
         <Route element={<RoleRoute allowedRoles={['staff', 'admin']} />}>
           <Route path="/staff/check-in" element={<StaffCheckInPage />} />
+          <Route path="/staff/payments" element={<StaffPaymentsPage />} />
         </Route>
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
           <Route path="/admin" element={<AdminDashboardPage />} />

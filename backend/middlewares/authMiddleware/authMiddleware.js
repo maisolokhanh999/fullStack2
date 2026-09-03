@@ -31,3 +31,10 @@ export const adminMiddleware = (req, res, next) => {
   }
   next();
 };
+
+export const staffMiddleware = (req, res, next) => {
+  if (!['admin', 'staff'].includes(req.user?.role)) {
+    return res.status(403).json({ message: "Chỉ nhân viên hoặc quản trị viên mới có quyền thực hiện thao tác này" });
+  }
+  next();
+};
