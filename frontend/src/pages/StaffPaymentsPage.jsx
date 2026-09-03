@@ -4,7 +4,7 @@ import { BrandMark } from '../components/AuthIcons.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { finalizeInvoice, getInvoiceById, getInvoices, payInvoice } from '../services/invoiceService.js'
-import { createInvoiceDetail, deleteInvoiceDetail, getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
+import { createInvoiceDetail, deleteInvoiceDetail, getInvoiceDetailsByInvoice, updateInvoiceDetail } from '../services/invoiceDetailService.js'
 import { getDishes } from '../services/dishService.js'
 import { formatMoney, labelFor, INVOICE_STATUS_LABELS } from '../components/admin/adminUtils.js'
 
@@ -118,6 +118,25 @@ function StaffPaymentsPage() {
     }
   }
 
+  const decreaseDish = async (invoice, detail) => {
+    if (detail.quantity <= 1) return
+    try {
+      setBusyId(invoice._id)
+      setError('')
+      await updateInvoiceDetail(detail._id, { quantity: detail.quantity - 1 })
+      const [updated, detailResult] = await Promise.all([
+        getInvoiceById(invoice._id),
+        getInvoiceDetailsByInvoice(invoice._id),
+      ])
+      setInvoices((current) => current.map((item) => item._id === invoice._id ? updated : item))
+      setInvoiceDetails((current) => ({ ...current, [invoice._id]: detailResult.invoiceDetails || [] }))
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setBusyId('')
+    }
+  }
+
   const visibleInvoices = invoices.filter((invoice) => {
     const normalizedQuery = query.trim().toLowerCase()
     if (!normalizedQuery) return true
@@ -151,7 +170,7 @@ function StaffPaymentsPage() {
               <span className="admin-status-badge" data-status={invoice.status}>{labelFor(INVOICE_STATUS_LABELS, invoice.status)}</span>
               <strong className="staff-invoice-card__amount">{formatMoney(invoice.finalAmount)}</strong>
               {invoice.paidBy && <p className="staff-invoice-card__paid-by">Nhân viên thanh toán: {invoice.paidBy.name || invoice.paidBy._id} ({invoice.paidBy._id})</p>}
-              {(invoiceDetails[invoice._id] || []).length > 0 && <div className="staff-invoice-card__details"><strong>Món đã đặt trước</strong><ul>{invoiceDetails[invoice._id].map((detail) => <li key={detail._id}><span>{detail.itemName} x {detail.quantity}</span><span>{formatMoney(detail.totalAmount)}{invoice.status === 'Pending' && <button type="button" onClick={() => removeDish(invoice, detail._id)} disabled={busyId === invoice._id} aria-label={`Bỏ ${detail.itemName}`}>Bỏ</button>}</span></li>)}</ul></div>}
+              {(invoiceDetails[invoice._id] || []).length > 0 && <div className="staff-invoice-card__details"><strong>Món đã đặt trước</strong><ul>{invoiceDetails[invoice._id].map((detail) => <li key={detail._id}><span>{detail.itemName} x {detail.quantity}</span><span>{formatMoney(detail.totalAmount)}{invoice.status === 'Pending' && <><button type="button" onClick={() => decreaseDish(invoice, detail)} disabled={busyId === invoice._id || detail.quantity <= 1} aria-label={`Giảm một ${detail.itemName}`}>-1</button><button type="button" onClick={() => removeDish(invoice, detail._id)} disabled={busyId === invoice._id} aria-label={`Bỏ hết ${detail.itemName}`}>Bỏ hết</button></>}</span></li>)}</ul></div>}
               {invoice.status === 'Pending' && <div className="staff-invoice-card__action staff-invoice-card__action--pending"><label>Thêm món<select value={selectedDishes[invoice._id] || ''} onChange={(event) => setSelectedDishes((current) => ({ ...current, [invoice._id]: event.target.value }))}><option value="">Chọn món</option>{dishes.map((dish) => <option key={dish._id} value={dish._id}>{dish.name} - {formatMoney(dish.price)}</option>)}</select></label><label>Số lượng<input type="number" min="1" max="99" value={quantities[invoice._id] || 1} onChange={(event) => setQuantities((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label><button type="button" className="customer-secondary-button" onClick={() => addDish(invoice)} disabled={busyId === invoice._id}>Thêm món</button><button type="button" className="customer-primary-button" onClick={() => finalize(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang xử lý...' : 'Chốt hóa đơn để thanh toán'}</button></div>}
               {invoice.status === 'Finalized' && <div className="staff-invoice-card__action"><label>Tiền khách đưa<input type="number" min={invoice.finalAmount} value={cashReceived[invoice._id] || ''} onChange={(event) => setCashReceived((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label><button type="button" className="customer-primary-button" onClick={() => pay(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang thanh toán...' : 'Xác nhận thanh toán'}</button></div>}
             </article>

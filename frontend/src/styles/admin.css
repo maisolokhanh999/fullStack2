@@ -386,6 +386,8 @@
 .invoice-receipt__items th { padding: 7px 3px; border-top: 1px dashed #a9a39a; border-bottom: 1px dashed #a9a39a; font-size: 10px; text-align: left; }
 .invoice-receipt__items th:not(:first-child), .invoice-receipt__items td:not(:first-child) { text-align: right; }
 .invoice-receipt__items td { padding: 7px 3px; border-bottom: 1px dotted #d8d2c8; }
+.admin-invoice__item-actions { display: inline-flex; gap: 5px; }
+.admin-invoice__item-actions .admin-btn { min-height: 28px; padding: 3px 7px; font-size: 10px; }
 .invoice-receipt__empty { padding: 16px 0; text-align: center; }
 .invoice-receipt__totals { display: grid; gap: 7px; margin-top: 12px; padding-top: 10px; border-top: 1px dashed #a9a39a; }
 .invoice-receipt__totals span { display: flex; justify-content: space-between; gap: 16px; }

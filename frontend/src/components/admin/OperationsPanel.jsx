@@ -4,7 +4,7 @@ import {
   completeReservation, cancelReservation, markReservationNoShow,
 } from '../../services/reservationService.js'
 import { getInvoices, finalizeInvoice, payInvoice, cancelInvoice, refundInvoice } from '../../services/invoiceService.js'
-import { createInvoiceDetail, getInvoiceDetailsByInvoice } from '../../services/invoiceDetailService.js'
+import { createInvoiceDetail, deleteInvoiceDetail, getInvoiceDetailsByInvoice, updateInvoiceDetail } from '../../services/invoiceDetailService.js'
 import { getReservationTables } from '../../services/reservationTableService.js'
 import { getDishes } from '../../services/dishService.js'
 import useAdminCollection from './useAdminCollection.js'
@@ -126,6 +126,21 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
     })
   }
 
+  const changeDishQuantity = (detail, quantity) => {
+    if (quantity < 1) return
+    runInvoice('item', async () => {
+      await updateInvoiceDetail(detail._id, { quantity })
+      return undefined
+    })
+  }
+
+  const removeDish = (detail) => {
+    runInvoice('item', async () => {
+      await deleteInvoiceDetail(detail._id)
+      return undefined
+    })
+  }
+
   const pay = () => {
     const received = Number(cashReceived)
     if (paymentMethod === 'Cash' && (!Number.isFinite(received) || received < invoice.finalAmount)) {
@@ -164,11 +179,12 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
           <span>Khách hàng: {invoice.payerName || '—'}</span>
         </div>
         <table className="invoice-receipt__items">
-          <thead><tr><th>TÊN HÀNG</th><th>SL</th><th>ĐƠN GIÁ</th><th>THÀNH TIỀN</th></tr></thead>
+          <thead><tr><th>TÊN HÀNG</th><th>SL</th><th>ĐƠN GIÁ</th><th>THÀNH TIỀN</th><th>THAO TÁC</th></tr></thead>
           <tbody>{details.map((detail) => (
             <tr key={detail._id}>
               <td>{detail.itemName}</td><td>{detail.quantity}</td>
               <td>{formatMoney(detail.unitPrice)}</td><td>{formatMoney(detail.totalAmount)}</td>
+              <td>{invoice.status === 'Pending' && <span className="admin-invoice__item-actions"><button type="button" className="admin-btn" onClick={() => changeDishQuantity(detail, detail.quantity - 1)} disabled={detail.quantity <= 1 || Boolean(busy)}>−1</button><button type="button" className="admin-btn admin-btn--danger" onClick={() => removeDish(detail)} disabled={Boolean(busy)}>Bỏ hết</button></span>}</td>
             </tr>
           ))}</tbody>
         </table>

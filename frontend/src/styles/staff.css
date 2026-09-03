@@ -359,6 +359,12 @@
   cursor: pointer;
 }
 
+.staff-invoice-card__details button:disabled {
+  color: var(--muted-soft);
+  background: var(--surface-alt);
+  cursor: not-allowed;
+}
+
 .staff-invoice-card__details button:hover {
   border-color: var(--accent-soft);
   background: var(--accent-softer);
