@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../components/AuthIcons.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
-import { finalizeInvoice, getInvoices, payInvoice } from '../services/invoiceService.js'
+import { finalizeInvoice, getInvoiceById, getInvoices, payInvoice } from '../services/invoiceService.js'
+import { createInvoiceDetail, deleteInvoiceDetail, getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
+import { getDishes } from '../services/dishService.js'
 import { formatMoney, labelFor, INVOICE_STATUS_LABELS } from '../components/admin/adminUtils.js'
 
 function StaffPaymentsPage() {
@@ -14,17 +16,28 @@ function StaffPaymentsPage() {
   const [error, setError] = useState('')
   const [busyId, setBusyId] = useState('')
   const [cashReceived, setCashReceived] = useState({})
+  const [dishes, setDishes] = useState([])
+  const [selectedDishes, setSelectedDishes] = useState({})
+  const [quantities, setQuantities] = useState({})
+  const [invoiceDetails, setInvoiceDetails] = useState({})
 
   useEffect(() => {
     const load = async () => {
       try {
         const result = await getInvoices()
-        setInvoices(result.invoices || [])
+        const invoiceList = result.invoices || []
+        setInvoices(invoiceList)
+        const detailEntries = await Promise.all(invoiceList.map(async (invoice) => {
+          const detailResult = await getInvoiceDetailsByInvoice(invoice._id)
+          return [invoice._id, detailResult.invoiceDetails || []]
+        }))
+        setInvoiceDetails(Object.fromEntries(detailEntries))
       } catch (requestError) {
         setError(requestError.message)
       }
     }
     load()
+    getDishes({ status: 'Available' }).then((result) => setDishes(result.dishes || [])).catch(() => {})
   }, [])
 
   const logout = () => {
@@ -56,6 +69,48 @@ function StaffPaymentsPage() {
       setError('')
       const updated = await finalizeInvoice(invoice._id)
       setInvoices((current) => current.map((item) => item._id === invoice._id ? updated : item))
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setBusyId('')
+    }
+  }
+
+  const addDish = async (invoice) => {
+    const dishId = selectedDishes[invoice._id]
+    const quantity = Number(quantities[invoice._id] || 1)
+    if (!dishId || !Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+      setError('Vui lòng chọn món và nhập số lượng từ 1 đến 99.')
+      return
+    }
+    try {
+      setBusyId(invoice._id)
+      setError('')
+      await createInvoiceDetail({ invoiceId: invoice._id, dishId, quantity })
+      const updated = await getInvoiceById(invoice._id)
+      setInvoices((current) => current.map((item) => item._id === invoice._id ? updated : item))
+      const detailResult = await getInvoiceDetailsByInvoice(invoice._id)
+      setInvoiceDetails((current) => ({ ...current, [invoice._id]: detailResult.invoiceDetails || [] }))
+      setSelectedDishes((current) => ({ ...current, [invoice._id]: '' }))
+      setQuantities((current) => ({ ...current, [invoice._id]: 1 }))
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setBusyId('')
+    }
+  }
+
+  const removeDish = async (invoice, detailId) => {
+    try {
+      setBusyId(invoice._id)
+      setError('')
+      await deleteInvoiceDetail(detailId)
+      const [updated, detailResult] = await Promise.all([
+        getInvoiceById(invoice._id),
+        getInvoiceDetailsByInvoice(invoice._id),
+      ])
+      setInvoices((current) => current.map((item) => item._id === invoice._id ? updated : item))
+      setInvoiceDetails((current) => ({ ...current, [invoice._id]: detailResult.invoiceDetails || [] }))
     } catch (requestError) {
       setError(requestError.message)
     } finally {
@@ -96,7 +151,8 @@ function StaffPaymentsPage() {
               <span className="admin-status-badge" data-status={invoice.status}>{labelFor(INVOICE_STATUS_LABELS, invoice.status)}</span>
               <strong className="staff-invoice-card__amount">{formatMoney(invoice.finalAmount)}</strong>
               {invoice.paidBy && <p className="staff-invoice-card__paid-by">Nhân viên thanh toán: {invoice.paidBy.name || invoice.paidBy._id} ({invoice.paidBy._id})</p>}
-              {invoice.status === 'Pending' && <div className="staff-invoice-card__action"><button type="button" className="customer-primary-button" onClick={() => finalize(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang chốt...' : 'Chốt hóa đơn để thanh toán'}</button></div>}
+              {(invoiceDetails[invoice._id] || []).length > 0 && <div className="staff-invoice-card__details"><strong>Món đã đặt trước</strong><ul>{invoiceDetails[invoice._id].map((detail) => <li key={detail._id}><span>{detail.itemName} x {detail.quantity}</span><span>{formatMoney(detail.totalAmount)}{invoice.status === 'Pending' && <button type="button" onClick={() => removeDish(invoice, detail._id)} disabled={busyId === invoice._id} aria-label={`Bỏ ${detail.itemName}`}>Bỏ</button>}</span></li>)}</ul></div>}
+              {invoice.status === 'Pending' && <div className="staff-invoice-card__action staff-invoice-card__action--pending"><label>Thêm món<select value={selectedDishes[invoice._id] || ''} onChange={(event) => setSelectedDishes((current) => ({ ...current, [invoice._id]: event.target.value }))}><option value="">Chọn món</option>{dishes.map((dish) => <option key={dish._id} value={dish._id}>{dish.name} - {formatMoney(dish.price)}</option>)}</select></label><label>Số lượng<input type="number" min="1" max="99" value={quantities[invoice._id] || 1} onChange={(event) => setQuantities((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label><button type="button" className="customer-secondary-button" onClick={() => addDish(invoice)} disabled={busyId === invoice._id}>Thêm món</button><button type="button" className="customer-primary-button" onClick={() => finalize(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang xử lý...' : 'Chốt hóa đơn để thanh toán'}</button></div>}
               {invoice.status === 'Finalized' && <div className="staff-invoice-card__action"><label>Tiền khách đưa<input type="number" min={invoice.finalAmount} value={cashReceived[invoice._id] || ''} onChange={(event) => setCashReceived((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label><button type="button" className="customer-primary-button" onClick={() => pay(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang thanh toán...' : 'Xác nhận thanh toán'}</button></div>}
             </article>
           ))}
