@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../components/AuthIcons.jsx'
+import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { getInvoices, payInvoice } from '../services/invoiceService.js'
 import { formatMoney, labelFor, INVOICE_STATUS_LABELS } from '../components/admin/adminUtils.js'
@@ -9,6 +10,7 @@ function StaffPaymentsPage() {
   const navigate = useNavigate()
   const { user, endSession } = useAuth()
   const [invoices, setInvoices] = useState([])
+  const [query, setQuery] = useState('')
   const [error, setError] = useState('')
   const [busyId, setBusyId] = useState('')
   const [cashReceived, setCashReceived] = useState({})
@@ -48,6 +50,17 @@ function StaffPaymentsPage() {
     }
   }
 
+  const visibleInvoices = invoices.filter((invoice) => {
+    const normalizedQuery = query.trim().toLowerCase()
+    if (!normalizedQuery) return true
+    return [
+      invoice._id,
+      invoice.reservationId?.reservationCode,
+      invoice.payerName,
+      invoice.phoneNumber,
+    ].some((value) => String(value || '').toLowerCase().includes(normalizedQuery))
+  })
+
   return (
     <div className="staff-app">
       <header className="staff-header">
@@ -60,9 +73,11 @@ function StaffPaymentsPage() {
       <main className="customer-main staff-page staff-payments-page">
         <section className="staff-hero"><div><span className="customer-kicker">Cổng nhân viên</span><h1>Thanh toán hóa đơn</h1><p>Xin chào {user?.name || 'nhân viên'}. Chọn hóa đơn đã chốt để hoàn tất thanh toán.</p></div></section>
         {error && <p className="staff-local-note" role="alert">{error}</p>}
+        {!error && invoices.length > 0 && <div className="staff-invoice-search"><UiIcon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm theo mã đặt bàn, tên hoặc số điện thoại khách" aria-label="Tìm hóa đơn của khách" /></div>}
         {!error && invoices.length === 0 && <div className="menu-state"><strong>Chưa có hóa đơn</strong><p>Không có hóa đơn nào cần xử lý.</p></div>}
+        {!error && invoices.length > 0 && visibleInvoices.length === 0 && <div className="menu-state"><strong>Không tìm thấy hóa đơn</strong><p>Thử lại với mã đặt bàn, tên hoặc số điện thoại khác.</p></div>}
         <div className="staff-invoice-list">
-          {invoices.map((invoice) => (
+          {visibleInvoices.map((invoice) => (
             <article className="staff-invoice-card" key={invoice._id}>
               <div><span className="customer-kicker">Hóa đơn</span><h2>{invoice.reservationId?.reservationCode || invoice._id}</h2><p>{invoice.payerName} · {invoice.phoneNumber}</p></div>
               <span className="admin-status-badge" data-status={invoice.status}>{labelFor(INVOICE_STATUS_LABELS, invoice.status)}</span>

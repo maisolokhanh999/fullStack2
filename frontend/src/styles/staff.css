@@ -238,6 +238,39 @@
   margin-top: 22px;
 }
 
+.staff-invoice-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+
+.staff-invoice-search:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-softer);
+}
+
+.staff-invoice-search > .ui-icon {
+  width: 17px;
+  height: 17px;
+  color: var(--muted);
+}
+
+.staff-invoice-search input {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  outline: 0;
+  color: var(--ink);
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+}
+
 .staff-invoice-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
