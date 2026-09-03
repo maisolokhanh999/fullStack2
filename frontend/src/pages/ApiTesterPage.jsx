@@ -52,6 +52,23 @@ function ApiTesterPage() {
     }
 
     try {
+      const parsedUrl = new URL(url.trim())
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) throw new Error('URL phải bắt đầu bằng http:// hoặc https://.')
+    } catch (validationError) {
+      setError(validationError.message || 'URL không hợp lệ.')
+      return
+    }
+
+    if (body.trim() && method !== 'GET' && method !== 'DELETE') {
+      try {
+        JSON.parse(body)
+      } catch {
+        setError('Body phải là JSON hợp lệ.')
+        return
+      }
+    }
+
+    try {
       setLoading(true)
       setError('')
       setResponse(null)

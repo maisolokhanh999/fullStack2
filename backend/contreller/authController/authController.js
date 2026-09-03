@@ -11,17 +11,27 @@ const createToken = (userId) => {
 
 export const register = async (req, res) => {
   try {
-    const { name, email, password, phone, address} = req.body;
+    const { name, email, password, phone, address } = req.body;
+    const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedPhone = String(phone ?? '').trim();
 
-    if (!name || !email || !password || !phone || !address) {
+    if (!name?.trim() || !normalizedEmail || !password || !normalizedPhone || !address?.trim()) {
       return res.status(400).json({ message: "Vui lòng nhập đầy đủ thông tin" });
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return res.status(400).json({ message: "Email chưa đúng định dạng" });
+    }
+
+    if (!/^\d{9,10}$/.test(normalizedPhone)) {
+      return res.status(400).json({ message: "Số điện thoại cần có 9 đến 10 chữ số" });
     }
 
     if (password.length < 6) {
       return res.status(400).json({ message: "Mật khẩu phải có ít nhất 6 ký tự" });
     }
 
-    const existUser = await User.findOne({ email: email.toLowerCase() });
+    const existUser = await User.findOne({ email: normalizedEmail });
 
     if (existUser) {
       return res.status(400).json({ message: "Email đã tồn tại" });
@@ -30,11 +40,11 @@ export const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await User.create({
-      name,
-      email: email.toLowerCase(),
+      name: name.trim(),
+      email: normalizedEmail,
       password: hashedPassword,
-      phone,
-      address,
+      phone: Number(normalizedPhone),
+      address: address.trim(),
     });
 
     const token = createToken(user._id);

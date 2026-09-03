@@ -305,6 +305,28 @@
   font-size: 12px;
 }
 
+.admin-resource-form .admin-checkbox {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  background: var(--surface);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.admin-resource-form .admin-checkbox input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--accent);
+}
+
 /* Ô mô tả chứa tới 500 ký tự — nhét vào một cột 180px thì người nhập không đọc
    lại nổi thứ mình vừa gõ, nên cho nó trải hết bề ngang form. */
 .admin-resource-form label:has(textarea) {

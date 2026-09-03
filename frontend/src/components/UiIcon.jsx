@@ -47,11 +47,32 @@ function UiIcon({ name, className = '' }) {
           <path d="m18 6-12 12" />
         </svg>
       )
+    case 'chevron-down':
+      return (
+        <svg {...commonProps}>
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      )
+    case 'chevron-up':
+      return (
+        <svg {...commonProps}>
+          <path d="m6 15 6-6 6 6" />
+        </svg>
+      )
     case 'search':
       return (
         <svg {...commonProps}>
           <circle cx="11" cy="11" r="6.5" />
           <path d="m16 16 4 4" />
+        </svg>
+      )
+    case 'grid':
+      return (
+        <svg {...commonProps}>
+          <rect x="4" y="4" width="6" height="6" rx="1" />
+          <rect x="14" y="4" width="6" height="6" rx="1" />
+          <rect x="4" y="14" width="6" height="6" rx="1" />
+          <rect x="14" y="14" width="6" height="6" rx="1" />
         </svg>
       )
     case 'clock':

@@ -12,7 +12,7 @@ const fieldLabel = (field) => ({
   startDate: 'Ngày bắt đầu', endDate: 'Ngày kết thúc',
   name: 'Tên', code: 'Mã', type: 'Loại', description: 'Mô tả',
   price: 'Giá', discount: 'Giảm giá (%)', stock: 'Tồn kho', image: 'Ảnh',
-  status: 'Trạng thái', capacity: 'Sức chứa', location: 'Khu vực', note: 'Ghi chú',
+  status: 'Trạng thái', capacity: 'Sức chứa', location: 'Khu vực', note: 'Ghi chú', isFeatured: 'Món nổi bật',
 }[field] || field)
 
 const displayValue = (value) => {
@@ -26,22 +26,46 @@ function ResourceForm({ config, initial, onCancel, onSubmit }) {
   const [form, setForm] = useState(() => Object.fromEntries(fields.map((field) => [field, initial?.[field] ?? ''])))
   const [imageFile, setImageFile] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [formError, setFormError] = useState('')
   const categoryResult = useAdminCollection(config.categoryLoader || emptyCategories, 'categories')
   const change = (field, value) => setForm((current) => ({ ...current, [field]: value }))
   const submit = async (event) => {
     event.preventDefault()
+    const requiredField = fields.find((field) => ['name', 'code', 'categoryId', 'price', 'capacity'].includes(field) && String(form[field] ?? '').trim() === '')
+    if (requiredField) {
+      setFormError(`${fieldLabel(requiredField)} không được để trống.`)
+      return
+    }
+    for (const field of ['price', 'discount', 'stock', 'capacity']) {
+      if (fields.includes(field) && (!Number.isFinite(Number(form[field])) || Number(form[field]) < 0)) {
+        setFormError(`${fieldLabel(field)} phải là số không âm.`)
+        return
+      }
+    }
+    if (fields.includes('discount') && Number(form.discount) > 100) {
+      setFormError('Giảm giá phải nằm trong khoảng 0 đến 100%.')
+      return
+    }
+    if (fields.includes('startDate') && fields.includes('endDate') && form.startDate && form.endDate && form.startDate > form.endDate) {
+      setFormError('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.')
+      return
+    }
     try {
+      setFormError('')
       setUploading(Boolean(imageFile))
       const image = imageFile ? (await uploadFile(imageFile)).secure_url : form.image
       await onSubmit({ ...form, image })
     } catch (error) {
-      window.alert(error.message)
+      setFormError(error.message || 'Không thể lưu dữ liệu.')
     } finally { setUploading(false) }
   }
   return <form className="admin-resource-form" onSubmit={submit}>
+    {formError && <p className="admin-row-error" role="alert">{formError}</p>}
+    {categoryResult.error && <p className="admin-row-error" role="alert">Không tải được danh mục: {categoryResult.error}</p>}
     {fields.map((field) => (
       <label key={field}>{fieldLabel(field)}
-        {field === 'categoryId' && config.categoryLoader ? <select value={form[field]?._id || form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn danh mục</option>{categoryResult.items.map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}</select> :
+        {field === 'isFeatured' ? <span className="admin-checkbox"><input type="checkbox" checked={Boolean(form[field])} onChange={(event) => change(field, event.target.checked)} /> Hiển thị ở mục nổi bật</span> :
+        field === 'categoryId' && config.categoryLoader ? <select value={form[field]?._id || form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn danh mục</option>{categoryResult.items.map((category) => <option key={category._id} value={category._id}>{category.name}</option>)}</select> :
           field === 'status' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)}><option value="">Chọn trạng thái</option>{(config.statuses || []).map((value) => <option key={value} value={value}>{value}</option>)}</select> :
             field === 'type' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn loại</option>{['MainCourse', 'SideDish', 'Drink', 'Dessert'].map((value) => <option key={value} value={value}>{value}</option>)}</select> :
               field === 'servingUnit' ? <select value={form[field]} onChange={(event) => change(field, event.target.value)} required><option value="">Chọn đơn vị</option>{['Phần', 'Suất', 'Đĩa', 'Tô', 'Bát', 'Ly', 'Cốc', 'Chai', 'Lon', 'Miếng', 'Cái'].map((value) => <option key={value} value={value}>{value}</option>)}</select> :
@@ -49,7 +73,7 @@ function ResourceForm({ config, initial, onCancel, onSubmit }) {
               /* Mô tả và ghi chú dài tới 500 ký tự — nhét vào input một dòng thì
                  người nhập không đọc lại được thứ mình vừa gõ. */
               ['description', 'note'].includes(field) ? <textarea rows={3} maxLength={500} value={form[field]} onChange={(event) => change(field, event.target.value)} /> :
-              <input type={['price', 'discount', 'stock', 'capacity'].includes(field) ? 'number' : field.toLowerCase().includes('date') ? 'date' : 'text'} value={form[field]} onChange={(event) => change(field, event.target.value)} required={['name', 'code', 'categoryId', 'price', 'capacity'].includes(field)} />}
+              <input type={['price', 'discount', 'stock', 'capacity'].includes(field) ? 'number' : field.toLowerCase().includes('date') ? 'date' : 'text'} min={['price', 'discount', 'stock', 'capacity'].includes(field) ? 0 : undefined} max={field === 'discount' ? 100 : undefined} value={form[field]} onChange={(event) => change(field, event.target.value)} required={['name', 'code', 'categoryId', 'price', 'capacity'].includes(field)} />}
       </label>
     ))}
     <div className="admin-action-row"><button type="submit" className="admin-btn" disabled={uploading || categoryResult.isLoading}>{uploading ? 'Đang tải ảnh...' : 'Lưu'}</button><button type="button" className="admin-btn" onClick={onCancel}>Hủy</button></div>

@@ -85,7 +85,9 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
     const controller = new AbortController()
     getDishes({ status: 'Available' }, controller.signal)
       .then((result) => setDishes(result.dishes))
-      .catch(() => setDishes([]))
+      .catch((requestError) => {
+        if (requestError.name !== 'AbortError') setError(requestError.message)
+      })
     return () => controller.abort()
   }, [invoice.status])
 
@@ -105,9 +107,17 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
 
   const addDish = (event) => {
     event.preventDefault()
-    if (!dishId) return
+    const parsedQuantity = Number(quantity)
+    if (!dishId) {
+      setError('Vui lòng chọn món cần thêm.')
+      return
+    }
+    if (!Number.isInteger(parsedQuantity) || parsedQuantity < 1 || parsedQuantity > 99) {
+      setError('Số lượng phải là số nguyên từ 1 đến 99.')
+      return
+    }
     runInvoice('add', async () => {
-      await createInvoiceDetail({ invoiceId, dishId, quantity: Number(quantity) })
+      await createInvoiceDetail({ invoiceId, dishId, quantity: parsedQuantity })
       setDishId('')
       setQuantity(1)
       // Thêm món làm đổi tổng tiền nên phải đọc lại hoá đơn.

@@ -33,6 +33,7 @@ function CustomerLayout() {
   }
 
   const links = [
+    { to: '/', label: 'Trang chủ', end: true },
     { to: '/restaurants', label: 'Nhà hàng', end: true },
     { to: '/bookings', label: 'Đặt bàn' },
     ...(isStaffRole(user?.role) ? [{ to: '/staff/check-in', label: 'Check-in' }] : []),
@@ -44,7 +45,7 @@ function CustomerLayout() {
       <SiteHeader isOpen={isMenuOpen}>
         <div className="site-header__inner">
           <div className="site-header__lead">
-            <NavLink className="site-brand" to="/restaurants" aria-label="Bàn Việt - Nhà hàng">
+            <NavLink className="site-brand" to="/" aria-label="Bàn Việt - Trang chủ">
               <BrandMark />
               <span>Bàn Việt</span>
             </NavLink>

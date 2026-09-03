@@ -14,8 +14,20 @@ export default function UsersPanel({ currentUser }) {
     try {
       if (task === 'delete') { await deleteUser(id); setItems((current) => current.filter((item) => item._id !== id)) }
       if (task === 'role') { const item = await updateUserRole(id, payload); setItems((current) => current.map((value) => value._id === id ? { ...value, ...item } : value)) }
-      if (task === 'edit') { const name = window.prompt('Họ tên mới:'); const phone = window.prompt('Số điện thoại mới:'); if (name) { const item = await updateUser(id, { name, phone }); setItems((current) => current.map((value) => value._id === id ? { ...value, ...item } : value)) } }
-      if (task === 'password') { const password = window.prompt('Mật khẩu mới:'); if (password) await updateUserPassword(id, password) }
+      if (task === 'edit') {
+        const name = window.prompt('Họ tên mới:')?.trim()
+        const phone = window.prompt('Số điện thoại mới:')?.trim()
+        if (!name) throw new Error('Họ tên không được để trống.')
+        if (phone && !/^\d{9,10}$/.test(phone)) throw new Error('Số điện thoại cần có 9 đến 10 chữ số.')
+        const item = await updateUser(id, { name, phone })
+        setItems((current) => current.map((value) => value._id === id ? { ...value, ...item } : value))
+      }
+      if (task === 'password') {
+        const password = window.prompt('Mật khẩu mới:')
+        if (!password) throw new Error('Mật khẩu không được để trống.')
+        if (password.length < 6) throw new Error('Mật khẩu cần có ít nhất 6 ký tự.')
+        await updateUserPassword(id, password)
+      }
     } catch (requestError) { setRowErrors((current) => ({ ...current, [id]: requestError.message })) }
     finally { setSavingId(null) }
   }

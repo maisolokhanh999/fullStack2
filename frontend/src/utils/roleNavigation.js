@@ -12,10 +12,10 @@ export const getLandingPath = (user) => {
   return '/restaurants'
 }
 
-// Đăng nhập hay đăng ký xong: quản trị vào thẳng cổng quản trị vì đó là việc họ
-// mở máy lên để làm; các vai trò còn lại vào trang nhà hàng.
+// Đăng nhập hay đăng ký trực tiếp: quản trị vào cổng quản trị, nhân viên vào
+// khu check-in, còn khách hàng về trang chủ công khai.
 export const getPostAuthLanding = (user) =>
-  (isAdminRole(user?.role) ? '/admin' : '/restaurants')
+  (isAdminRole(user?.role) ? '/admin' : isStaffRole(user?.role) ? '/staff/check-in' : '/')
 
 const getInternalDestination = (from) => {
   if (!from) return null
