@@ -276,6 +276,7 @@ function BookingsPage() {
             <span className="customer-kicker">Mã đặt bàn</span>
             <h2>{selectedQr.reservation?.reservationCode}</h2>
             <img src={selectedQr.qrCode} alt="Mã QR đặt bàn" width="320" height="320" />
+            <p><a href={selectedQr.link} target="_blank" rel="noreferrer">Mở link đặt bàn</a></p>
           </section>
         </div>
       )}

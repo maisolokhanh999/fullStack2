@@ -72,16 +72,13 @@ export const getReservationQr = async (req, res) => {
       return res.status(403).json({ success: false, message: "Bạn không có quyền xem mã QR này" });
     }
 
-    const qrPayload = JSON.stringify({
-      type: "restaurant-reservation",
-      reservationId: reservation._id,
-      reservationCode: reservation.reservationCode,
-    });
-    const qrCode = await QRCode.toDataURL(qrPayload, { margin: 1, width: 320 });
+    const frontendUrl = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/+$/, "");
+    const link = `${frontendUrl}/bookings?reservation=${encodeURIComponent(reservation.reservationCode)}`;
+    const qrCode = await QRCode.toDataURL(link, { margin: 1, width: 320 });
 
     res.status(200).json({
       success: true,
-      data: { qrCode, reservation },
+      data: { qrCode, link, reservation },
     });
   } catch (error) {
     handleError(res, error);
