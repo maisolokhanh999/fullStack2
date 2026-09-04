@@ -70,6 +70,28 @@ const reservationSchema = new mongoose.Schema(
       default: "Pending",
     },
 
+    cancellationReason: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    cancelledAt: {
+      type: Date,
+      default: null,
+    },
+
+    cancelledBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+
+    depositRefunded: {
+      type: Boolean,
+      default: false,
+    },
+
     note: {
       type: String,
       default: "",

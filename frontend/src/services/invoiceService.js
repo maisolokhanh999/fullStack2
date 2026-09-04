@@ -84,3 +84,13 @@ export const cancelInvoice = (id, payload = {}, signal) =>
 
 export const refundInvoice = (id, payload = {}, signal) =>
   runInvoiceAction(id, 'refund', payload, signal, 'Không thể hoàn tiền hóa đơn.')
+
+export async function createDepositPayment(id, signal) {
+  const response = await apiRequest(
+    `/invoices/${encodePathSegment(id, 'invoiceId')}/deposit-payment`,
+    { auth: true, method: 'POST', body: jsonBody({}), signal },
+    'Không thể khởi tạo thanh toán tiền cọc.',
+  )
+
+  return unwrapEntity(response, 'payment')
+}

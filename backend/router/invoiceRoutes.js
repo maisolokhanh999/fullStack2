@@ -9,6 +9,7 @@ import {
   payInvoice,
   cancelInvoice,
   refundInvoice,
+  createDepositPayment,
   deleteInvoice,
 } from "../contreller/invoice/invoice.js";
 import { authMiddleware, adminMiddleware, staffMiddleware } from "../middlewares/authMiddleware/authMiddleware.js";
@@ -23,6 +24,7 @@ router.patch("/:id/finalize", authMiddleware, staffMiddleware, finalizeInvoice);
 router.patch("/:id/pay", authMiddleware, staffMiddleware, payInvoice);
 router.patch("/:id/cancel", authMiddleware, cancelInvoice);
 router.patch("/:id/refund", authMiddleware, refundInvoice);
+router.post("/:id/deposit-payment", authMiddleware, createDepositPayment);
 router.delete("/:id", authMiddleware, adminMiddleware, deleteInvoice);
 
 export default router;

@@ -90,6 +90,24 @@ const invoiceSchema = new mongoose.Schema(
       default: null,
     },
 
+    depositPaymentStatus: {
+      type: String,
+      enum: ["NotRequired", "Pending", "Succeeded", "Failed"],
+      default: "NotRequired",
+    },
+
+    depositPaymentProvider: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    depositPaymentIntentId: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
     status: {
       type: String,
       enum: ["Pending", "Finalized", "Paid", "Cancelled", "Refunded"],

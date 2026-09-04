@@ -6,8 +6,9 @@ import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useAuth } from '../hooks/useAuth.js'
 import { getInvoiceByReservation, getInvoices } from '../services/invoiceService.js'
 import { getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
-import { searchReservations } from '../services/reservationService.js'
+import { getReservationQr, searchReservations } from '../services/reservationService.js'
 import { getReservationTables } from '../services/reservationTableService.js'
+import { createReview } from '../services/reviewService.js'
 import { useBookingDraft } from '../context/bookingDraftStore.js'
 import { calculateBookingEstimate, formatCurrency } from '../utils/booking.js'
 
@@ -24,6 +25,9 @@ function BookingsPage() {
   const [invoiceDetails, setInvoiceDetails] = useState([])
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(false)
   const [invoiceError, setInvoiceError] = useState('')
+  const [selectedQr, setSelectedQr] = useState(null)
+  const [reviewDraft, setReviewDraft] = useState({ reservationId: '', rating: 5, comment: '' })
+  const [reviewMessage, setReviewMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const hasDraft = Boolean(draft.visitDate || draft.visitTime || draft.items.length)
@@ -119,6 +123,25 @@ function BookingsPage() {
     setInvoiceError('')
   }
 
+  const showQr = async (reservationId) => {
+    try {
+      setSelectedQr(await getReservationQr(reservationId))
+    } catch (requestError) {
+      setError(requestError.message)
+    }
+  }
+
+  const submitReview = async (event) => {
+    event.preventDefault()
+    try {
+      await createReview(reviewDraft)
+      setReviewMessage('Đã gửi đánh giá. Cảm ơn bạn!')
+      setReviewDraft({ reservationId: '', rating: 5, comment: '' })
+    } catch (requestError) {
+      setReviewMessage(requestError.message)
+    }
+  }
+
   return (
     <main className="customer-main bookings-page">
       {isSuccessVisible && (
@@ -212,6 +235,10 @@ function BookingsPage() {
               <div><dt>Hóa đơn</dt><dd><button type="button" className="customer-inline-button" onClick={() => viewInvoice(invoice, reservation._id)}>Xem</button></dd></div>
               <div><dt>Ghi chú</dt><dd>{reservation.note || 'Không có'}</dd></div>
             </dl>
+            <div className="booking-card-actions">
+              {['Pending', 'Confirmed'].includes(reservation.status) && <button type="button" className="customer-inline-button" onClick={() => showQr(reservation._id)}>Mã QR</button>}
+              {reservation.status === 'Completed' && <button type="button" className="customer-inline-button" onClick={() => setReviewDraft((current) => ({ ...current, reservationId: reservation._id }))}>Đánh giá</button>}
+            </div>
           </section>
         )
       })}
@@ -240,6 +267,29 @@ function BookingsPage() {
             <p>Trạng thái: {selectedInvoice.status === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
             {isInvoiceLoading ? <div className="menu-state" role="status"><span className="spinner" aria-hidden="true" /><p>Đang tải thông tin hóa đơn...</p></div> : invoiceError ? <p className="invoice-section__error" role="alert">{invoiceError}</p> : <><ul className="invoice-card__items">{invoiceDetails.length ? invoiceDetails.map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatCurrency(detail.totalAmount)}</strong></li>) : <li><span>Chưa có món đặt trước</span></li>}</ul><footer className="invoice-card__total"><span>Tiền cọc {formatCurrency(selectedInvoice.depositAmount)}</span><div><span>Còn phải trả</span><strong>{formatCurrency(selectedInvoice.finalAmount)}</strong></div></footer></>}
           </section>
+        </div>
+      )}
+      {selectedQr && (
+        <div className="customer-modal-backdrop" role="presentation" onMouseDown={() => setSelectedQr(null)}>
+          <section className="customer-modal" role="dialog" aria-modal="true" aria-label="Mã QR đặt bàn" onMouseDown={(event) => event.stopPropagation()}>
+            <button type="button" className="customer-modal__close" onClick={() => setSelectedQr(null)}>Đóng</button>
+            <span className="customer-kicker">Mã đặt bàn</span>
+            <h2>{selectedQr.reservation?.reservationCode}</h2>
+            <img src={selectedQr.qrCode} alt="Mã QR đặt bàn" width="320" height="320" />
+          </section>
+        </div>
+      )}
+      {reviewDraft.reservationId && (
+        <div className="customer-modal-backdrop" role="presentation" onMouseDown={() => setReviewDraft({ reservationId: '', rating: 5, comment: '' })}>
+          <form className="customer-modal" onSubmit={submitReview} onMouseDown={(event) => event.stopPropagation()}>
+            <button type="button" className="customer-modal__close" onClick={() => setReviewDraft({ reservationId: '', rating: 5, comment: '' })}>Đóng</button>
+            <span className="customer-kicker">Sau buổi dùng bữa</span>
+            <h2>Chia sẻ trải nghiệm</h2>
+            <label className="booking-field"><span>Điểm đánh giá</span><select value={reviewDraft.rating} onChange={(event) => setReviewDraft((current) => ({ ...current, rating: Number(event.target.value) }))}>{[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating}/5</option>)}</select></label>
+            <label className="booking-field"><span>Nhận xét</span><textarea value={reviewDraft.comment} onChange={(event) => setReviewDraft((current) => ({ ...current, comment: event.target.value }))} maxLength={1000} /></label>
+            {reviewMessage && <p role="status">{reviewMessage}</p>}
+            <button className="customer-primary-button" type="submit">Gửi đánh giá</button>
+          </form>
         </div>
       )}
     </main>

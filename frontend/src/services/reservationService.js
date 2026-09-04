@@ -66,6 +66,15 @@ export async function getReservationById(id, signal) {
   return unwrapEntity(response, 'reservation')
 }
 
+export async function getReservationQr(id, signal) {
+  const response = await apiRequest(
+    `/reservations/${encodePathSegment(id, 'reservationId')}/qr`,
+    { auth: true, signal },
+    'Không thể tạo mã QR đặt bàn.',
+  )
+  return unwrapEntity(response, 'reservationQr')
+}
+
 export async function createReservation(payload, signal) {
   const response = await apiRequest(
     '/reservations',

@@ -5,6 +5,8 @@ import Dish from "../../model/dish.js";
 import ReservationTable from "../../model/reservationTable.js";
 import Table from "../../model/table.js";
 import handleError from "../../middlewares/handleError/handleError.js";
+import QRCode from "qrcode";
+import { notifyReservationCreated } from "../../services/notificationService.js";
 
 const releaseReservationTables = async (reservationId) => {
   const assignments = await ReservationTable.find({
@@ -52,6 +54,37 @@ export const expireLateReservations = async () => {
         depositRefunded: false,
       }
     );
+  }
+};
+
+export const getReservationQr = async (req, res) => {
+  try {
+    const reservation = await Reservation.findById(req.params.id).select(
+      "reservationCode customerName expectedCheckInTime status bookedBy",
+    );
+
+    if (!reservation) {
+      return res.status(404).json({ success: false, message: "Không tìm thấy đặt bàn" });
+    }
+
+    const isStaff = ["admin", "staff"].includes(req.user?.role);
+    if (!isStaff && String(reservation.bookedBy) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: "Bạn không có quyền xem mã QR này" });
+    }
+
+    const qrPayload = JSON.stringify({
+      type: "restaurant-reservation",
+      reservationId: reservation._id,
+      reservationCode: reservation.reservationCode,
+    });
+    const qrCode = await QRCode.toDataURL(qrPayload, { margin: 1, width: 320 });
+
+    res.status(200).json({
+      success: true,
+      data: { qrCode, reservation },
+    });
+  } catch (error) {
+    handleError(res, error);
   }
 };
 
@@ -124,6 +157,13 @@ export const createReservation = async (req, res) => {
       data: reservation,
       invoice,
     });
+
+    notifyReservationCreated({
+      email: req.user.email,
+      phone: customerPhone,
+      reservationCode: reservation.reservationCode,
+      checkInTime: reservation.expectedCheckInTime.toISOString(),
+    }).catch((error) => console.error("Reservation notification error:", error));
   } catch (error) {
     handleError(res, error);
   }
@@ -355,13 +395,39 @@ export const cancelReservation = async (req, res) => {
       });
     }
 
+    const isStaff = ["admin", "staff"].includes(req.user?.role);
+    const isOwner = String(reservation.bookedBy) === String(req.user?._id);
+    if (!isStaff && !isOwner) {
+      return res.status(403).json({ success: false, message: "Bạn không có quyền hủy lượt đặt bàn này" });
+    }
+
+    const hoursUntilVisit = (new Date(reservation.expectedCheckInTime) - Date.now()) / (60 * 60 * 1000);
+    const refundWindowHours = 24;
+    const canRefundDeposit = hoursUntilVisit >= refundWindowHours;
+    const cancellationReason = String(req.body?.reason || "Khách yêu cầu hủy").trim();
+
     reservation.status = "Cancelled";
+    reservation.cancellationReason = cancellationReason;
+    reservation.cancelledAt = new Date();
+    reservation.cancelledBy = req.user?._id || null;
+    reservation.depositRefunded = canRefundDeposit;
     await reservation.save();
     await releaseReservationTables(reservation._id);
 
+    await Invoice.updateMany(
+      { reservationId: reservation._id, status: { $in: ["Pending", "Finalized"] } },
+      {
+        status: "Cancelled",
+        cancellationReason,
+        depositRefunded: canRefundDeposit,
+      },
+    );
+
     res.status(200).json({
       success: true,
-      message: "Huỷ đặt bàn thành công",
+      message: canRefundDeposit
+        ? "Huỷ đặt bàn thành công, tiền cọc đủ điều kiện hoàn lại"
+        : "Huỷ đặt bàn thành công, tiền cọc không đủ điều kiện hoàn lại theo chính sách",
       data: reservation,
     });
   } catch (error) {
@@ -414,6 +480,10 @@ export const deleteReservation = async (req, res) => {
         success: false,
         message: "Không tìm thấy đặt bàn",
       });
+    }
+
+    if (req.user?.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Chỉ quản trị viên mới được xóa lượt đặt bàn" });
     }
 
     await releaseReservationTables(reservation._id);

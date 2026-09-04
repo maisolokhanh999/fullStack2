@@ -301,6 +301,55 @@ export const payInvoice = async (req, res) => {
   }
 };
 
+export const createDepositPayment = async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) return res.status(404).json({ success: false, message: "Không tìm thấy hóa đơn" });
+
+    const isOwner = String(invoice.userId) === String(req.user._id);
+    if (req.user.role !== "admin" && !isOwner) {
+      return res.status(403).json({ success: false, message: "Bạn không có quyền thanh toán hóa đơn này" });
+    }
+    if (!invoice.depositAmount || invoice.depositAmount <= 0) {
+      return res.status(400).json({ success: false, message: "Hóa đơn không có tiền cọc cần thanh toán" });
+    }
+    if (!process.env.STRIPE_SECRET_KEY) {
+      return res.status(503).json({ success: false, message: "Chưa cấu hình cổng thanh toán online" });
+    }
+
+    const stripeBody = new URLSearchParams({
+      amount: String(Math.round(invoice.depositAmount)),
+      currency: "vnd",
+      "metadata[invoiceId]": String(invoice._id),
+      "metadata[reservationId]": String(invoice.reservationId),
+    });
+    const stripeResponse = await fetch("https://api.stripe.com/v1/payment_intents", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: stripeBody,
+    });
+    const paymentIntent = await stripeResponse.json();
+    if (!stripeResponse.ok) {
+      return res.status(502).json({ success: false, message: "Không tạo được giao dịch thanh toán" });
+    }
+
+    invoice.depositPaymentStatus = "Pending";
+    invoice.depositPaymentProvider = "stripe";
+    invoice.depositPaymentIntentId = paymentIntent.id;
+    await invoice.save();
+
+    res.status(201).json({
+      success: true,
+      data: { provider: "stripe", paymentIntentId: paymentIntent.id, clientSecret: paymentIntent.client_secret },
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
 // @desc    Huỷ hoá đơn (Pending -> Cancelled)
 // @route   PATCH /api/invoices/:id/cancel
 export const cancelInvoice = async (req, res) => {
