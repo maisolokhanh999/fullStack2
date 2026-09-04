@@ -18,6 +18,7 @@ function BookingsPage() {
   const { draft, clearDraft } = useBookingDraft()
   const [isSuccessVisible, setIsSuccessVisible] = useState(Boolean(location.state?.reservationSubmitted))
   const reservationCode = location.state?.reservationCode
+  const submittedReservationId = location.state?.reservationId
   const [reservations, setReservations] = useState([])
   const [tables, setTables] = useState({})
   const [invoiceMap, setInvoiceMap] = useState({})
@@ -99,6 +100,23 @@ function BookingsPage() {
     load()
     return () => controller.abort()
   }, [user])
+
+  useEffect(() => {
+    if (!submittedReservationId || !reservations.some((reservation) => reservation._id === submittedReservationId)) return
+
+    let cancelled = false
+    getReservationQr(submittedReservationId)
+      .then((qr) => {
+        if (!cancelled) setSelectedQr(qr)
+      })
+      .catch((requestError) => {
+        if (!cancelled) setError(requestError.message)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [submittedReservationId, reservations])
 
   const viewInvoice = async (invoice, reservationId) => {
     setSelectedInvoice(invoice || { reservationId })

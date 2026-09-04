@@ -230,7 +230,14 @@ function BookingPage() {
 
     clearDraft()
     setIsSubmitting(false)
-    navigate('/bookings', { replace: true, state: { reservationSubmitted: true, reservationCode: reservation.reservationCode } })
+    navigate('/bookings', {
+      replace: true,
+      state: {
+        reservationSubmitted: true,
+        reservationCode: reservation.reservationCode,
+        reservationId: reservation._id,
+      },
+    })
   }
 
   return (
