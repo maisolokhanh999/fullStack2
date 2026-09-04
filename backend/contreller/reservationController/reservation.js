@@ -72,10 +72,10 @@ export const getReservationQr = async (req, res) => {
       return res.status(403).json({ success: false, message: "Bạn không có quyền xem mã QR này" });
     }
 
+    const requestOrigin = req.headers.origin || "";
+    const isLocalOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(requestOrigin);
     const frontendUrl = (
-      process.env.FRONTEND_URL
-      || req.headers.origin
-      || "http://localhost:5173"
+      isLocalOrigin ? requestOrigin : (process.env.FRONTEND_URL || requestOrigin || "http://localhost:5173")
     ).replace(/\/+$/, "");
     const link = `${frontendUrl}/bookings?reservation=${encodeURIComponent(reservation.reservationCode)}`;
     const qrCode = await QRCode.toDataURL(link, { margin: 1, width: 320 });
