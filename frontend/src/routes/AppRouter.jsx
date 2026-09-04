@@ -50,7 +50,7 @@ function AppRouter() {
         <Route element={<RoleRoute allowedRoles={['staff']} />}>
           <Route path="/staff/check-in" element={<StaffCheckInPage />} />
         </Route>
-        <Route element={<RoleRoute allowedRoles={['staff', 'admin']} />}>
+        <Route element={<RoleRoute allowedRoles={['staff']} />}>
           <Route path="/staff/payments" element={<StaffPaymentsPage />} />
         </Route>
         <Route element={<RoleRoute allowedRoles={['admin']} />}>
