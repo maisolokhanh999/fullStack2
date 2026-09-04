@@ -3,7 +3,7 @@ import {
   getReservations, confirmReservation, checkInReservation,
   completeReservation, cancelReservation, markReservationNoShow,
 } from '../../services/reservationService.js'
-import { getInvoices, finalizeInvoice, payInvoice, cancelInvoice, refundInvoice } from '../../services/invoiceService.js'
+import { getInvoices, finalizeInvoice, getInvoiceTransferQr, payInvoice, cancelInvoice, refundInvoice } from '../../services/invoiceService.js'
 import { createInvoiceDetail, deleteInvoiceDetail, getInvoiceDetailsByInvoice, updateInvoiceDetail } from '../../services/invoiceDetailService.js'
 import { getReservationTables } from '../../services/reservationTableService.js'
 import { getDishes } from '../../services/dishService.js'
@@ -56,6 +56,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
   const [quantity, setQuantity] = useState(1)
   const [paymentMethod, setPaymentMethod] = useState('Cash')
   const [cashReceived, setCashReceived] = useState('')
+  const [transferQr, setTransferQr] = useState(null)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState('')
 
@@ -154,6 +155,18 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
     }))
   }
 
+  const loadTransferQr = async (type = 'final') => {
+    try {
+      setBusy('qr')
+      setError('')
+      setTransferQr(await getInvoiceTransferQr(invoice._id, type))
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setBusy('')
+    }
+  }
+
   return (
     <div className="admin-invoice">
       <div className="admin-invoice__head">
@@ -229,6 +242,11 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
                 && runInvoice('finalize', () => finalizeInvoice(invoice._id))}>
               Chốt hóa đơn
             </button>
+            {invoice.depositAmount > 0 && (
+              <button type="button" className="admin-btn" disabled={Boolean(busy)} onClick={() => loadTransferQr('deposit')}>
+                Tạo QR tiền cọc
+              </button>
+            )}
             <button type="button" className="admin-btn admin-btn--danger" disabled={Boolean(busy)}
               onClick={() => window.confirm('Hủy hóa đơn này?') && runInvoice('cancel', () => cancelInvoice(invoice._id))}>
               Hủy hóa đơn
@@ -259,10 +277,22 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
                   onChange={(event) => setCashReceived(event.target.value)} />
               </label>
             )}
+            {paymentMethod === 'BankTransfer' && (
+              <button type="button" className="admin-btn" onClick={loadTransferQr} disabled={busy === 'qr'}>
+                {busy === 'qr' ? 'Đang tạo QR...' : 'Tạo QR chuyển khoản'}
+              </button>
+            )}
             <button type="button" className="admin-btn admin-btn--primary" onClick={pay} disabled={busy === 'pay'}>
               {busy === 'pay' ? 'Đang thanh toán...' : `Thanh toán ${formatMoney(invoice.finalAmount)}`}
             </button>
           </div>
+          {transferQr && (paymentMethod === 'BankTransfer' || invoice.status === 'Pending') && (
+            <div className="invoice-transfer-qr">
+              <strong>Số tiền chuyển: {formatMoney(transferQr.amount)}</strong>
+              <img src={transferQr.qrCode} alt="QR chuyển khoản hóa đơn" width="260" height="260" />
+              <p>Chuyển đúng {formatMoney(transferQr.amount)} với nội dung <strong>{transferQr.transferContent}</strong>.</p>
+            </div>
+          )}
         </div>
       )}
 

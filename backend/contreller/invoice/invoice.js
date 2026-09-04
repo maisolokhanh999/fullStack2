@@ -350,6 +350,48 @@ export const createDepositPayment = async (req, res) => {
   }
 };
 
+export const getInvoiceTransferQr = async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id).populate("reservationId", "reservationCode");
+    if (!invoice) return res.status(404).json({ success: false, message: "Không tìm thấy hóa đơn" });
+
+    if (!['admin', 'staff'].includes(req.user?.role)) {
+      return res.status(403).json({ success: false, message: "Chỉ staff hoặc admin mới được tạo QR chuyển khoản" });
+    }
+
+    const { BANK_ID, BANK_ACCOUNT_NO, BANK_ACCOUNT_NAME } = process.env;
+    if (!BANK_ID || !BANK_ACCOUNT_NO) {
+      return res.status(503).json({ success: false, message: "Chưa cấu hình tài khoản ngân hàng nhận tiền" });
+    }
+
+    const type = req.query.type === "deposit" ? "deposit" : "final";
+    const amount = type === "deposit" ? invoice.depositAmount : invoice.finalAmount;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ success: false, message: "Số tiền cần chuyển không hợp lệ" });
+    }
+
+    const code = invoice.reservationId?.reservationCode || invoice._id.toString().slice(-8);
+    const transferContent = `${type === "deposit" ? "COC" : "HD"} ${code}`;
+    const accountNameQuery = BANK_ACCOUNT_NAME ? `&accountName=${encodeURIComponent(BANK_ACCOUNT_NAME)}` : "";
+    const qrCode = `https://img.vietqr.io/image/${encodeURIComponent(BANK_ID)}-${encodeURIComponent(BANK_ACCOUNT_NO)}-compact2.png?amount=${encodeURIComponent(Math.round(amount))}&addInfo=${encodeURIComponent(transferContent)}${accountNameQuery}`;
+
+    res.status(200).json({
+      success: true,
+      data: {
+        qrCode,
+        amount,
+        type,
+        transferContent,
+        bankId: BANK_ID,
+        accountNumber: BANK_ACCOUNT_NO,
+        accountName: BANK_ACCOUNT_NAME,
+      },
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
 // @desc    Huỷ hoá đơn (Pending -> Cancelled)
 // @route   PATCH /api/invoices/:id/cancel
 export const cancelInvoice = async (req, res) => {

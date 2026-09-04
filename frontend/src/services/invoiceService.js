@@ -94,3 +94,13 @@ export async function createDepositPayment(id, signal) {
 
   return unwrapEntity(response, 'payment')
 }
+
+export async function getInvoiceTransferQr(id, type = 'final', signal) {
+  const response = await apiRequest(
+    `/invoices/${encodePathSegment(id, 'invoiceId')}/transfer-qr?type=${encodeURIComponent(type)}`,
+    { auth: true, signal },
+    'Không thể tạo QR chuyển khoản.',
+  )
+
+  return unwrapEntity(response, 'transferQr')
+}
