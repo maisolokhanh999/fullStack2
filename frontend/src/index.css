@@ -22,6 +22,11 @@
   --gold-pale: #d8b877;
   --egg: #f2ead9;
   --egg-bright: #fffdf7;
+  /* Xanh ngọc: sắc thứ tư của mâm sơn mài, dùng cho thẻ phân loại món
+     nước và canh. Trước đây trang chủ pha thẳng hex nên nó là màu duy nhất
+     nằm ngoài bảng. */
+  --jade: #536b5c;
+  --jade-deep: #263c35;
 
   --bg: #f5efe3;
   --bg-alt: #ece3d2;

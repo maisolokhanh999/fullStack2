@@ -13,6 +13,8 @@
   --bv-gold-soft: var(--gold-pale);
   --bv-egg: var(--egg);
   --bv-egg-bright: var(--egg-bright);
+  --bv-jade: var(--jade);
+  --bv-jade-deep: var(--jade-deep);
   --bv-ink: var(--ink);
   --bv-tea: var(--muted);
 
@@ -56,7 +58,7 @@
   place-items: center;
   width: 36px;
   height: 36px;
-  border-radius: 9px;
+  border-radius: var(--radius-sm);
   color: var(--bv-lacquer-deep);
   background: var(--bv-gold-soft);
   font-family: var(--bv-display);
@@ -116,8 +118,8 @@
 
 .home-account button {
   padding: 9px 12px;
-  border: 1px solid rgba(218, 170, 91, 0.45);
-  border-radius: 999px;
+  border: 1px solid rgba(216, 184, 119, 0.45);
+  border-radius: var(--radius-pill);
   color: var(--bv-egg);
   background: transparent;
   font: inherit;
@@ -127,18 +129,16 @@
 }
 
 .home-account button:hover {
-  background: rgba(218, 170, 91, 0.14);
+  background: rgba(216, 184, 119, 0.14);
 }
 
-.home-menu,
-.home-stories {
-  width: min(100% - 40px, 1180px);
-  margin: 0 auto;
-  padding: clamp(58px, 7vw, 96px) 0;
-}
-
+/* Chỉ .home-menu tự dựng cột riêng. .home-stories nằm trong
+   .home-featured-area nên phải ăn theo bề ngang của khung cha — cho nó cột
+   riêng thì nó lệch trái trong khung, hở ra một dải nền bên phải. */
 .home-menu {
-  padding-bottom: 46px;
+  width: var(--shell);
+  margin: 0 auto;
+  padding: clamp(58px, 7vw, 96px) 0 46px;
 }
 
 .home-section-heading {
@@ -185,7 +185,7 @@
   justify-content: end;
   overflow: hidden;
   padding: 22px;
-  border-radius: 2px;
+  border-radius: var(--radius-md);
   color: var(--bv-egg-bright);
   background: var(--bv-lacquer);
   text-decoration: none;
@@ -202,11 +202,11 @@
   position: absolute;
   inset: 0;
   opacity: 0.72;
-  background: radial-gradient(circle at 58% 28%, rgba(218, 170, 91, 0.48), transparent 35%);
+  background: radial-gradient(circle at 58% 28%, rgba(216, 184, 119, 0.48), transparent 35%);
 }
 
 .home-menu-card--red { background: var(--bv-son-deep); }
-.home-menu-card--green { background: #536b5c; }
+.home-menu-card--green { background: var(--bv-jade); }
 .home-menu-card--gold { background: var(--bv-gold); }
 
 .home-menu-card > * {
@@ -249,7 +249,7 @@
   margin: 28px auto 0;
   padding: 12px 20px;
   border: 1px solid rgba(42, 33, 28, 0.2);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--bv-ink);
   font-size: 13px;
   font-weight: 800;
@@ -261,7 +261,7 @@
 }
 
 .home-recommendations {
-  width: min(100% - 40px, 1180px);
+  width: var(--shell);
   margin: 0 auto;
   padding: 54px 0 60px;
 }
@@ -331,10 +331,11 @@
 .home-recommendation-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(42, 33, 28, 0.1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   color: var(--bv-ink);
   background: var(--bv-egg-bright);
-  box-shadow: 0 4px 12px rgba(42, 33, 28, 0.08);
+  box-shadow: var(--shadow-sm);
   text-decoration: none;
   transition: transform 170ms ease, box-shadow 170ms ease;
 }
@@ -350,7 +351,7 @@
   top: 10px;
   left: 10px;
   padding: 7px 10px;
-  border-radius: 7px;
+  border-radius: var(--radius-sm);
   color: #fff;
   background: var(--bv-son);
   font-size: 11px;
@@ -363,14 +364,14 @@
   align-items: end;
   padding: 15px;
   color: rgba(255, 253, 247, 0.85);
-  background: radial-gradient(circle at 72% 34%, rgba(218, 170, 91, 0.56), transparent 28%), linear-gradient(135deg, var(--bv-son-deep), var(--bv-lacquer-deep));
+  background: radial-gradient(circle at 72% 34%, rgba(216, 184, 119, 0.56), transparent 28%), linear-gradient(135deg, var(--bv-son-deep), var(--bv-lacquer-deep));
   font-family: var(--bv-data);
   font-size: 27px;
 }
 
-.home-recommendation-card--red .home-recommendation-card__visual { background: radial-gradient(circle at 72% 34%, rgba(218, 170, 91, 0.52), transparent 28%), linear-gradient(135deg, #b43d2c, #5b1b15); }
-.home-recommendation-card--green .home-recommendation-card__visual { background: radial-gradient(circle at 72% 34%, rgba(218, 170, 91, 0.48), transparent 28%), linear-gradient(135deg, #647d6c, #263c35); }
-.home-recommendation-card--gold .home-recommendation-card__visual { background: radial-gradient(circle at 72% 34%, rgba(255, 239, 186, 0.46), transparent 28%), linear-gradient(135deg, #b38a48, #6b4b22); }
+.home-recommendation-card--red .home-recommendation-card__visual { background: radial-gradient(circle at 72% 34%, rgba(216, 184, 119, 0.52), transparent 28%), linear-gradient(135deg, var(--bv-son), var(--bv-lacquer)); }
+.home-recommendation-card--green .home-recommendation-card__visual { background: radial-gradient(circle at 72% 34%, rgba(216, 184, 119, 0.48), transparent 28%), linear-gradient(135deg, var(--bv-jade), var(--bv-jade-deep)); }
+.home-recommendation-card--gold .home-recommendation-card__visual { background: radial-gradient(circle at 72% 34%, rgba(216, 184, 119, 0.46), transparent 28%), linear-gradient(135deg, var(--bv-gold), var(--bv-sauce)); }
 
 .home-recommendation-card__body {
   min-height: 104px;
@@ -392,7 +393,7 @@
 }
 
 .home-featured-area {
-  width: min(100% - 40px, 1180px);
+  width: var(--shell);
   margin: 0 auto;
   background: rgba(176, 133, 68, 0.08);
 }
@@ -415,7 +416,8 @@
 .home-promotion-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(42, 33, 28, 0.1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   color: var(--bv-ink);
   background: var(--bv-egg-bright);
   text-decoration: none;
@@ -433,7 +435,7 @@
   top: 12px;
   left: 12px;
   padding: 5px 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--bv-egg-bright);
   background: var(--bv-son);
   font-size: 10px;
@@ -465,7 +467,7 @@
   display: grid;
   place-items: center;
   color: var(--bv-gold-soft);
-  background: radial-gradient(circle at 58% 38%, rgba(218, 170, 91, 0.48), transparent 30%), linear-gradient(145deg, var(--bv-lacquer), var(--bv-lacquer-deep));
+  background: radial-gradient(circle at 58% 38%, rgba(216, 184, 119, 0.48), transparent 30%), linear-gradient(145deg, var(--bv-lacquer), var(--bv-lacquer-deep));
   font-family: var(--bv-display);
   font-size: 42px;
 }
@@ -519,7 +521,8 @@
 .home-story-card {
   position: relative;
   overflow: hidden;
-  border: 1px solid rgba(42, 33, 28, 0.1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   background: var(--bv-egg-bright);
   box-shadow: var(--shadow-sm);
 }
@@ -538,7 +541,7 @@
 
 .home-story-card__image {
   height: 170px;
-  background: radial-gradient(circle at 68% 35%, rgba(236, 191, 109, 0.58), transparent 28%), linear-gradient(135deg, var(--bv-son-deep), var(--bv-lacquer-deep));
+  background: radial-gradient(circle at 68% 35%, rgba(216, 184, 119, 0.58), transparent 28%), linear-gradient(135deg, var(--bv-son-deep), var(--bv-lacquer-deep));
 }
 
 .home-story-card h3 {
@@ -571,7 +574,8 @@
   grid-template-columns: 1.5fr 1fr auto;
   gap: 40px;
   align-items: start;
-  padding: 48px max(20px, calc((100% - 1180px) / 2));
+  /* Nền chạy hết bề ngang, còn ruột canh lề đúng --shell như nav và hero. */
+  padding: 48px calc((100% - var(--shell)) / 2);
   color: var(--bv-egg);
   background: var(--bv-lacquer-deep);
 }
@@ -598,7 +602,7 @@
   gap: 8px;
   padding: 12px 18px;
   border: 1px solid var(--bv-gold-soft);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--bv-gold-soft);
   font-size: 13px;
   font-weight: 800;
@@ -888,7 +892,7 @@
   min-height: 44px;
   padding: 0 12px;
   border: 1px solid rgba(176, 133, 68, 0.3);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: rgba(242, 234, 217, 0.74);
   background: transparent;
   font-family: var(--bv-data);
@@ -927,7 +931,7 @@
   margin-top: 2px;
   padding: 0 30px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--bv-egg-bright);
   background: var(--bv-son-deep);
   font-family: var(--bv-body);
@@ -1189,7 +1193,7 @@
   gap: 8px;
   padding: 12px 22px;
   border: 1px solid var(--bv-lacquer);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--bv-egg-bright);
   background: var(--bv-lacquer);
   font-family: var(--bv-body);
@@ -1419,7 +1423,7 @@
 .invoice-badge {
   flex: 0 0 auto;
   padding: 5px 11px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 11px;
   font-weight: 700;
 }
