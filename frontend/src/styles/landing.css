@@ -520,6 +520,8 @@
 
 .home-story-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
@@ -541,11 +543,22 @@
 
 .home-story-card__image {
   height: 170px;
+  flex: 0 0 auto;
   background: radial-gradient(circle at 68% 35%, rgba(216, 184, 119, 0.58), transparent 28%), linear-gradient(135deg, var(--bv-son-deep), var(--bv-lacquer-deep));
 }
 
+/* Ba tấm nền giống hệt nhau đọc ra như một khối lặp bị lỗi chứ không phải ba
+   bài khác nhau. Dùng lại đúng bộ ba sắc của thẻ gợi ý ngay bên trên: đỏ son,
+   xanh ngọc, thếp vàng. */
+.home-story-card:nth-child(2) .home-story-card__image {
+  background: radial-gradient(circle at 68% 35%, rgba(216, 184, 119, 0.5), transparent 28%), linear-gradient(135deg, var(--bv-jade), var(--bv-jade-deep));
+}
+
+.home-story-card:nth-child(3) .home-story-card__image {
+  background: radial-gradient(circle at 68% 35%, rgba(216, 184, 119, 0.46), transparent 28%), linear-gradient(135deg, var(--bv-gold), var(--bv-sauce));
+}
+
 .home-story-card h3 {
-  min-height: 52px;
   margin: 0;
   padding: 18px 18px 6px;
   color: var(--bv-ink);
@@ -554,11 +567,14 @@
   line-height: 1.3;
 }
 
+/* Ghim xuống đáy thẻ: tiêu đề dài ngắn thế nào thì "Đọc tiếp" vẫn thẳng hàng,
+   mà không phải giữ sẵn một dòng tiêu đề rỗng như trước. */
 .home-story-card a {
   display: inline-flex;
   align-items: center;
+  align-self: start;
   gap: 7px;
-  margin: 0 18px 18px;
+  margin: auto 18px 18px;
   color: var(--bv-son-deep);
   font-size: 12px;
   font-weight: 800;
