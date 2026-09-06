@@ -425,13 +425,16 @@
   overflow: hidden;
 }
 
+/* Cùng một dải nâu sơn mài như đầu cột danh mục ngay bên trái. Trước đây ô
+   này để nền đỏ tươi, thành ra hai ô nằm cạnh nhau mà hai kiểu — mà đỏ trong
+   app vốn để dành cho nút hành động, như nút "Đặt bàn ngay" ngay dưới đây. */
 .restaurant-cart__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
   color: var(--egg-bright);
-  background: var(--accent);
+  background: var(--lacquer);
 }
 
 .restaurant-cart__header h2 {
