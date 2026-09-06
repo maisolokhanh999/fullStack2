@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import DishCard from '../components/customer/DishCard.jsx'
 import DishGridState from '../components/customer/DishGridState.jsx'
+import { BrandMark } from '../components/AuthIcons.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useDishes } from '../hooks/useDishes.js'
@@ -30,7 +31,7 @@ function RestaurantsPage() {
       </div>
       <div className="restaurant-shop__layout">
         <aside className="restaurant-sidebar" aria-label="Danh mục món ăn">
-          <div className="restaurant-sidebar__brand"><span>BV</span><strong>{DEFAULT_RESTAURANT.name}</strong></div>
+          <div className="restaurant-sidebar__brand"><BrandMark /><strong>{DEFAULT_RESTAURANT.name}</strong></div>
           <p className="restaurant-sidebar__title">Danh mục thực đơn</p>
           <button type="button" className={categoryKey === ALL_CATEGORIES ? 'is-active' : ''} onClick={() => setCategoryKey(ALL_CATEGORIES)}>Tất cả món <span>{dishes.length}</span></button>
           {categories.map((category) => <button key={category.key} type="button" className={categoryKey === category.key ? 'is-active' : ''} onClick={() => setCategoryKey(category.key)}>{category.label} <span>{category.count}</span></button>)}

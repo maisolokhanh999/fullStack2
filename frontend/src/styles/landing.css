@@ -53,18 +53,6 @@
   text-decoration: none;
 }
 
-.home-brand span {
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  color: var(--bv-lacquer-deep);
-  background: var(--bv-gold-soft);
-  font-family: var(--bv-display);
-  font-weight: 700;
-}
-
 .home-brand strong {
   font-weight: 800;
 }

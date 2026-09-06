@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import { BrandMark } from '../components/AuthIcons.jsx'
 import LandingHero from '../components/customer/LandingHero.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
@@ -30,7 +31,7 @@ function HomePage() {
       <section className="home-hero">
         <div className="home-hero__nav">
           <Link className="home-brand" to="/" aria-label="Bàn Việt trang chủ">
-            <span>BV</span>
+            <BrandMark />
             <strong>Bàn Việt</strong>
           </Link>
           <nav aria-label="Điều hướng trang chủ">

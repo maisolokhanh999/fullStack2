@@ -266,12 +266,6 @@
   background: var(--lacquer);
 }
 
-.restaurant-sidebar__brand span {
-  color: var(--gold-pale);
-  font-family: var(--font-display);
-  font-size: 30px;
-}
-
 .restaurant-sidebar__brand strong {
   font-size: 14px;
   line-height: 1.35;
