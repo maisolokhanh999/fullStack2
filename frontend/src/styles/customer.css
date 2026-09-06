@@ -211,7 +211,9 @@
 
 .restaurant-shop {
   min-height: calc(100svh - 76px);
-  padding: 20px max(20px, calc((100% - 1180px) / 2)) 64px;
+  /* Canh đúng --shell như header phía trên. Ghim cứng 1180px thì trên màn
+     1600px ruột trang hẹp hơn chính cái header của nó 149px mỗi bên. */
+  padding: 20px calc((100% - var(--shell)) / 2) 64px;
   color: var(--ink);
   background: var(--page-bg);
 }
@@ -245,6 +247,7 @@
 .restaurant-sidebar,
 .restaurant-cart {
   border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow-sm);
 }
@@ -407,8 +410,9 @@
   font-size: 12px;
 }
 
+/* Giữ nhịp auto-fill của .dish-grid dùng chung: cột rộng ra thì xếp thêm thẻ
+   chứ không kéo thẻ to ra. Ghim 3 cột làm thẻ phình lên khi cột rộng. */
 .restaurant-shop__products .dish-grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -1106,6 +1110,14 @@
   line-height: 1.5;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+/* Món chưa có mô tả thì thôi giữ chỗ cho hai dòng chữ không tồn tại — để
+   nguyên thì mỗi thẻ hở ra một khoảng trống 38px. Thẻ nào có mô tả vẫn giữ
+   nguyên min-height, nên hàng vẫn đều. */
+.dish-card__body > p:empty {
+  min-height: 0;
+  margin: 0;
 }
 
 .dish-card__footer strong {
