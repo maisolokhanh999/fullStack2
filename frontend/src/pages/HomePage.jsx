@@ -61,7 +61,7 @@ function HomePage() {
         <div className="home-menu-grid">
           {menuHighlights.map((item) => (
             <Link className={'home-menu-card home-menu-card--' + item.tone} key={item.title} to="/restaurants">
-              <span className="home-menu-card__mark">BV</span>
+              <span className="home-menu-card__mark" aria-hidden="true">B</span>
               <strong>{item.title}</strong>
               <p>{item.detail}</p>
               <UiIcon name="arrow-right" />

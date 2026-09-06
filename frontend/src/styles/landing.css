@@ -210,6 +210,19 @@
   font-size: 32px;
 }
 
+/* Cham cuoi chu, dung nhu con dau .brand-mark tren header. Cham lay
+   currentColor chu khong lay vang: rieng the "Do uong" da la nen vang nen
+   cham vang dat len se chim mat. */
+.home-menu-card__mark::after {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 4px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
 .home-menu-card strong {
   font-family: var(--bv-display);
   font-size: 21px;
