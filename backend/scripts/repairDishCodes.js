@@ -20,32 +20,16 @@
  * hoàng thì bỏ qua.
  */
 
+import { createCodeAllocator } from './dishCodes.js';
+
 const API_BASE_URL = (process.env.API_BASE_URL || 'https://fullstack2-sdtf.onrender.com').replace(/\/+$/, '');
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
 const DRY_RUN = process.argv.includes('--dry-run');
 
-// Mã ngắn theo danh mục, nối tiếp lối đặt sẵn có của món Coca Cola: "DU001".
-const CATEGORY_PREFIX = [
-  [/khai vị/i, 'KV'],
-  [/cơm|bún|mì|phở/i, 'CB'],
-  [/canh|súp/i, 'CS'],
-  [/nướng|bbq/i, 'NB'],
-  [/lẩu/i, 'LA'],
-  [/tráng miệng|bánh|chè/i, 'TM'],
-  [/đồ uống|nước|cà phê|trà/i, 'DU'],
-];
+/* Danh từ riêng và chữ viết tắt phải nhặt lại bằng tay, vì hạ chữ thường là
+   mất hẳn thông tin viết hoa.
 
-const prefixFor = (categoryName) => {
-  for (const [pattern, prefix] of CATEGORY_PREFIX) {
-    if (pattern.test(String(categoryName || ''))) return prefix;
-  }
-  return 'MA';
-};
-
-/* Chữ hoa do Mongoose ép, không phải do người nhập gõ hoa. Hạ về chữ thường
-   rồi viết hoa đầu câu là đủ khôi phục — trừ vài danh từ riêng và chữ viết tắt
-   phải nhặt lại bằng tay vì hạ chữ là mất hẳn. */
-/* Không dùng \b quanh chữ có dấu: trong regex JS, "ỹ" không phải ký tự từ nên
+   Không dùng \b quanh chữ có dấu: trong regex JS, "ỹ" không phải ký tự từ nên
    \b sau nó không bao giờ khớp — "kiểu mỹ" sẽ lọt lưới. */
 const PROPER_NOUNS = [
   [/\bbbq\b/g, 'BBQ'],
@@ -61,6 +45,8 @@ const TYPO_FIXES = [
   [/^dắt mì chiên/, 'Vắt mì chiên'],
 ];
 
+/* Chữ hoa là do Mongoose ép, không phải do người nhập gõ hoa. Hạ về chữ
+   thường rồi viết hoa đầu câu là đủ khôi phục phần lớn đoạn văn. */
 const toSentenceCase = (shouty) => {
   let text = String(shouty).trim().toLowerCase();
   for (const [pattern, replacement] of TYPO_FIXES) text = text.replace(pattern, replacement);
@@ -128,20 +114,9 @@ const main = async () => {
   if (damaged.length === 0) return;
 
   // Giữ chỗ những mã đang dùng để mã mới không đụng phải mã nào có sẵn.
-  const usedCodes = new Set(
-    dishes.filter((dish) => !looksLikeProse(dish.code)).map((dish) => String(dish.code).toUpperCase()),
+  const nextCode = createCodeAllocator(
+    dishes.filter((dish) => !looksLikeProse(dish.code)).map((dish) => dish.code),
   );
-  const nextCode = (categoryName) => {
-    const prefix = prefixFor(categoryName);
-    for (let number = 1; number < 1000; number += 1) {
-      const code = `${prefix}${String(number).padStart(3, '0')}`;
-      if (!usedCodes.has(code)) {
-        usedCodes.add(code);
-        return code;
-      }
-    }
-    throw new Error(`Hết số cho tiền tố ${prefix}`);
-  };
 
   let repaired = 0;
   const failed = [];
