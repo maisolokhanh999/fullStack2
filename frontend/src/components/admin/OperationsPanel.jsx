@@ -188,6 +188,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
         <div className="invoice-receipt__meta">
           <span>Số HĐ: <strong>{invoice._id}</strong></span>
           <span>Ngày in: {formatDateTime(invoice.paymentDate || invoice.createdAt)}</span>
+          {invoice.paidBy && <span>Nhân viên thanh toán: <strong>{invoice.paidBy.name || '—'}</strong> ({invoice.paidBy._id})</span>}
           <span>Bàn: <strong>{tables.map((table) => table?.tableNumber).filter(Boolean).join(', ') || '—'}</strong></span>
           <span>Khách hàng: {invoice.payerName || '—'}</span>
         </div>
