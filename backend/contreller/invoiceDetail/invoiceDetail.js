@@ -83,8 +83,10 @@ export const createInvoiceDetail = async (req, res) => {
 
     if (existingDetail) {
       existingDetail.quantity += parsedQuantity;
-      existingDetail.totalAmount = existingDetail.unitPrice * existingDetail.quantity
-        * (1 - existingDetail.discount / 100);
+      const itemDiscount = dish ? dish.discount : existingDetail.discount;
+      existingDetail.unitPrice = unitPrice;
+      existingDetail.discount = itemDiscount;
+      existingDetail.totalAmount = discountedTotal(unitPrice, existingDetail.quantity, itemDiscount);
       if (note !== undefined) existingDetail.note = note;
       await existingDetail.save();
       await recalculateInvoiceTotal(invoiceId);

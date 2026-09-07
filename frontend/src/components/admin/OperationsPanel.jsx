@@ -224,7 +224,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
               <select value={dishId} onChange={(event) => setDishId(event.target.value)} required>
                 <option value="">Chọn món</option>
                 {dishes.map((dish) => (
-                  <option key={dish._id} value={dish._id}>{dish.name} — {formatMoney(dish.price)}</option>
+                  <option key={dish._id} value={dish._id}>{dish.name} — {formatMoney(dish.price * (1 - (Number(dish.discount) || 0) / 100))}{Number(dish.discount) > 0 ? ` (giảm ${dish.discount}%)` : ''}</option>
                 ))}
               </select>
             </label>
