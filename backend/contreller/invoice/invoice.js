@@ -270,6 +270,13 @@ export const payInvoice = async (req, res) => {
       });
     }
 
+    if (!['admin', 'staff'].includes(req.user?.role)) {
+      const isOwner = String(invoice.userId) === String(req.user?._id);
+      if (!isOwner) {
+        return res.status(403).json({ success: false, message: "Bạn không có quyền thanh toán hóa đơn này" });
+      }
+    }
+
     const paymentMethod = req.body.paymentMethod || invoice.paymentMethod;
     const cashReceived = req.body.cashReceived ?? invoice.cashReceived ?? 0;
 
