@@ -355,8 +355,10 @@ export const getInvoiceTransferQr = async (req, res) => {
     const invoice = await Invoice.findById(req.params.id).populate("reservationId", "reservationCode");
     if (!invoice) return res.status(404).json({ success: false, message: "Không tìm thấy hóa đơn" });
 
-    if (!['admin', 'staff'].includes(req.user?.role)) {
-      return res.status(403).json({ success: false, message: "Chỉ staff hoặc admin mới được tạo QR chuyển khoản" });
+    const isStaff = ['admin', 'staff'].includes(req.user?.role);
+    const isOwner = String(invoice.userId) === String(req.user?._id);
+    if (!isStaff && !isOwner) {
+      return res.status(403).json({ success: false, message: "Bạn không có quyền xem QR thanh toán này" });
     }
 
     const { BANK_ID, BANK_ACCOUNT_NO, BANK_ACCOUNT_NAME } = process.env;

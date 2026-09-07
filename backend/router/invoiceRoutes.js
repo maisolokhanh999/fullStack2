@@ -26,7 +26,7 @@ router.patch("/:id/pay", authMiddleware, staffMiddleware, payInvoice);
 router.patch("/:id/cancel", authMiddleware, cancelInvoice);
 router.patch("/:id/refund", authMiddleware, refundInvoice);
 router.post("/:id/deposit-payment", authMiddleware, createDepositPayment);
-router.get("/:id/transfer-qr", authMiddleware, staffMiddleware, getInvoiceTransferQr);
+router.get("/:id/transfer-qr", authMiddleware, getInvoiceTransferQr);
 router.delete("/:id", authMiddleware, adminMiddleware, deleteInvoice);
 
 export default router;

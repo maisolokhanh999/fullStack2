@@ -4,7 +4,7 @@ import UiIcon from '../components/UiIcon.jsx'
 import { RESERVATION_STATUS_LABELS, formatDateTime, labelFor } from '../components/admin/adminUtils.js'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { getInvoiceByReservation, getInvoices } from '../services/invoiceService.js'
+import { getInvoiceByReservation, getInvoiceTransferQr, getInvoices } from '../services/invoiceService.js'
 import { getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
 import { getReservationQr, searchReservations } from '../services/reservationService.js'
 import { getReservationTables } from '../services/reservationTableService.js'
@@ -104,10 +104,13 @@ function BookingsPage() {
   useEffect(() => {
     if (!submittedReservationId || !reservations.some((reservation) => reservation._id === submittedReservationId)) return
 
+    const invoice = invoiceMap[String(submittedReservationId)]
+    if (!invoice) return
+
     let cancelled = false
-    getReservationQr(submittedReservationId)
+    getInvoiceTransferQr(invoice._id, 'deposit')
       .then((qr) => {
-        if (!cancelled) setSelectedQr(qr)
+        if (!cancelled) setSelectedQr({ ...qr, type: 'payment', reservation: invoice.reservationId })
       })
       .catch((requestError) => {
         if (!cancelled) setError(requestError.message)
@@ -116,7 +119,7 @@ function BookingsPage() {
     return () => {
       cancelled = true
     }
-  }, [submittedReservationId, reservations])
+  }, [submittedReservationId, reservations, invoiceMap])
 
   const viewInvoice = async (invoice, reservationId) => {
     setSelectedInvoice(invoice || { reservationId })
@@ -289,12 +292,16 @@ function BookingsPage() {
       )}
       {selectedQr && (
         <div className="customer-modal-backdrop" role="presentation" onMouseDown={() => setSelectedQr(null)}>
-          <section className="customer-modal" role="dialog" aria-modal="true" aria-label="Mã QR đặt bàn" onMouseDown={(event) => event.stopPropagation()}>
+          <section className="customer-modal" role="dialog" aria-modal="true" aria-label={selectedQr.type === 'payment' ? 'QR thanh toán tiền cọc' : 'Mã QR đặt bàn'} onMouseDown={(event) => event.stopPropagation()}>
             <button type="button" className="customer-modal__close" onClick={() => setSelectedQr(null)}>Đóng</button>
-            <span className="customer-kicker">Mã đặt bàn</span>
+            <span className="customer-kicker">{selectedQr.type === 'payment' ? 'Thanh toán tiền cọc' : 'Mã đặt bàn'}</span>
             <h2>{selectedQr.reservation?.reservationCode}</h2>
-            <img src={selectedQr.qrCode} alt="Mã QR đặt bàn" width="320" height="320" />
-            <p><a href={selectedQr.link} target="_blank" rel="noreferrer">Mở link đặt bàn</a></p>
+            <img src={selectedQr.qrCode} alt={selectedQr.type === 'payment' ? 'QR thanh toán tiền cọc' : 'Mã QR đặt bàn'} width="320" height="320" />
+            {selectedQr.type === 'payment' ? (
+              <p>Chuyển đúng <strong>{formatCurrency(selectedQr.amount)}</strong> với nội dung <strong>{selectedQr.transferContent}</strong>.</p>
+            ) : (
+              <p><a href={selectedQr.link} target="_blank" rel="noreferrer">Mở link đặt bàn</a></p>
+            )}
           </section>
         </div>
       )}
