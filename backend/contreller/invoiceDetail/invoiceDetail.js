@@ -30,6 +30,9 @@ const recalculateInvoiceTotal = async (invoiceId) => {
   await invoice.save();
 };
 
+const discountedTotal = (unitPrice, quantity, discount = 0) =>
+  unitPrice * quantity * (1 - discount / 100);
+
 // @desc    Thêm 1 món vào hoá đơn
 // @route   POST /api/invoice-details
 export const createInvoiceDetail = async (req, res) => {
@@ -93,14 +96,15 @@ export const createInvoiceDetail = async (req, res) => {
       });
     }
 
-    const totalAmount = unitPrice * parsedQuantity * (1 - discount / 100);
+    const itemDiscount = dish ? dish.discount : discount;
+    const totalAmount = discountedTotal(unitPrice, parsedQuantity, itemDiscount);
 
     const detail = await InvoiceDetail.create({
       invoiceId,
       ...(dish ? { dishId } : { menuId }),
       itemName: dish?.name || legacyMenu.name,
       unitPrice,
-      discount,
+      discount: itemDiscount,
       quantity: parsedQuantity,
       totalAmount,
       note,
@@ -160,8 +164,9 @@ export const createInvoiceDetailsBulk = async (req, res) => {
         });
       }
 
-      const discount = item.discount || 0;
-      const totalAmount = dish.price * item.quantity * (1 - discount / 100);
+      const discount = item.discount ?? dish.discount ?? 0;
+      const quantity = Math.max(1, Math.min(99, Math.round(Number(item.quantity) || 1)));
+      const totalAmount = discountedTotal(dish.price, quantity, discount);
 
       docsToInsert.push({
         invoiceId,
@@ -169,7 +174,7 @@ export const createInvoiceDetailsBulk = async (req, res) => {
         itemName: dish.name,
         unitPrice: dish.price,
         discount,
-        quantity: item.quantity,
+        quantity,
         totalAmount,
         note: item.note || "",
       });

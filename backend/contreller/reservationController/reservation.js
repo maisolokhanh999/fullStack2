@@ -141,8 +141,9 @@ export const createReservation = async (req, res) => {
           dishId: dish._id,
           itemName: dish.name,
           unitPrice: dish.price,
+          discount: dish.discount || 0,
           quantity,
-          totalAmount: dish.price * quantity,
+          totalAmount: dish.price * quantity * (1 - (dish.discount || 0) / 100),
         };
       });
       await InvoiceDetail.insertMany(detailDocs);
