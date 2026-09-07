@@ -149,7 +149,7 @@ export const getInvoiceById = async (req, res) => {
     }
 
     const isOwner = String(invoice.userId?._id || invoice.userId) === String(req.user._id);
-    if (req.user.role !== "admin" && !isOwner) {
+    if (!['admin', 'staff'].includes(req.user.role) && !isOwner) {
       return res.status(403).json({
         success: false,
         message: "Không có quyền xem hóa đơn này",
