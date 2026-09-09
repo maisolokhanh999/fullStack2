@@ -143,4 +143,4 @@ html { scroll-behavior: smooth; }
 }
 @media(prefers-reduced-motion: reduce) { html { scroll-behavior: auto; }.bv-reveal, .bv-category, .bv-story, .bv-text-link { transition: none; transform: none; }.bv-round-table svg g { transition: none; }.auth-shell, .bv-story details[open] p { animation: none; } }
 
-.menu-photo-credit { color: #80796e; font-size: 11px; margin: 0 0 18px; }.menu-photo-credit a { text-underline-offset: 3px; }
+.menu-photo-credit { color: #80796e; font-size: 11px; margin: 0 0 18px; }.menu-photo-credit a { color: inherit; text-underline-offset: 3px; }

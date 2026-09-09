@@ -60,3 +60,10 @@ Mô hình bàn hiện khóa theo trạng thái toàn cục, chưa lập lịch n
 ## Hoàn thiện thực đơn và phát hành — 09/09/2026
 
 Bổ sung ảnh minh họa có nguồn cho gỏi cuốn, nem nướng, chả giò, phục vụ từ backend/public/menu. Nguồn/giấy phép hiển thị tại /media/credits.html. MenuContent backfill khi backend khởi động chỉ điền ảnh/mô tả trống theo tên món; không tạo món, không đổi giá và không ghi đè nội dung đã chỉnh. Thêm 14 mô tả ngắn cho danh sách món cũ. Test backfill kiểm tra chạy lặp lại và bảo toàn nội dung/giá hiện có. Frontend hỗ trợ URL ảnh /media từ API server. Bộ kiểm tra: 20 backend + 35 browser, lint/build.
+
+## Ảnh cho 50 món bổ sung — 09/09/2026
+
+- Đủ 50 ảnh đã tìm theo từng món, kiểm tra bằng bảng ảnh; thay ảnh cơm có chữ quảng cáo và ảnh cá quá cận cảnh.
+- Ảnh WebP nằm trong backend/public/menu/expansion, tổng khoảng 3,5 MB cho 50 ảnh; nguồn gốc đối chiếu tại backend/data/menu-photos-50.json và trang /media/credits.html.
+- completeExpansionPhotos chỉ điền ảnh trống cho đúng cặp mã/tên món, bỏ qua món xóa mềm và ảnh đã tự chỉnh. Không đổi giá, tồn kho, mô tả hay số món.
+- Kiểm thử backend 22/22 đạt; frontend lint/build đạt. Kiểm tra production được thực hiện sau khi push.

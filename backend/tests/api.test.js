@@ -15,6 +15,8 @@ import Table from '../model/table.js';
 import Dish from '../model/dish.js';
 import { completeMenuContent } from '../services/menuContent.js';
 import { expandMenu50, expansionDishes } from '../services/menuExpansion.js';
+import { completeExpansionPhotos, expansionPhotos } from '../services/menuPhotos.js';
+import { existsSync } from 'node:fs';
 import '../model/category.js';
 import dishRoutes from '../router/dishRoutes.js';
 import ReservationTable from '../model/reservationTable.js';
@@ -52,6 +54,23 @@ beforeEach(async () => {
   [owner, other, staff, admin] = await User.create(['user', 'user', 'staff', 'admin'].map((role, index) => ({ name: `Test ${index}`, email: `test${index}@example.invalid`, phone: 901234567, address: 'Test only', password, role })));
   table = await Table.create({ tableNumber: 'A1', capacity: 4 });
   dish = await Dish.create({ categoryId: new mongoose.Types.ObjectId(), code: 'TEST', name: 'Test dish', type: 'MainCourse', servingUnit: 'Phần', price: 100000, discount: 10, stock: 100 });
+});
+
+test('50 photo assets exist and backfill preserves custom images and deleted dishes', async () => {
+  assert.equal(expansionPhotos.length, 50);
+  assert.equal(new Set(expansionPhotos.map(item => item.code)).size, 50);
+  for (const photo of expansionPhotos) {
+    assert.ok(existsSync(new URL(`../public/${photo.image.replace('/media/', '')}`, import.meta.url)));
+    assert.match(photo.source, /^https:\/\//);
+    assert.equal(expansionDishes.find(item => item.code === photo.code).name, photo.name);
+  }
+  await expandMenu50();
+  await Dish.updateOne({ code: 'BV50-001' }, { image: 'https://example.invalid/restaurant.webp' });
+  await Dish.updateOne({ code: 'BV50-002' }, { isDeleted: true });
+  assert.equal(await completeExpansionPhotos(), 48);
+  assert.equal(await completeExpansionPhotos(), 0);
+  assert.equal((await Dish.findOne({ code: 'BV50-001' })).image, 'https://example.invalid/restaurant.webp');
+  assert.equal((await Dish.findOne({ code: 'BV50-002', isDeleted: true })).image, '');
 });
 
 test('menu expansion adds exactly 50 unique dishes once and preserves later edits', async () => {
