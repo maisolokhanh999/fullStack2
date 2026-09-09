@@ -1,0 +1,50 @@
+Bánh bèo Huế|Món khai vị|55000|Bánh gạo hấp mềm, phủ tôm chấy, hành phi và nước mắm ngọt.
+Bánh bột lọc tôm thịt|Món khai vị|60000|Vỏ bột lọc dai trong, ôm nhân tôm thịt đậm đà, dùng cùng mắm ớt.
+Bánh nậm Huế|Món khai vị|55000|Bánh bột gạo gói lá, nhân tôm thịt mềm thơm, ăn nóng vừa miệng.
+Bánh cuốn nóng|Món khai vị|65000|Bánh cuốn mỏng nhân thịt mộc nhĩ, rắc hành phi, dùng cùng chả lụa.
+Bánh hỏi thịt nướng|Món khai vị|85000|Bánh hỏi mềm rưới mỡ hành, ăn cùng thịt nướng và rau sống.
+Gỏi xoài tôm khô|Gỏi|75000|Xoài xanh giòn trộn tôm khô, rau răm và nước mắm chua ngọt.
+Gỏi đu đủ bò khô|Gỏi|70000|Đu đủ bào sợi cùng bò khô, đậu phộng và rau thơm, vị chua cay nhẹ.
+Gỏi gà xé phay|Gỏi|95000|Gà xé trộn hành tây, rau răm và nước trộn chua ngọt thanh mát.
+Gỏi bưởi tôm|Gỏi|110000|Tép bưởi mọng nước kết hợp tôm luộc, rau thơm và đậu phộng rang.
+Gỏi tai heo ngó sen|Gỏi|90000|Tai heo giòn cùng ngó sen và rau củ, thấm vị nước mắm chua ngọt.
+Bánh khọt Vũng Tàu|Chiên & Rán|75000|Bánh khọt viền giòn, nhân tôm, dùng cùng rau sống và nước mắm pha.
+Bánh xèo miền Tây|Chiên & Rán|95000|Bánh xèo vàng giòn nhân tôm thịt, cuốn rau xanh, chấm mắm chua ngọt.
+Tôm chiên xù|Chiên & Rán|125000|Tôm bọc lớp vụn bánh mì giòn vàng, dùng nóng cùng sốt chấm.
+Mực chiên nước mắm|Chiên & Rán|145000|Mực chiên săn giòn, áo nước mắm tỏi thơm đậm đà.
+Đậu hũ chiên sả|Chiên & Rán|55000|Đậu hũ chiên vàng, phủ sả băm thơm, dùng cùng nước tương.
+Cánh gà chiên nước mắm|Chiên & Rán|105000|Cánh gà vàng giòn áo sốt nước mắm tỏi, mặn ngọt hài hòa.
+Khoai lang kén|Chiên & Rán|45000|Khoai lang nghiền bọc lớp vỏ giòn, bên trong mềm và ngọt nhẹ.
+Phở bò tái nạm|Cơm & Bún / Mì|95000|Bánh phở mềm cùng bò tái và nạm, nước dùng thơm quế hồi.
+Phở gà ta|Cơm & Bún / Mì|85000|Phở gà với nước dùng thanh ngọt, hành mùi và thịt gà thái miếng.
+Bún bò Huế|Cơm & Bún / Mì|95000|Bún sợi to, thịt bò và giò heo trong nước dùng sả cay thơm.
+Bún chả Hà Nội|Cơm & Bún / Mì|90000|Chả thịt nướng dùng cùng bún, rau sống và nước mắm có đồ chua.
+Bún riêu cua|Cơm & Bún / Mì|80000|Bún riêu cua với cà chua, đậu hũ và nước dùng chua dịu.
+Mì Quảng gà|Cơm & Bún / Mì|85000|Mì Quảng chan nước dùng xăm xắp, có gà, đậu phộng và bánh tráng.
+Cao lầu Hội An|Cơm & Bún / Mì|85000|Sợi cao lầu dai, thịt xá xíu và rau sống, thêm bánh chiên giòn.
+Hủ tiếu Nam Vang|Cơm & Bún / Mì|90000|Hủ tiếu với tôm, thịt bằm và nước dùng xương thanh ngọt.
+Cơm tấm sườn bì chả|Cơm & Bún / Mì|95000|Cơm tấm dùng cùng sườn nướng, bì và chả trứng, thêm mỡ hành.
+Cơm gà Hội An|Cơm & Bún / Mì|90000|Cơm vàng thơm, gà xé và rau răm, dùng cùng nước chấm gừng.
+Cơm chiên dương châu|Cơm & Bún / Mì|75000|Cơm chiên cùng trứng, lạp xưởng và rau củ thái hạt lựu.
+Bún thịt nướng|Cơm & Bún / Mì|85000|Bún tươi với thịt nướng, rau sống, đồ chua và đậu phộng.
+Miến xào cua|Cơm & Bún / Mì|150000|Miến xào tơi cùng thịt cua và rau củ, thơm tiêu hành.
+Canh rau ngót thịt bằm|Canh, Súp|60000|Rau ngót nấu cùng thịt heo bằm, nước canh thanh nhẹ dễ ăn.
+Canh bí đỏ tôm|Canh, Súp|65000|Bí đỏ mềm ngọt nấu cùng tôm, rắc hành lá, dùng nóng.
+Canh cải cá rô|Canh, Súp|75000|Rau cải nấu với cá rô và gừng, nước dùng ngọt thanh.
+Súp cua nấm|Canh, Súp|65000|Súp sánh nhẹ với thịt cua, trứng và nấm, điểm chút tiêu thơm.
+Canh chua tôm|Canh, Súp|85000|Tôm nấu cùng thơm, cà chua và rau, vị canh chua ngọt hài hòa.
+Gà nướng lá chanh|Nướng & BBQ|185000|Gà ướp lá chanh nướng vàng, da thơm, thịt mềm, dùng cùng muối chấm.
+Bò nướng lá lốt|Nướng & BBQ|135000|Thịt bò cuốn lá lốt nướng thơm, ăn cùng rau sống và bún.
+Cá diêu hồng nướng muối ớt|Nướng & BBQ|195000|Cá ướp muối ớt nướng vàng, dùng cùng rau và nước chấm.
+Tôm nướng muối ớt|Nướng & BBQ|155000|Tôm nướng vỏ thơm, thấm muối ớt cay nhẹ, thịt ngọt săn.
+Mực nướng sa tế|Nướng & BBQ|165000|Mực ướp sa tế nướng thơm, giữ độ giòn ngọt, dùng cùng rau.
+Lẩu cá kèo|Lẩu|290000|Cá kèo nấu nước lẩu chua thanh, dùng cùng rau và bún tươi.
+Lẩu bò nấm|Lẩu|320000|Thịt bò và nấm trong nước lẩu đậm vị, dọn kèm rau xanh.
+Lẩu riêu cua bắp bò|Lẩu|350000|Riêu cua và bắp bò kết hợp nước lẩu chua dịu, thơm đậm đà.
+Lẩu nấm chay|Lẩu|230000|Nhiều loại nấm và rau củ trong nước lẩu ngọt thanh, dùng cùng bún.
+Lẩu mắm miền Tây|Lẩu|330000|Nước lẩu mắm đậm vị với cá, tôm và rau, ăn cùng bún tươi.
+Chè hạt sen long nhãn|Tráng Miệng Lạnh & Bánh|40000|Hạt sen bùi cùng long nhãn ngọt dịu, dùng mát sau bữa ăn.
+Chè ba màu|Tráng Miệng Lạnh & Bánh|35000|Các loại đậu và thạch dùng cùng nước cốt dừa, thêm đá mát lạnh.
+Bánh flan cà phê|Tráng Miệng Lạnh & Bánh|35000|Bánh flan mềm mịn với caramel và cà phê thơm, ngọt đắng hài hòa.
+Rau câu dừa|Tráng Miệng Lạnh & Bánh|30000|Rau câu dừa mát lành, lớp thạch mềm giòn và vị dừa dịu nhẹ.
+Chè đậu xanh nước cốt dừa|Tráng Miệng Lạnh & Bánh|30000|Đậu xanh nấu mềm, dùng cùng nước cốt dừa béo thơm.

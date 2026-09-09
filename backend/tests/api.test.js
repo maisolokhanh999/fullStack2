@@ -14,6 +14,7 @@ import InvoiceDetail from '../model/invoiceDetail.js';
 import Table from '../model/table.js';
 import Dish from '../model/dish.js';
 import { completeMenuContent } from '../services/menuContent.js';
+import { expandMenu50, expansionDishes } from '../services/menuExpansion.js';
 import '../model/category.js';
 import dishRoutes from '../router/dishRoutes.js';
 import ReservationTable from '../model/reservationTable.js';
@@ -51,6 +52,18 @@ beforeEach(async () => {
   [owner, other, staff, admin] = await User.create(['user', 'user', 'staff', 'admin'].map((role, index) => ({ name: `Test ${index}`, email: `test${index}@example.invalid`, phone: 901234567, address: 'Test only', password, role })));
   table = await Table.create({ tableNumber: 'A1', capacity: 4 });
   dish = await Dish.create({ categoryId: new mongoose.Types.ObjectId(), code: 'TEST', name: 'Test dish', type: 'MainCourse', servingUnit: 'Phần', price: 100000, discount: 10, stock: 100 });
+});
+
+test('menu expansion adds exactly 50 unique dishes once and preserves later edits', async () => {
+  assert.equal(expansionDishes.length, 50);
+  assert.equal(new Set(expansionDishes.map(item => item.name)).size, 50);
+  assert.equal(await expandMenu50(), 50);
+  assert.equal(await Dish.countDocuments(), 51);
+  const first = await Dish.findOne({ code: 'BV50-001' });
+  await Dish.updateOne({ _id: first._id }, { price: 123000, isDeleted: true });
+  assert.equal(await expandMenu50(), 0);
+  assert.equal(await Dish.countDocuments(), 51);
+  assert.equal((await Dish.findOne({ _id: first._id, isDeleted: true })).price, 123000);
 });
 
 test('menu content backfill only fills blanks and is safe to run again', async () => {

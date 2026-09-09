@@ -1,6 +1,7 @@
 import express from "express";
 import { fileURLToPath } from 'node:url';
 import { completeMenuContent } from './services/menuContent.js';
+import { expandMenu50 } from './services/menuExpansion.js';
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./configs/db.js";
@@ -20,6 +21,7 @@ app.use(express.json());
 await cloudinary.config();
 await connectDB();
 await completeMenuContent();
+await expandMenu50();
 app.use('/media', express.static(fileURLToPath(new URL('./public', import.meta.url))));
 // Quét lượt đặt quá giờ. Lượt quét không bao giờ được phép làm chết tiến trình:
 // lần quét lúc khởi động mà ném lỗi thì app.listen bên dưới không chạy nữa và
