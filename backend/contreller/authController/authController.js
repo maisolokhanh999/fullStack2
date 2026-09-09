@@ -12,6 +12,9 @@ const createToken = (userId) => {
 export const register = async (req, res) => {
   try {
     const { name, email, password, phone, address } = req.body;
+    if (![name, email, password, address].every((value) => typeof value === 'string')) {
+      return res.status(400).json({ message: "Thông tin đăng ký không hợp lệ" });
+    }
     const normalizedEmail = email?.trim().toLowerCase();
     const normalizedPhone = String(phone ?? '').trim();
 
@@ -70,11 +73,11 @@ export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (typeof email !== 'string' || typeof password !== 'string' || !email.trim() || !password) {
       return res.status(400).json({ message: "Vui lòng nhập email và mật khẩu" });
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: String(email).trim().toLowerCase() });
 
     if (!user) {
       return res.status(400).json({ message: "Tài khoản không tồn tại" });
@@ -84,6 +87,9 @@ export const login = async (req, res) => {
 
     if (!isMatch) {
       return res.status(400).json({ message: "Sai mật khẩu" });
+    }
+    if (user.status !== "Active") {
+      return res.status(403).json({ message: "Tài khoản đã bị khóa hoặc chưa hoạt động" });
     }
 
     const token = createToken(user._id);

@@ -461,6 +461,16 @@
   border-bottom: 1px solid var(--line);
 }
 
+.restaurant-cart .review-items {
+  padding: 16px;
+  font-size: 12px;
+}
+
+.restaurant-cart .review-items li {
+  flex-wrap: wrap;
+  overflow-wrap: anywhere;
+}
+
 .restaurant-cart__empty strong {
   display: block;
   margin-bottom: 8px;

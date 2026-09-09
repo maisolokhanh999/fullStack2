@@ -63,7 +63,7 @@ const invoiceSchema = new mongoose.Schema(
 
     paymentDate: {
       type: Date,
-      default: Date.now,
+      default: null,
     },
 
     paymentMethod: {
@@ -116,6 +116,7 @@ const invoiceSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    optimisticConcurrency: true,
   }
 );
 

@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import UiIcon from '../components/UiIcon.jsx'
 import { RESERVATION_STATUS_LABELS, formatDateTime, labelFor } from '../components/admin/adminUtils.js'
 import { DEFAULT_RESTAURANT } from '../config/restaurant.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { getInvoiceByReservation, getInvoiceTransferQr, getInvoices } from '../services/invoiceService.js'
+import { getInvoiceByReservation, getInvoiceTransferQr } from '../services/invoiceService.js'
 import { getInvoiceDetailsByInvoice } from '../services/invoiceDetailService.js'
-import { getReservationQr, searchReservations } from '../services/reservationService.js'
+import { getReservationQr, getReservations } from '../services/reservationService.js'
 import { getReservationTables } from '../services/reservationTableService.js'
 import { createReview } from '../services/reviewService.js'
 import { useBookingDraft } from '../context/bookingDraftStore.js'
@@ -21,7 +21,7 @@ function BookingsPage() {
   const submittedReservationId = location.state?.reservationId
   const [reservations, setReservations] = useState([])
   const [tables, setTables] = useState({})
-  const [invoiceMap, setInvoiceMap] = useState({})
+  const invoiceRequest = useRef(null)
   const [selectedInvoice, setSelectedInvoice] = useState(null)
   const [invoiceDetails, setInvoiceDetails] = useState([])
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(false)
@@ -29,8 +29,10 @@ function BookingsPage() {
   const [selectedQr, setSelectedQr] = useState(null)
   const [reviewDraft, setReviewDraft] = useState({ reservationId: '', rating: 5, comment: '' })
   const [reviewMessage, setReviewMessage] = useState('')
+  const [isReviewSubmitting, setIsReviewSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [qrError, setQrError] = useState('')
   const hasDraft = Boolean(draft.visitDate || draft.visitTime || draft.items.length)
   const estimate = calculateBookingEstimate({ items: draft.items, guests: draft.guests })
 
@@ -38,38 +40,22 @@ function BookingsPage() {
     if (!user) {
       setReservations([])
       setTables({})
-      setInvoiceMap({})
       setIsLoading(false)
       return undefined
     }
 
     const controller = new AbortController()
+    setIsLoading(true)
+    setError('')
 
     const load = async () => {
       try {
-        const phoneQuery = user.phone === undefined || user.phone === null ? '' : String(user.phone)
-        const [reservationResults, invoiceResults] = await Promise.all([
-          phoneQuery ? searchReservations(phoneQuery, controller.signal) : Promise.resolve([]),
-          getInvoices({}, controller.signal),
-        ])
-
-        const validReservations = Array.isArray(reservationResults)
-          ? reservationResults.filter((reservation) => {
-              const matchesPhone = phoneQuery
-                ? (reservation.customerPhone && String(reservation.customerPhone) === phoneQuery)
-                  || (reservation.customerPhone && String(reservation.customerPhone) === `0${phoneQuery.replace(/^0+/, '')}`)
-                : true
-              const matchesName = user.name ? reservation.customerName === user.name : true
-              return matchesPhone || matchesName
-            })
-          : []
-
-        const invoiceList = invoiceResults?.invoices || []
-        const mappedInvoices = {}
-        for (const invoice of invoiceList) {
-          const reservationId = invoice.reservationId?._id || invoice.reservationId
-          if (reservationId) mappedInvoices[String(reservationId)] = invoice
-        }
+        const { reservations: reservationResults } = await getReservations({}, controller.signal)
+        const userId = String(user._id || user.id || '')
+        const validReservations = reservationResults.filter((reservation) => {
+          const ownerId = reservation.bookedBy?._id || reservation.bookedBy
+          return Boolean(userId && ownerId && String(ownerId) === userId)
+        })
 
         const tableEntries = await Promise.all(
           validReservations.map(async (reservation) => {
@@ -88,7 +74,6 @@ function BookingsPage() {
 
         setReservations(validReservations)
         setTables(Object.fromEntries(tableEntries))
-        setInvoiceMap(mappedInvoices)
         setError('')
       } catch (requestError) {
         if (requestError.name !== 'AbortError') setError(requestError.message)
@@ -101,44 +86,53 @@ function BookingsPage() {
     return () => controller.abort()
   }, [user])
 
+  useEffect(() => () => invoiceRequest.current?.abort(), [])
+
   useEffect(() => {
     if (!submittedReservationId || !reservations.some((reservation) => reservation._id === submittedReservationId)) return
 
-    const invoice = invoiceMap[String(submittedReservationId)]
-    if (!invoice) return
-
     let cancelled = false
-    getInvoiceTransferQr(invoice._id, 'deposit')
-      .then((qr) => {
+    const controller = new AbortController()
+    getInvoiceByReservation(submittedReservationId, controller.signal)
+      .then(async (invoice) => {
+        if (invoice.depositPaymentStatus === 'Succeeded' || !invoice.depositAmount) return
+        const qr = await getInvoiceTransferQr(invoice._id, 'deposit', controller.signal)
         if (!cancelled) setSelectedQr({ ...qr, type: 'payment', reservation: invoice.reservationId })
       })
       .catch((requestError) => {
-        if (!cancelled) setError(requestError.message)
+        if (!cancelled) setQrError(requestError.message)
       })
 
     return () => {
       cancelled = true
+      controller.abort()
     }
-  }, [submittedReservationId, reservations, invoiceMap])
+  }, [submittedReservationId, reservations])
 
-  const viewInvoice = async (invoice, reservationId) => {
-    setSelectedInvoice(invoice || { reservationId })
+  const viewInvoice = async (reservationId) => {
+    invoiceRequest.current?.abort()
+    const controller = new AbortController()
+    invoiceRequest.current = controller
+    setSelectedInvoice({ reservationId })
     setInvoiceDetails([])
     setInvoiceError('')
     setIsInvoiceLoading(true)
     try {
-      const currentInvoice = invoice || await getInvoiceByReservation(reservationId)
+      const currentInvoice = await getInvoiceByReservation(reservationId, controller.signal)
+      if (controller.signal.aborted) return
       setSelectedInvoice(currentInvoice)
-      const result = await getInvoiceDetailsByInvoice(currentInvoice._id)
+      const result = await getInvoiceDetailsByInvoice(currentInvoice._id, controller.signal)
+      if (controller.signal.aborted) return
       setInvoiceDetails(result.invoiceDetails || [])
     } catch (requestError) {
-      setInvoiceError(requestError.message)
+      if (!controller.signal.aborted) setInvoiceError(requestError.message)
     } finally {
-      setIsInvoiceLoading(false)
+      if (!controller.signal.aborted) setIsInvoiceLoading(false)
     }
   }
 
   const closeInvoice = () => {
+    invoiceRequest.current?.abort()
     setSelectedInvoice(null)
     setInvoiceDetails([])
     setInvoiceError('')
@@ -146,25 +140,32 @@ function BookingsPage() {
 
   const showQr = async (reservationId) => {
     try {
+      setQrError('')
       setSelectedQr(await getReservationQr(reservationId))
     } catch (requestError) {
-      setError(requestError.message)
+      setQrError(requestError.message)
     }
   }
 
   const submitReview = async (event) => {
     event.preventDefault()
+    if (isReviewSubmitting) return
+    setIsReviewSubmitting(true)
+    setReviewMessage('')
     try {
       await createReview(reviewDraft)
       setReviewMessage('Đã gửi đánh giá. Cảm ơn bạn!')
       setReviewDraft({ reservationId: '', rating: 5, comment: '' })
     } catch (requestError) {
       setReviewMessage(requestError.message)
+    } finally {
+      setIsReviewSubmitting(false)
     }
   }
 
   return (
     <main className="customer-main bookings-page">
+      {qrError && <p className="invoice-section__error" role="alert">Không tải được mã QR: {qrError}</p>}
       {isSuccessVisible && (
         <div className="booking-success" role="status">
           <span className="booking-success__icon"><UiIcon name="check" /></span>
@@ -237,7 +238,6 @@ function BookingsPage() {
       )}
 
       {!isLoading && !error && reservations.length > 0 && reservations.map((reservation) => {
-        const invoice = invoiceMap[String(reservation._id)]
         const assignment = tables[String(reservation._id)]
 
         return (
@@ -253,12 +253,12 @@ function BookingsPage() {
               <div><dt>Thời gian</dt><dd>{formatDateTime(reservation.expectedCheckInTime)}</dd></div>
               <div><dt>Số khách</dt><dd>{reservation.numberOfGuests} người</dd></div>
               <div><dt>Bàn</dt><dd>{assignment ? `Bàn ${assignment.tableNumber || assignment._id}` : 'Chưa gán'}</dd></div>
-              <div><dt>Hóa đơn</dt><dd><button type="button" className="customer-inline-button" onClick={() => viewInvoice(invoice, reservation._id)}>Xem</button></dd></div>
+              <div><dt>Hóa đơn</dt><dd><button type="button" className="customer-inline-button" onClick={() => viewInvoice(reservation._id)}>Xem</button></dd></div>
               <div><dt>Ghi chú</dt><dd>{reservation.note || 'Không có'}</dd></div>
             </dl>
             <div className="booking-card-actions">
               {['Pending', 'Confirmed'].includes(reservation.status) && <button type="button" className="customer-inline-button" onClick={() => showQr(reservation._id)}>Mã QR</button>}
-              {reservation.status === 'Completed' && <button type="button" className="customer-inline-button" onClick={() => setReviewDraft((current) => ({ ...current, reservationId: reservation._id }))}>Đánh giá</button>}
+              {reservation.status === 'Completed' && <button type="button" className="customer-inline-button" onClick={() => { setReviewMessage(''); setReviewDraft({ reservationId: reservation._id, rating: 5, comment: '' }) }}>Đánh giá</button>}
             </div>
           </section>
         )
@@ -267,10 +267,9 @@ function BookingsPage() {
       {!isLoading && !error && reservations.length === 0 && !hasDraft && (
         <section className="customer-empty-card">
           <span><UiIcon name="circle" /></span>
-          <h2>Chưa có bản nháp nào đang soạn</h2>
+          <h2>Chưa có lượt đặt bàn nào</h2>
           <p>
             Chọn thời gian và số khách để bắt đầu — không bắt buộc chọn món trước.
-            Những lượt bạn đã gửi đi được xem tại Hoá đơn của tôi.
           </p>
           <div className="customer-empty-card__actions">
             <Link className="customer-primary-link" to={'/booking/' + DEFAULT_RESTAURANT.id}>
@@ -279,6 +278,7 @@ function BookingsPage() {
           </div>
         </section>
       )}
+      {reviewMessage && !reviewDraft.reservationId && <p role="status">{reviewMessage}</p>}
       {selectedInvoice && (
         <div className="customer-modal-backdrop" role="presentation" onMouseDown={closeInvoice}>
           <section className="customer-modal" role="dialog" aria-modal="true" aria-label="Thông tin hóa đơn" onMouseDown={(event) => event.stopPropagation()}>
@@ -286,7 +286,7 @@ function BookingsPage() {
             <span className="customer-kicker">Hóa đơn</span>
             <h2>{selectedInvoice.reservationId?.reservationCode || 'Chi tiết hóa đơn'}</h2>
             <p>Trạng thái: {selectedInvoice.status === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'}</p>
-            {isInvoiceLoading ? <div className="menu-state" role="status"><span className="spinner" aria-hidden="true" /><p>Đang tải thông tin hóa đơn...</p></div> : invoiceError ? <p className="invoice-section__error" role="alert">{invoiceError}</p> : <><ul className="invoice-card__items">{invoiceDetails.length ? invoiceDetails.map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatCurrency(detail.totalAmount)}</strong></li>) : <li><span>Chưa có món đặt trước</span></li>}</ul><footer className="invoice-card__total"><span>Tiền cọc {formatCurrency(selectedInvoice.depositAmount)}</span><div><span>Còn phải trả</span><strong>{formatCurrency(selectedInvoice.finalAmount)}</strong></div></footer></>}
+            {isInvoiceLoading ? <div className="menu-state" role="status"><span className="spinner" aria-hidden="true" /><p>Đang tải thông tin hóa đơn...</p></div> : invoiceError ? <p className="invoice-section__error" role="alert">{invoiceError}</p> : <><ul className="invoice-card__items">{invoiceDetails.length ? invoiceDetails.map((detail) => <li key={detail._id}><span>{detail.quantity} × {detail.itemName}</span><strong>{formatCurrency(detail.totalAmount)}</strong></li>) : <li><span>Chưa có món đặt trước</span></li>}</ul><footer className="invoice-card__total"><span>{selectedInvoice.depositPaymentStatus === 'Succeeded' ? 'Cọc đã nhận' : 'Cọc chưa xác nhận'} {formatCurrency(selectedInvoice.depositAmount)}</span><div><span>Còn phải trả</span><strong>{formatCurrency(selectedInvoice.finalAmount)}</strong></div></footer></>}
           </section>
         </div>
       )}
@@ -314,7 +314,7 @@ function BookingsPage() {
             <label className="booking-field"><span>Điểm đánh giá</span><select value={reviewDraft.rating} onChange={(event) => setReviewDraft((current) => ({ ...current, rating: Number(event.target.value) }))}>{[5, 4, 3, 2, 1].map((rating) => <option key={rating} value={rating}>{rating}/5</option>)}</select></label>
             <label className="booking-field"><span>Nhận xét</span><textarea value={reviewDraft.comment} onChange={(event) => setReviewDraft((current) => ({ ...current, comment: event.target.value }))} maxLength={1000} /></label>
             {reviewMessage && <p role="status">{reviewMessage}</p>}
-            <button className="customer-primary-button" type="submit">Gửi đánh giá</button>
+            <button className="customer-primary-button" type="submit" disabled={isReviewSubmitting}>{isReviewSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}</button>
           </form>
         </div>
       )}

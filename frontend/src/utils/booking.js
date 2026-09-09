@@ -9,7 +9,10 @@ export const formatCurrency = (value) =>
 
 export const getDishId = (dish) => String(dish?._id || dish?.id || '')
 
-export const getDishImage = (dish) => dish?.imageUrl || dish?.image || dish?.photo || ''
+export const getDishImage = (dish) => {
+  const image = dish?.imageUrl || dish?.image || dish?.photo || ''
+  return image.startsWith('/media/') ? `${(import.meta.env.VITE_API_BASE_URL || 'https://fullstack2-sdtf.onrender.com').replace(/\/+$/, '')}${image}` : image
+}
 
 export const getDishPrice = (dish) => {
   const finalPrice = Number(dish?.finalPrice)
@@ -71,11 +74,11 @@ export const calculateBookingEstimate = ({ items = [], guests = 1 }) => {
   }
 }
 
-export const getTodayString = () => {
-  const today = new Date()
-  const offset = today.getTimezoneOffset()
-  return new Date(today.getTime() - offset * 60000).toISOString().slice(0, 10)
-}
+// Giờ nhà hàng tại Việt Nam, không phụ thuộc múi giờ máy khách hay server.
+export const getRestaurantDateTime = (now = new Date()) =>
+  new Date(now.getTime() + 7 * 60 * 60000).toISOString().slice(0, 16)
+
+export const getTodayString = () => getRestaurantDateTime().slice(0, 10)
 
 export const getDishDetailPath = (dish, restaurantId = DEFAULT_RESTAURANT.id) =>
   `/restaurants/${restaurantId}/dishes/${getDishId(dish)}`

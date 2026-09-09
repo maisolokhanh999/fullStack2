@@ -11,9 +11,9 @@ import {
 
 const router = express.Router();
 
-router.get("/", getUsers);
+router.get("/", authMiddleware, adminMiddleware, getUsers);
 
-router.get("/:id", getUserById);
+router.get("/:id", authMiddleware, adminMiddleware, getUserById);
 
 router.put("/:id",authMiddleware, adminMiddleware, updateUser,);
 

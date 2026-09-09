@@ -1,6 +1,29 @@
 import Invoice from "../../model/invoice.js"; // chỉnh lại path cho đúng
 import Reservation from "../../model/reservation.js";
 import handleError from "../../middlewares/handleError/handleError.js";
+import { amountDue } from "../../services/bookingService.js";
+
+// Older unpaid records may have subtracted an unconfirmed deposit. Correct
+// their displayed balance without rewriting historical paid invoices.
+const invoiceForResponse = (invoice) => {
+  const data = invoice.toObject();
+  if (["Pending", "Finalized"].includes(data.status)) data.finalAmount = amountDue(data);
+  return data;
+};
+
+export const confirmDeposit = async (req, res) => {
+  try {
+    const invoice = await Invoice.findById(req.params.id);
+    if (!invoice) return res.status(404).json({ success: false, message: "Không tìm thấy hóa đơn" });
+    if (!["Pending", "Finalized"].includes(invoice.status) || invoice.depositAmount <= 0) {
+      return res.status(400).json({ success: false, message: "Không thể xác nhận cọc cho hóa đơn này" });
+    }
+    invoice.depositPaymentStatus = "Succeeded";
+    invoice.finalAmount = amountDue(invoice);
+    await invoice.save();
+    res.json({ success: true, data: invoiceForResponse(invoice), message: "Đã ghi nhận nhân viên xác nhận nhận cọc" });
+  } catch (error) { handleError(res, error); }
+};
 
 // @desc    Tạo hoá đơn mới
 // @route   POST /api/invoices
@@ -31,7 +54,7 @@ export const createInvoice = async (req, res) => {
     // Không cho tạo hoá đơn trùng cho 1 reservation (trừ khi hoá đơn cũ đã Cancelled)
     const existingInvoice = await Invoice.findOne({
       reservationId,
-      status: { $in: ["Pending", "Paid"] },
+      status: { $in: ["Pending", "Finalized", "Paid"] },
     });
     if (existingInvoice) {
       return res.status(400).json({
@@ -41,6 +64,10 @@ export const createInvoice = async (req, res) => {
     }
 
     const invoiceDeposit = depositAmount ?? reservation.depositAmount ?? 0;
+
+    if (![totalAmount, discountAmount, invoiceDeposit, cashReceived].every((value) => typeof value === 'number' && Number.isFinite(value) && value >= 0) || (status && status !== 'Pending')) {
+      return res.status(400).json({ success: false, message: "Số tiền không hợp lệ hoặc trạng thái khởi tạo khác Pending" });
+    }
 
     if (discountAmount > totalAmount) {
       return res.status(400).json({
@@ -56,7 +83,7 @@ export const createInvoice = async (req, res) => {
       });
     }
 
-    const finalAmount = totalAmount - discountAmount - invoiceDeposit;
+    const finalAmount = Math.max(0, totalAmount - discountAmount);
 
     let changeAmount = 0;
     if (paymentMethod === "Cash") {
@@ -77,6 +104,7 @@ export const createInvoice = async (req, res) => {
       totalAmount,
       discountAmount,
       depositAmount: invoiceDeposit,
+      depositPaymentStatus: invoiceDeposit > 0 ? "Pending" : "NotRequired",
       finalAmount,
       paymentMethod,
       cashReceived,
@@ -87,7 +115,7 @@ export const createInvoice = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Tạo hoá đơn thành công",
-      data: invoice,
+      data: invoiceForResponse(invoice),
     });
   } catch (error) {
     handleError(res, error);
@@ -125,7 +153,7 @@ export const getInvoices = async (req, res) => {
     res.status(200).json({
       success: true,
       count: invoices.length,
-      data: invoices,
+      data: invoices.map(invoiceForResponse),
     });
   } catch (error) {
     handleError(res, error);
@@ -158,7 +186,7 @@ export const getInvoiceById = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: invoice,
+      data: invoiceForResponse(invoice),
     });
   } catch (error) {
     handleError(res, error);
@@ -201,6 +229,14 @@ export const updateInvoice = async (req, res) => {
     const newMethod = paymentMethod ?? invoice.paymentMethod;
     const newCashReceived = cashReceived ?? invoice.cashReceived;
 
+    if (![newTotal, newDiscount, newDeposit, newCashReceived].every((value) => typeof value === 'number' && Number.isFinite(value) && value >= 0)) {
+      return res.status(400).json({ success: false, message: "Số tiền phải là số không âm" });
+    }
+
+    if (invoice.depositPaymentStatus === "Succeeded" && Number(newDeposit) !== invoice.depositAmount) {
+      return res.status(400).json({ success: false, message: "Không thể sửa số tiền cọc đã xác nhận nhận" });
+    }
+
     if (newDiscount > newTotal) {
       return res.status(400).json({
         success: false,
@@ -215,7 +251,7 @@ export const updateInvoice = async (req, res) => {
       });
     }
 
-    const newFinal = newTotal - newDiscount - newDeposit;
+    const newFinal = amountDue({ ...invoice.toObject(), totalAmount: newTotal, discountAmount: newDiscount, depositAmount: newDeposit });
 
     let newChange = 0;
     if (newMethod === "Cash") {
@@ -243,7 +279,7 @@ export const updateInvoice = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Cập nhật hoá đơn thành công",
-      data: invoice,
+      data: invoiceForResponse(invoice),
     });
   } catch (error) {
     handleError(res, error);
@@ -278,7 +314,11 @@ export const payInvoice = async (req, res) => {
     }
 
     const paymentMethod = req.body.paymentMethod || invoice.paymentMethod;
+    invoice.finalAmount = amountDue(invoice);
     const cashReceived = req.body.cashReceived ?? invoice.cashReceived ?? 0;
+    if (!["Cash", "Card", "BankTransfer", "EWallet"].includes(paymentMethod) || !Number.isFinite(Number(cashReceived)) || Number(cashReceived) < 0) {
+      return res.status(400).json({ success: false, message: "Thông tin thanh toán không hợp lệ" });
+    }
 
     if (paymentMethod === "Cash" && cashReceived < invoice.finalAmount) {
       return res.status(400).json({
@@ -301,7 +341,7 @@ export const payInvoice = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Thanh toán thành công",
-      data: invoice,
+      data: invoiceForResponse(invoice),
     });
   } catch (error) {
     handleError(res, error);
@@ -317,7 +357,7 @@ export const createDepositPayment = async (req, res) => {
     if (req.user.role !== "admin" && !isOwner) {
       return res.status(403).json({ success: false, message: "Bạn không có quyền thanh toán hóa đơn này" });
     }
-    if (!invoice.depositAmount || invoice.depositAmount <= 0) {
+    if (!["Pending", "Finalized"].includes(invoice.status) || invoice.depositPaymentStatus === "Succeeded" || !invoice.depositAmount || invoice.depositAmount <= 0) {
       return res.status(400).json({ success: false, message: "Hóa đơn không có tiền cọc cần thanh toán" });
     }
     if (!process.env.STRIPE_SECRET_KEY) {
@@ -374,7 +414,10 @@ export const getInvoiceTransferQr = async (req, res) => {
     }
 
     const type = req.query.type === "deposit" ? "deposit" : "final";
-    const amount = type === "deposit" ? invoice.depositAmount : invoice.finalAmount;
+    if (!["Pending", "Finalized"].includes(invoice.status) || (type === "final" && invoice.status !== "Finalized") || (type === "deposit" && invoice.depositPaymentStatus === "Succeeded")) {
+      return res.status(400).json({ success: false, message: "Hóa đơn không còn khoản thanh toán này" });
+    }
+    const amount = type === "deposit" ? invoice.depositAmount : amountDue(invoice);
     if (!amount || amount <= 0) {
       return res.status(400).json({ success: false, message: "Số tiền cần chuyển không hợp lệ" });
     }
@@ -427,7 +470,7 @@ export const cancelInvoice = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Huỷ hoá đơn thành công",
-      data: invoice,
+      data: invoiceForResponse(invoice),
     });
   } catch (error) {
     handleError(res, error);
@@ -460,7 +503,7 @@ export const refundInvoice = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Hoàn tiền thành công",
-      data: invoice,
+      data: invoiceForResponse(invoice),
     });
   } catch (error) {
     handleError(res, error);
@@ -507,12 +550,13 @@ export const finalizeInvoice = async (req, res) => {
     }
 
     invoice.status = "Finalized";
+    invoice.finalAmount = amountDue(invoice);
     await invoice.save();
 
     res.status(200).json({
       success: true,
       message: "Chốt hoá đơn thành công",
-      data: invoice,
+      data: invoiceForResponse(invoice),
     });
   } catch (error) {
     handleError(res, error);
@@ -535,11 +579,11 @@ export const getInvoiceByReservation = async (req, res) => {
     const bookedBy = invoice.reservationId?.bookedBy;
     const isOwner = String(invoice.userId?._id || invoice.userId) === String(req.user._id)
       || (bookedBy && String(bookedBy) === String(req.user._id));
-    if (req.user.role !== "admin" && !isOwner) {
+    if (!["admin", "staff"].includes(req.user.role) && !isOwner) {
       return res.status(403).json({ success: false, message: "Không có quyền xem hóa đơn này" });
     }
 
-    res.status(200).json({ success: true, data: invoice });
+    res.status(200).json({ success: true, data: invoiceForResponse(invoice) });
   } catch (error) {
     handleError(res, error);
   }

@@ -13,14 +13,15 @@ import {
   getReservationQr,
 } from "../contreller/reservationController/reservation.js";
 import { authMiddleware, adminMiddleware, staffMiddleware } from "../middlewares/authMiddleware/authMiddleware.js";
+import { reservationAccess } from "../middlewares/authMiddleware/resourceAccess.js";
 
 const router = express.Router();
 
 router.post("/", authMiddleware, createReservation);
 router.get("/", authMiddleware, getReservations);
-router.get("/:id", authMiddleware, getReservationById);
+router.get("/:id", authMiddleware, reservationAccess, getReservationById);
 router.get("/:id/qr", authMiddleware, getReservationQr);
-router.put("/:id", authMiddleware, updateReservation);
+router.put("/:id", authMiddleware, reservationAccess, updateReservation);
 router.patch("/:id/confirm", authMiddleware, staffMiddleware, confirmReservation);
 router.patch("/:id/checkin", authMiddleware, staffMiddleware, checkInReservation);
 router.patch("/:id/complete", authMiddleware, staffMiddleware, completeReservation);

@@ -17,6 +17,9 @@ export const authMiddleware = async (req, res, next) => {
     if (!user) {
       return res.status(401).json({ message: "Token không hợp lệ" });
     }
+    if (user.status !== "Active") {
+      return res.status(403).json({ message: "Tài khoản đã bị khóa hoặc chưa hoạt động" });
+    }
 
     req.user = user;
     next();

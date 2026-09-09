@@ -17,21 +17,31 @@ const fieldLabel = (field) => ({
 
 const displayValue = (value) => {
   if (value === undefined || value === null || value === '') return '—'
+  if (typeof value === 'boolean') return value ? 'Có' : 'Không'
   if (typeof value !== 'object') return value
   return value.reservationCode || value.tableNumber || value.name || value._id || '—'
 }
 
 function ResourceForm({ config, initial, onCancel, onSubmit }) {
   const fields = config.fields || []
-  const [form, setForm] = useState(() => Object.fromEntries(fields.map((field) => [field, initial?.[field] ?? ''])))
+  const [form, setForm] = useState(() => Object.fromEntries(fields.map((field) => {
+    const value = initial?.[field]
+    if (field === 'categoryId') return [field, value?._id || value || '']
+    if (field === 'isFeatured') return [field, Boolean(value)]
+    if (field.toLowerCase().includes('date')) return [field, String(value || '').slice(0, 10)]
+    if (field === 'status') return [field, value || config.statuses?.[0] || '']
+    return [field, value ?? '']
+  })))
   const [imageFile, setImageFile] = useState(null)
   const [uploading, setUploading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [formError, setFormError] = useState('')
   const categoryResult = useAdminCollection(config.categoryLoader || emptyCategories, 'categories')
   const change = (field, value) => setForm((current) => ({ ...current, [field]: value }))
   const submit = async (event) => {
     event.preventDefault()
-    const requiredField = fields.find((field) => ['name', 'code', 'categoryId', 'price', 'capacity'].includes(field) && String(form[field] ?? '').trim() === '')
+    if (isSaving) return
+    const requiredField = fields.find((field) => ['name', 'code', 'categoryId', 'price', 'capacity', 'tableNumber'].includes(field) && String(form[field] ?? '').trim() === '')
     if (requiredField) {
       setFormError(`${fieldLabel(requiredField)} không được để trống.`)
       return
@@ -46,18 +56,23 @@ function ResourceForm({ config, initial, onCancel, onSubmit }) {
       setFormError('Giảm giá phải nằm trong khoảng 0 đến 100%.')
       return
     }
+    if (fields.includes('capacity') && (!Number.isInteger(Number(form.capacity)) || Number(form.capacity) < 1)) {
+      setFormError('Sức chứa phải là số nguyên từ 1 trở lên.')
+      return
+    }
     if (fields.includes('startDate') && fields.includes('endDate') && form.startDate && form.endDate && form.startDate > form.endDate) {
       setFormError('Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.')
       return
     }
     try {
       setFormError('')
+      setIsSaving(true)
       setUploading(Boolean(imageFile))
       const image = imageFile ? (await uploadFile(imageFile)).secure_url : form.image
       await onSubmit({ ...form, image })
     } catch (error) {
       setFormError(error.message || 'Không thể lưu dữ liệu.')
-    } finally { setUploading(false) }
+    } finally { setUploading(false); setIsSaving(false) }
   }
   return <form className="admin-resource-form" onSubmit={submit}>
     {formError && <p className="admin-row-error" role="alert">{formError}</p>}
@@ -76,7 +91,7 @@ function ResourceForm({ config, initial, onCancel, onSubmit }) {
               <input type={['price', 'discount', 'stock', 'capacity'].includes(field) ? 'number' : field.toLowerCase().includes('date') ? 'date' : 'text'} min={['price', 'discount', 'stock', 'capacity'].includes(field) ? 0 : undefined} max={field === 'discount' ? 100 : undefined} value={form[field]} onChange={(event) => change(field, event.target.value)} required={['name', 'code', 'categoryId', 'price', 'capacity'].includes(field)} />}
       </label>
     ))}
-    <div className="admin-action-row"><button type="submit" className="admin-btn" disabled={uploading || categoryResult.isLoading}>{uploading ? 'Đang tải ảnh...' : 'Lưu'}</button><button type="button" className="admin-btn" onClick={onCancel}>Hủy</button></div>
+    <div className="admin-action-row"><button type="submit" className="admin-btn" disabled={isSaving || categoryResult.isLoading}>{uploading ? 'Đang tải ảnh...' : isSaving ? 'Đang lưu...' : 'Lưu'}</button><button type="button" className="admin-btn" disabled={isSaving} onClick={onCancel}>Hủy</button></div>
   </form>
 }
 
@@ -85,20 +100,28 @@ function MenuItemsEditor({ menu, onClose, onChanged }) {
   const [current, setCurrent] = useState(menu)
   const [dishId, setDishId] = useState('')
   const [error, setError] = useState('')
+  const [busy, setBusy] = useState(true)
 
   useEffect(() => {
-    Promise.all([getDishes({ status: 'Available' }), getMenuById(menu._id)])
+    const controller = new AbortController()
+    Promise.all([getDishes({ status: 'Available' }, controller.signal), getMenuById(menu._id, controller.signal)])
       .then(([dishResult, menuResult]) => { setDishes(dishResult.dishes); setCurrent(menuResult) })
-      .catch((requestError) => setError(requestError.message))
+      .catch((requestError) => { if (!controller.signal.aborted) setError(requestError.message) })
+      .finally(() => { if (!controller.signal.aborted) setBusy(false) })
+    return () => controller.abort()
   }, [menu._id])
 
   const changeItems = async (action) => {
+    if (busy) return
     try {
+      setBusy(true)
       setError('')
       const updated = await action()
       setCurrent(updated)
       onChanged(updated)
+      setDishId('')
     } catch (requestError) { setError(requestError.message) }
+    finally { setBusy(false) }
   }
   const used = new Set((current.items || []).map((item) => String(item.dishId?._id || item.dishId)))
   return <section className="admin-resource-form"><h3>Món trong thực đơn: {current.name}</h3>{error && <p className="admin-row-error">{error}</p>}<div className="admin-action-row"><select value={dishId} onChange={(event) => setDishId(event.target.value)}><option value="">Chọn món để thêm</option>{dishes.filter((dish) => !used.has(String(dish._id))).map((dish) => <option key={dish._id} value={dish._id}>{dish.name}</option>)}</select><button type="button" className="admin-btn" disabled={!dishId} onClick={() => changeItems(() => addDishToMenu(current._id, dishId))}>Thêm món</button><button type="button" className="admin-btn" onClick={onClose}>Đóng</button></div><ul>{(current.items || []).map((item) => <li key={item.dishId?._id || item.dishId}>{item.dishId?.name || item.dishId} <button type="button" className="admin-btn admin-btn--danger" onClick={() => changeItems(() => removeDishFromMenu(current._id, item.dishId?._id || item.dishId))}>Bỏ</button></li>)}</ul></section>
@@ -126,8 +149,8 @@ export default function AdminResourcePanel({ config }) {
   if (error) return <AdminPanelError message={error} onRetry={retry} />
   return <>
     {message && <p className="admin-row-error">{message}</p>}
-    {editing && <ResourceForm config={config} initial={editing === 'new' ? null : editing} onCancel={() => setEditing(null)} onSubmit={(payload) => run(editing === 'new' ? config.create : config.update, editing === 'new' ? null : editing._id, payload)} />}
-    {menuEditing && <MenuItemsEditor menu={menuEditing} onClose={() => setMenuEditing(null)} onChanged={(updated) => setItems((current) => current.map((item) => item._id === updated._id ? updated : item))} />}
+    {editing && <ResourceForm key={editing === 'new' ? 'new' : editing._id} config={config} initial={editing === 'new' ? null : editing} onCancel={() => setEditing(null)} onSubmit={(payload) => run(editing === 'new' ? config.create : config.update, editing === 'new' ? null : editing._id, payload)} />}
+    {menuEditing && <MenuItemsEditor key={menuEditing._id} menu={menuEditing} onClose={() => setMenuEditing(null)} onChanged={(updated) => setItems((current) => current.map((item) => item._id === updated._id ? updated : item))} />}
     {config.create && config.fields?.length > 0 && <div className="admin-resource-toolbar"><button type="button" className="admin-btn" onClick={() => setEditing('new')}>Thêm {config.title}</button></div>}
     {config.key === 'menus' && items.length > 0 && <div className="admin-resource-toolbar"><label>Chọn thực đơn <select defaultValue="" onChange={(event) => setMenuEditing(items.find((item) => item._id === event.target.value) || null)}><option value="">Quản lý món trong thực đơn</option>{items.map((item) => <option key={item._id} value={item._id}>{item.name}</option>)}</select></label></div>}
     {items.length === 0 ? <AdminPanelEmpty message={`Chưa có ${config.title}.`} /> : <div className="admin-table-wrap"><table className="admin-table"><thead><tr>{config.columns.map((column) => <th key={column[0]}>{column[1]}</th>)}<th>Hành động</th></tr></thead><tbody>{items.map((item) => <tr key={item._id}>{config.columns.map(([field]) => <td key={field}>{Array.isArray(item[field]) ? item[field].length : displayValue(item[field])}</td>)}<td><div className="admin-action-row">{config.update && config.fields?.length > 0 && <button type="button" className="admin-btn" onClick={() => setEditing(item)}>Sửa</button>}{config.restore && item.isDeleted && <button type="button" className="admin-btn" onClick={() => run(config.restore, item._id)}>Khôi phục</button>}{config.remove && <button type="button" className="admin-btn admin-btn--danger" onClick={() => window.confirm('Xác nhận xóa?') && run(config.remove, item._id)}>Xóa</button>}</div></td></tr>)}</tbody></table></div>}

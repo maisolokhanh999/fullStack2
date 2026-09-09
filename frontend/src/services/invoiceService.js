@@ -79,6 +79,9 @@ export const payInvoice = (id, payload = {}, signal) =>
 export const finalizeInvoice = (id, payload = {}, signal) =>
   runInvoiceAction(id, 'finalize', payload, signal, 'Không thể chốt hóa đơn.')
 
+export const confirmInvoiceDeposit = (id, signal) =>
+  runInvoiceAction(id, 'confirm-deposit', {}, signal, 'Không thể xác nhận tiền cọc.')
+
 export const cancelInvoice = (id, payload = {}, signal) =>
   runInvoiceAction(id, 'cancel', payload, signal, 'Không thể hủy hóa đơn.')
 

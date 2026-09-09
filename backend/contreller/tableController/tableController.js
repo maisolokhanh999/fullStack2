@@ -1,3 +1,4 @@
+import { editTable } from "../../services/tableManagement.js";
 import Table from "../../model/table.js"; // chỉnh lại path cho đúng
 import handleError from "../../middlewares/handleError/handleError.js";
 
@@ -74,103 +75,18 @@ export const getTableById = async (req, res) => {
   }
 };
 
-// @desc    Cập nhật thông tin bàn
-// @route   PUT /api/tables/:id
-export const updateTable = async (req, res) => {
+const edit = (remove = false) => async (req, res) => {
   try {
-    const { tableNumber } = req.body;
-
-    // Nếu đổi số bàn, kiểm tra trùng với bàn khác
-    if (tableNumber) {
-      const existing = await Table.findOne({
-        tableNumber,
-        _id: { $ne: req.params.id },
-      });
-      if (existing) {
-        return res.status(400).json({
-          success: false,
-          message: "Số bàn này đã tồn tại",
-        });
-      }
-    }
-
-    const table = await Table.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!table) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy bàn",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Cập nhật bàn thành công",
-      data: table,
-    });
-  } catch (error) {
-    handleError(res, error);
-  }
+    const table = await editTable(req.params.id, req.body || {}, remove);
+    res.json({ success: true, data: table, message: "Cập nhật bàn thành công" });
+  } catch (error) { handleError(res, error); }
 };
-
-// @desc    Cập nhật trạng thái bàn (dùng riêng cho thao tác nhanh)
-// @route   PATCH /api/tables/:id/status
+export const updateTable = edit();
 export const updateTableStatus = async (req, res) => {
+  if (!["Available", "Occupied", "Reserved", "Cleaning"].includes(req.body?.status)) return res.status(400).json({ success: false, message: "Trạng thái không hợp lệ" });
   try {
-    const { status } = req.body;
-    const validStatus = ["Available", "Occupied", "Reserved", "Cleaning"];
-
-    if (!validStatus.includes(status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Trạng thái không hợp lệ",
-      });
-    }
-
-    const table = await Table.findByIdAndUpdate(
-      req.params.id,
-      { status },
-      { new: true, runValidators: true }
-    );
-
-    if (!table) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy bàn",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Cập nhật trạng thái thành công",
-      data: table,
-    });
-  } catch (error) {
-    handleError(res, error);
-  }
+    const table = await editTable(req.params.id, { status: req.body.status });
+    res.json({ success: true, data: table });
+  } catch (error) { handleError(res, error); }
 };
-
-// @desc    Xoá bàn
-// @route   DELETE /api/tables/:id
-export const deleteTable = async (req, res) => {
-  try {
-    const table = await Table.findByIdAndDelete(req.params.id);
-
-    if (!table) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy bàn",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Xoá bàn thành công",
-    });
-  } catch (error) {
-    handleError(res, error);
-  }
-};
+export const deleteTable = edit(true);

@@ -7,11 +7,14 @@ export const getDishes = async (req, res) => {
   try {
     const { page = 1, limit = 10, categoryId, status, keyword } = req.query;
 
-    const filter = {};
+    const filter = { isDeleted: false };
     if (categoryId) filter.categoryId = categoryId;
     if (status) filter.status = status;
     if (keyword) filter.$text = { $search: keyword };
 
+    if (!Number.isInteger(Number(page)) || Number(page) < 1 || !Number.isInteger(Number(limit)) || Number(limit) < 1 || Number(limit) > 500) {
+      return res.status(400).json({ success: false, message: 'Trang hoặc số món mỗi trang không hợp lệ' });
+    }
     const skip = (Number(page) - 1) * Number(limit);
 
     const [dishes, total] = await Promise.all([

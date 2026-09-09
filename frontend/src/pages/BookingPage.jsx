@@ -7,8 +7,7 @@ import { DEFAULT_RESTAURANT, isDefaultRestaurant } from '../config/restaurant.js
 import { useBookingDraft } from '../context/bookingDraftStore.js'
 import { useDishes } from '../hooks/useDishes.js'
 import { useAuth } from '../hooks/useAuth.js'
-import { cancelReservation, createReservation } from '../services/reservationService.js'
-import { createReservationTable } from '../services/reservationTableService.js'
+import { createReservation } from '../services/reservationService.js'
 import { getTables } from '../services/tableService.js'
 import {
   calculateBookingEstimate,
@@ -19,6 +18,7 @@ import {
   getDishQuantityLimit,
   getDishServingUnit,
   getTodayString,
+  getRestaurantDateTime,
   isDishAvailable,
 } from '../utils/booking.js'
 
@@ -28,8 +28,6 @@ const steps = [
   { number: 3, label: 'Xem lại và đặt cọc' },
 ]
 
-const OPENING_TIME = '10:00'
-const LAST_BOOKING_TIME = '21:30'
 const TIME_SLOTS = Array.from({ length: 24 }, (_, index) => {
   const minutes = 10 * 60 + index * 30
   return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
@@ -121,22 +119,18 @@ function BookingPage() {
     if (!visitTime) {
       nextErrors.visitTime = 'Vui lòng chọn giờ đến.'
     } else if (
-      !/^\d{2}:\d{2}$/.test(visitTime) ||
-      visitTime < OPENING_TIME ||
-      visitTime > LAST_BOOKING_TIME
+      !TIME_SLOTS.includes(visitTime)
     ) {
       nextErrors.visitTime = 'Vui lòng chọn giờ từ 10:00 đến 21:30.'
     }
 
     if (!nextErrors.visitDate && !nextErrors.visitTime && visitDate === today) {
-      const now = new Date()
-      const currentTime = String(now.getHours()).padStart(2, '0') + ':' +
-        String(now.getMinutes()).padStart(2, '0')
+      const currentTime = getRestaurantDateTime().slice(11, 16)
       if (visitTime <= currentTime) {
         nextErrors.visitTime = 'Giờ hẹn hôm nay cần muộn hơn thời điểm hiện tại.'
       }
     }
-    if (Number(draft.guests) < 1 || Number(draft.guests) > 20) {
+    if (!Number.isInteger(Number(draft.guests)) || Number(draft.guests) < 1 || Number(draft.guests) > 20) {
       nextErrors.guests = 'Số khách cần từ 1 đến 20 người.'
     }
     const selectedTable = tables.find((table) => table._id === draft.tableId)
@@ -172,6 +166,15 @@ function BookingPage() {
   }
 
   const submitReservation = async () => {
+    if (isSubmitting) return
+    if (!validateInfo()) {
+      setStep(1)
+      return
+    }
+    if (draft.items.length && (isLoading || error)) {
+      setSubmitError('Vui lòng tải lại thực đơn và kiểm tra món đã chọn trước khi gửi.')
+      return
+    }
     if (!user?.name || !user?.phone) {
       setSubmitError('Vui lòng cập nhật họ tên và số điện thoại trong tài khoản trước khi đặt bàn.')
       return
@@ -187,43 +190,22 @@ function BookingPage() {
         customerName: user.name,
         customerPhone: user.phone,
         numberOfGuests: draft.guests,
-        expectedCheckInTime: `${draft.visitDate}T${draft.visitTime}:00`,
+        expectedCheckInTime: `${draft.visitDate}T${draft.visitTime}:00+07:00`,
         reservationType: 'Online',
         note: draft.note,
-        depositAmount: estimate.estimatedDeposit,
+        tableId: draft.tableId,
         preorderItems: draft.items.map((item) => ({
           dishId: item.dishId,
           quantity: item.quantity,
         })),
       })
     } catch (requestError) {
-      setSubmitError(requestError.message)
-      setIsSubmitting(false)
-      return
-    }
-
-    // Bàn có thể bị người khác giữ mất giữa hai bước. Nếu gán bàn thất bại thì
-    // huỷ luôn lượt vừa tạo để không để lại đặt bàn không có bàn.
-    try {
-      await createReservationTable({
-        reservationId: reservation._id,
-        tableId: draft.tableId,
-      })
-    } catch (requestError) {
-      const bookingCode = reservation.reservationCode || reservation._id
-
-      try {
-        await cancelReservation(reservation._id)
-        setSubmitError(
-          `${requestError.message} Yêu cầu đặt bàn đã được huỷ, bạn hãy chọn bàn khác và thử lại.`,
-        )
-      } catch {
-        setSubmitError(
-          `${requestError.message} Lượt đặt bàn ${bookingCode} đã được tạo nhưng chưa gán được bàn. `
-          + 'Vui lòng liên hệ nhà hàng với mã này, đừng gửi lại yêu cầu mới.',
-        )
+      if (requestError.status === 409) {
+        updateInfo({ tableId: '' })
+        retryTables()
+        setStep(1)
       }
-
+      setSubmitError(requestError.message)
       setIsSubmitting(false)
       return
     }
@@ -272,6 +254,7 @@ function BookingPage() {
       </ol>
 
       <section className="booking-panel">
+        {submitError && step !== 3 && <p className="invoice-section__error" role="alert">{submitError}</p>}
         {step === 1 && (
           <form className="booking-info-form" onSubmit={goToMenu} noValidate>
             <header>
@@ -533,7 +516,7 @@ function BookingPage() {
             {submitError && <div className="api-pending-notice" role="alert"><span><UiIcon name="info" /></span><div><strong>Không thể gửi yêu cầu đặt bàn</strong><p>{submitError}</p></div></div>}
 
             <div className="booking-actions booking-actions--review">
-              <button className="customer-secondary-button" type="button" onClick={() => setStep(2)}>
+              <button className="customer-secondary-button" type="button" onClick={() => setStep(2)} disabled={isSubmitting}>
                 Chỉnh sửa
               </button>
               <Link className="customer-secondary-link" to="/bookings">Xem bản nháp</Link>

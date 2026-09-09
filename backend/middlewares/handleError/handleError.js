@@ -1,5 +1,11 @@
 
 function handleError(res, error) {
+  if (error.name === "VersionError") {
+    return res.status(409).json({ success: false, message: "Dữ liệu vừa được thay đổi. Vui lòng tải lại trước khi tiếp tục." });
+  }
+  if (Number.isInteger(error.status) && error.status >= 400 && error.status < 500) {
+    return res.status(error.status).json({ success: false, message: error.message });
+  }
   // Lỗi trùng key (unique index) - VD: code món ăn trùng, tên menu trùng
   if (error.code === 11000) {
     const field = Object.keys(error.keyValue || {})[0] || "Giá trị";

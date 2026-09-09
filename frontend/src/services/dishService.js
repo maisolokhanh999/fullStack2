@@ -9,15 +9,23 @@ import {
 } from './serviceHelpers.js'
 
 export async function getDishes(queryOrSignal = {}, signal) {
-  const query = isAbortSignal(queryOrSignal) ? { limit: 100 } : queryOrSignal
+  const query = isAbortSignal(queryOrSignal) ? {} : queryOrSignal
   const requestSignal = isAbortSignal(queryOrSignal) ? queryOrSignal : signal
-  const response = await apiRequest(
-    withQuery('/dishes', { limit: 100, ...query }),
+  const loadPage = async (page) => unwrapCollection(await apiRequest(
+    withQuery('/dishes', { limit: 100, ...query, page }),
     { signal: requestSignal },
     'Chưa thể tải thực đơn. Vui lòng thử lại.',
-  )
-
-  return unwrapCollection(response, 'dishes')
+  ), 'dishes')
+  const result = await loadPage(query.page || 1)
+  // Các màn hình không có phân trang cần toàn bộ danh sách, kể cả món thứ 101.
+  if (query.page !== undefined || query.limit !== undefined) return result
+  let page = 1
+  let batch = result
+  while (batch.dishes.length && page < Number(batch.pagination?.totalPages)) {
+    batch = await loadPage(++page)
+    result.dishes.push(...batch.dishes)
+  }
+  return result
 }
 
 export async function getDishById(id, signal) {

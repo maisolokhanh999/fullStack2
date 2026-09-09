@@ -65,6 +65,8 @@ function DashboardPage() {
           </p>
 
           <dl className="account-details">
+            <div><dt>Số điện thoại</dt><dd>{user?.phone || 'Chưa cập nhật'}</dd></div>
+            <div><dt>Địa chỉ</dt><dd>{user?.address || 'Chưa cập nhật'}</dd></div>
             <div>
               <dt>Vai trò</dt>
               <dd>{roleLabels[user?.role] || user?.role || 'Khách hàng'}</dd>
@@ -78,9 +80,10 @@ function DashboardPage() {
             </div>
           </dl>
           <Link className="primary-button link-button" to={getLandingPath(user)}>
-            {isStaffRole(user?.role) ? 'Mở màn hình check-in' : 'Khám phá nhà hàng'}
+            {isStaffRole(user?.role) ? 'Mở khu làm việc' : 'Khám phá nhà hàng'}
             <UiIcon name="arrow-up-right" className="button-arrow" />
           </Link>
+          <Link className="secondary-button link-button" to="/bookings">Lịch hẹn của tôi <UiIcon name="arrow-right" /></Link>
           <button className="secondary-button" type="button" onClick={logout}>
             Đăng xuất
           </button>

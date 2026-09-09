@@ -10,6 +10,9 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+playwright-report/
+test-results/
+visual-review/
 *.local
 
 # Env: chỉ .env.example được commit. Mọi VITE_* đều lộ trong bundle client,

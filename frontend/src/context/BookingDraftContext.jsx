@@ -103,7 +103,7 @@ const draftChangedByDishes = (items, dishes) => {
     const dish = dishMap.get(item.dishId)
 
     if (!dish) {
-      nextItems.push(item)
+      changed = true
       return
     }
 
@@ -138,7 +138,13 @@ const draftChangedByDishes = (items, dishes) => {
 function bookingDraftReducer(state, action) {
   switch (action.type) {
     case 'SWITCH_OWNER':
-      return { storageKey: action.storageKey, draft: action.draft }
+      return {
+        storageKey: action.storageKey,
+        // Carry a visitor's selection through login, while keeping different
+        // accounts' saved drafts separate.
+        draft: !state.storageKey && action.storageKey && state.draft.updatedAt && !action.draft.updatedAt
+          ? state.draft : action.draft,
+      }
     case 'UPDATE_INFO': {
       // Payload có thể là một hàm nhận bản nháp hiện tại, để những thao tác
       // tăng/giảm liên tiếp không đọc phải giá trị cũ của lần render trước.

@@ -41,11 +41,12 @@ export const getPostAuthPath = (from, user) => {
   const fallback = getPostAuthLanding(user)
   const destination = getInternalDestination(from)
 
-  if (!destination || ['/login', '/register', '/'].includes(destination)) {
+  if (!destination) {
     return fallback
   }
 
   const pathname = destination.split(/[?#]/, 1)[0]
+  if (['/login', '/register', '/'].includes(pathname.replace(/\/+$/, '') || '/')) return fallback
   const requiresAdminRole = pathname === '/admin' || pathname.startsWith('/admin/')
   const requiresStaffRole = pathname === '/staff' || pathname.startsWith('/staff/')
 

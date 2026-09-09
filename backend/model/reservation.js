@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
+import { randomUUID } from "node:crypto";
 
 const reservationSchema = new mongoose.Schema(
   {
     reservationCode: {
       type: String,
       unique: true,
-      default: () => `BV-${Date.now().toString(36).toUpperCase()}`,
+      default: () => `BV-${randomUUID().replaceAll("-", "").slice(0, 12).toUpperCase()}`,
       trim: true,
     },
 
@@ -100,6 +101,7 @@ const reservationSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
+    optimisticConcurrency: true,
   }
 );
 

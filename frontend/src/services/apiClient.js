@@ -7,8 +7,10 @@ export const API_BASE_URL = (
 const readJson = async (response) => {
   try {
     return await response.json()
-  } catch {
-    return {}
+  } catch (error) {
+    if (error.name === 'AbortError') throw error
+    if (!response.ok || response.status === 204) return {}
+    throw new Error('Máy chủ trả về dữ liệu không hợp lệ. Vui lòng thử lại.')
   }
 }
 
@@ -41,6 +43,7 @@ export async function apiRequest(
   }
 
   const data = await readJson(response)
+  options.signal?.throwIfAborted()
 
   if (!response.ok) {
     const apiMessage = data?.message

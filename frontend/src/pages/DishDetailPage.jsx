@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import DishVisual from '../components/customer/DishVisual.jsx'
+import { API_BASE_URL } from '../services/apiClient.js'
 import UiIcon from '../components/UiIcon.jsx'
 import { DEFAULT_RESTAURANT, isDefaultRestaurant } from '../config/restaurant.js'
 import { useDish } from '../hooks/useDishes.js'
@@ -81,6 +82,7 @@ function DishDetailPage() {
         <article className="dish-detail">
           <div className="dish-detail__media">
             <DishVisual dish={dish} />
+            <p className="menu-photo-credit"><a href={`${API_BASE_URL}/media/credits.html`} target="_blank" rel="noreferrer">Ảnh minh họa · Nguồn ảnh</a></p>
           </div>
 
           <div className="dish-detail__body">

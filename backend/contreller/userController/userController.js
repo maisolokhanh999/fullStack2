@@ -76,7 +76,7 @@ export const updateRole = async (req, res) => {
   try {
     const { role } = req.body;
 
-    if (!["user", "admin"].includes(role)) {
+    if (!["user", "staff", "admin"].includes(role)) {
       return res.status(400).json({
         message: "Role không hợp lệ",
       });

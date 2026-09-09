@@ -1,96 +1,45 @@
-# Bàn Việt Frontend
+# Bàn Việt frontend
 
-Frontend React + Vite cho ứng dụng đặt bàn và vận hành nhà hàng.
+React + Vite. Trang chủ dùng Tailwind CSS 4; các màn hình thực đơn, đặt bàn, nhân viên và quản trị dùng chung token trong src/styles/refresh.css.
 
 ## Chạy local
 
-    npm install
-    npm run dev
+Trong frontend: npm.cmd ci rồi npm.cmd run dev.
+Đặt VITE_API_BASE_URL trong frontend/.env trỏ tới backend cùng phiên bản, ví dụ http://localhost:5000. Không thêm /api vào URL.
+Nếu không cấu hình, frontend dùng https://fullstack2-sdtf.onrender.com.
 
-API mặc định là https://fullstack2-sdtf.onrender.com. Có thể đổi bằng file .env:
+Backend mới phải có trước khi dùng luồng đặt bàn mới: POST /reservations nhận tableId và tạo lượt đặt, hóa đơn, món, gán bàn trong một transaction. Không triển khai riêng frontend này lên backend cũ.
 
-    VITE_API_BASE_URL=https://example-api.com
+## Điều hướng và chức năng
 
-## Điều hướng
+- /: trang chủ, gợi ý món từ API thật, chọn số khách.
+- /login, /register, /dashboard: tài khoản.
+- /restaurants: thực đơn; /restaurants/ban-viet/dishes/:dishId: chi tiết món.
+- /booking/ban-viet: chọn ngày/giờ Việt Nam, bàn, món tùy chọn, gửi đặt bàn.
+- /bookings: lịch sử thuộc tài khoản, hóa đơn, QR, bản nháp và đánh giá.
+- /staff/check-in, /staff/payments: nhân viên tra cứu, check-in và thanh toán.
+- /admin: quản trị dữ liệu và vận hành.
 
-### Tài khoản
+Đăng nhập trực tiếp: khách về /, nhân viên về /staff/check-in, admin về /admin. Nếu bị yêu cầu đăng nhập giữa luồng, ứng dụng trở lại trang đang mở.
 
-- /login: đăng nhập.
-- /register: tạo tài khoản khách hàng.
-- /dashboard: thông tin tài khoản, được bảo vệ bằng token.
+Cọc = 20% × max(tổng món sau giảm giá, số khách × 100.000đ), do backend tính. Hóa đơn chỉ trừ khoản cọc đã được nhân viên xác nhận nhận đủ. QR chuyển khoản không phải bằng chứng thanh toán thành công.
 
-Sau khi đăng nhập hoặc đăng ký:
+## Kiểm tra
 
-- user được chuyển tới /restaurants.
-- staff và admin được chuyển tới /staff/check-in.
+Cài dependencies ở cả backend và frontend trước. Chạy npm.cmd test tại backend một lần để chuẩn bị MongoDB kiểm thử, rồi tại frontend:
 
-### Khách hàng
+    npm.cmd run lint
+    npm.cmd test
+    npm.cmd run build
+    npm.cmd audit
 
-- /restaurants: danh sách nhà hàng. Hiện chỉ có một hồ sơ mặc định Bàn Việt vì backend chưa có API nhà hàng.
-- /restaurants/:restaurantId: thông tin nhà hàng và thực đơn thật từ backend.
-- /booking/:restaurantId: quy trình đặt bàn ba bước, chọn món là tùy chọn.
-- /bookings: hiển thị bản nháp trên thiết bị; chưa giả lập lịch sử đặt bàn.
+Playwright dùng Microsoft Edge cài sẵn, tự mở Vite ở 127.0.0.1:5178. Với Chromium: npx.cmd playwright install chromium; đặt PLAYWRIGHT_CHANNEL=chromium.
 
-### Nhân viên
+regressions.spec.js dùng response fixtures cô lập. fullstack.spec.js chạy frontend với Express controllers và MongoDB replica set tạm, kiểm tra từ đăng nhập đến thanh toán bằng dữ liệu kiểm thử. Không đọc .env backend, không gửi đặt bàn, email, SMS hoặc tiền thật. MongoDB binary có thể được tải ở lần chạy đầu; database tạm được dọn sau test.
 
-- /staff/check-in: giao diện tra cứu/check-in dành riêng cho staff và admin.
+## Render
 
-## Trạng thái tích hợp API
+Build command: npm ci && npm run build. Publish directory: dist. Cấu hình VITE_API_BASE_URL trỏ đúng backend mới và rewrite /* về /index.html để các route mở trực tiếp hoạt động.
 
-Base URL lấy từ `VITE_API_BASE_URL`, mặc định là `https://fullstack2-sdtf.onrender.com`. Các path dưới đây được nối trực tiếp vào base URL, **không thêm tiền tố `/api`**.
-
-### API contract cho frontend
-
-- Auth: `POST /auth/register`, `POST /auth/login`, `GET /auth/me`.
-- Users: `GET /users`, `GET|PUT|DELETE /users/:id`, `PUT /users/:id/role`, `PUT /users/:id/password`.
-- Categories: `GET|POST /categories`, `GET|PUT|DELETE /categories/:id`.
-- Dishes: `GET|POST /dishes`, `GET|PUT|DELETE /dishes/:id`, `PATCH /dishes/:id/restore`.
-- Menus: `GET|POST /menus`, `GET|PUT|DELETE /menus/:id`, `PATCH /menus/:id/restore`, `POST /menus/:id/items`, `DELETE /menus/:id/items/:dishId`, `PUT /menus/:id/items/reorder`.
-- Tables: `GET|POST /tables`, `GET|PUT|DELETE /tables/:id`, `PATCH /tables/:id/status`.
-- Reservations: `GET|POST /reservations`, `GET|PUT|DELETE /reservations/:id`, `PATCH /reservations/:id/confirm|checkin|complete|cancel|no-show`.
-- Reservation Tables: `GET|POST /reservation-tables`, `GET|DELETE /reservation-tables/:id`, `GET /reservation-tables/reservations/:reservationId/tables`, `PATCH /reservation-tables/:id/release|block`.
-- Invoices: `GET|POST /invoices`, `GET|PUT|DELETE /invoices/:id`, `PATCH /invoices/:id/pay|cancel|refund`.
-- Invoice Details: `POST /invoice-details`, `POST /invoice-details/bulk`, `GET|PUT|DELETE /invoice-details/:id`.
-- Upload: `POST /upload`.
-
-### Phạm vi đã nối an toàn
-
-Frontend hiện sử dụng API thật cho đăng ký, đăng nhập, xác thực phiên (`/auth`) và đọc danh sách món (`GET /dishes?limit=100`). Dữ liệu món hỗ trợ các trường `categoryId`, `code`, `name`, `type`, `description`, `servingUnit`, `price`, `discount`, `stock`, `image`, `status` và `isFeatured`.
-
-### Luồng đang chờ backend xác nhận contract
-
-Các luồng tạo/tra cứu lịch sử đặt bàn, tìm đặt bàn theo mã hoặc số điện thoại, cọc theo phần trăm, đặt món trước và nhân viên check-in vẫn được giới hạn theo khả năng backend. Danh sách endpoint mới chỉ xác định URL; backend chưa cung cấp/chạy ổn định DTO mutation, quy tắc chủ sở hữu và phân quyền, cách gắn bàn/món/cọc, cùng response thành công mẫu để frontend gửi dữ liệu mà không đoán sai.
-
-Vì vậy frontend chỉ lưu bản nháp đặt bàn trong `sessionStorage`, không tạo mã đặt bàn, không báo thanh toán/check-in thành công giả. Khoản cọc 20% hiện chỉ là ước tính giao diện:
-
-    Mức tối thiểu = số khách × 100.000đ
-    Cơ sở tính cọc = max(tổng món đặt trước, mức tối thiểu)
-    Cọc dự kiến = cơ sở tính cọc × 20%
-
-Backend phải xác nhận tỷ lệ, bàn còn trống và số tiền chính thức trước khi thanh toán.
-
-## Cấu trúc
-
-Mã nguồn được tách theo:
-
-- pages/: các màn hình theo route;
-- routes/: bảo vệ token và phân quyền;
-- components/: giao diện dùng lại;
-- context/: bản nháp đặt bàn với useReducer;
-- services/: API client và service theo domain;
-- styles/: CSS khách hàng, đặt bàn và nhân viên;
-- utils/: lưu phiên, phân luồng vai trò và tính toán hiển thị.
-
-## Build và kiểm tra
-
-    npm run lint
-    npm run build
-
-## Deploy frontend trên Render
-
-Ứng dụng dùng BrowserRouter. Khi tạo Render Static Site, cần thêm Rewrite Rule:
-
-- Source: /*
-- Destination: /index.html
-
-Rule này giúp mở trực tiếp hoặc refresh các route mà không bị 404.
+Chi tiết thay đổi và giới hạn kiểm chứng: [FRONTEND_AUDIT.md](../FRONTEND_AUDIT.md).
+Ảnh minh họa: src/assets/hero-meal.png; prompt và nguồn tạo: src/assets/hero-meal.prompt.md.

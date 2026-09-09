@@ -1,4 +1,6 @@
 import express from "express";
+import { fileURLToPath } from 'node:url';
+import { completeMenuContent } from './services/menuContent.js';
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./configs/db.js";
@@ -8,8 +10,7 @@ import { expireLateReservations } from "./contreller/reservationController/reser
 dotenv.config();
 
 if (!process.env.JWT_SECRET) {
-  process.env.JWT_SECRET = "dev-secret-change-me";
-  console.warn("JWT_SECRET chưa được set — đang dùng giá trị mặc định cho dev");
+  throw new Error("JWT_SECRET is required. Configure it before starting the API.");
 }
 
 const app = express();
@@ -18,6 +19,8 @@ app.use(cors());
 app.use(express.json());
 await cloudinary.config();
 await connectDB();
+await completeMenuContent();
+app.use('/media', express.static(fileURLToPath(new URL('./public', import.meta.url))));
 // Quét lượt đặt quá giờ. Lượt quét không bao giờ được phép làm chết tiến trình:
 // lần quét lúc khởi động mà ném lỗi thì app.listen bên dưới không chạy nữa và
 // cả API tắt theo, dù lỗi chỉ nằm ở một bản ghi hỏng.

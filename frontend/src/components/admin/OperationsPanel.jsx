@@ -3,7 +3,7 @@ import {
   getReservations, confirmReservation, checkInReservation,
   completeReservation, cancelReservation, markReservationNoShow,
 } from '../../services/reservationService.js'
-import { getInvoices, finalizeInvoice, getInvoiceTransferQr, payInvoice, cancelInvoice, refundInvoice } from '../../services/invoiceService.js'
+import { getInvoices, getInvoiceById, finalizeInvoice, getInvoiceTransferQr, payInvoice, cancelInvoice, refundInvoice, confirmInvoiceDeposit } from '../../services/invoiceService.js'
 import { createInvoiceDetail, deleteInvoiceDetail, getInvoiceDetailsByInvoice, updateInvoiceDetail } from '../../services/invoiceDetailService.js'
 import { getReservationTables } from '../../services/reservationTableService.js'
 import { getDishes } from '../../services/dishService.js'
@@ -62,6 +62,10 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
 
   const invoiceId = invoice?._id
 
+  useEffect(() => {
+    setTransferQr(null)
+  }, [invoiceId, invoice.status, invoice.finalAmount, invoice.depositAmount, invoice.depositPaymentStatus])
+
   const loadDetails = useCallback(async (signal) => {
     const reservationId = reservationIdOf(invoice)
     const [detailResult, tableResult] = await Promise.all([
@@ -93,6 +97,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
   }, [invoice.status])
 
   const runInvoice = async (label, action) => {
+    if (busy) return
     try {
       setBusy(label)
       setError('')
@@ -122,8 +127,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
       setDishId('')
       setQuantity(1)
       // Thêm món làm đổi tổng tiền nên phải đọc lại hoá đơn.
-      const { invoices } = await getInvoices()
-      return invoices.find((item) => item._id === invoiceId)
+      return getInvoiceById(invoiceId)
     })
   }
 
@@ -131,14 +135,14 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
     if (quantity < 1) return
     runInvoice('item', async () => {
       await updateInvoiceDetail(detail._id, { quantity })
-      return undefined
+      return getInvoiceById(invoiceId)
     })
   }
 
   const removeDish = (detail) => {
     runInvoice('item', async () => {
       await deleteInvoiceDetail(detail._id)
-      return undefined
+      return getInvoiceById(invoiceId)
     })
   }
 
@@ -205,7 +209,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
         {!details.length && <p className="invoice-receipt__empty">Chưa có món trong hóa đơn.</p>}
         <div className="invoice-receipt__totals">
           <span>TỔNG CỘNG <strong>{formatMoney(invoice.totalAmount)}</strong></span>
-          <span>TIỀN CỌC <strong>{formatMoney(invoice.depositAmount)}</strong></span>
+          <span>{invoice.depositPaymentStatus === 'Succeeded' ? 'CỌC ĐÃ NHẬN' : 'CỌC CHƯA XÁC NHẬN'} <strong>{formatMoney(invoice.depositAmount)}</strong></span>
           <span className="invoice-receipt__grand-total">CÒN PHẢI TRẢ <strong>{formatMoney(invoice.finalAmount)}</strong></span>
           <span>PHƯƠNG THỨC <strong>{invoice.paymentMethod}</strong></span>
           {invoice.changeAmount > 0 && <span>TIỀN THỪA <strong>{formatMoney(invoice.changeAmount)}</strong></span>}
@@ -214,6 +218,12 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
       </div>
 
       <RowActionError message={error} />
+
+      {['Pending', 'Finalized'].includes(invoice.status) && invoice.depositAmount > 0 && invoice.depositPaymentStatus !== 'Succeeded' && (
+        <button type="button" className="admin-btn" disabled={Boolean(busy)} onClick={() => window.confirm(`Đã kiểm tra tài khoản ngân hàng và nhận đủ ${formatMoney(invoice.depositAmount)} tiền cọc?`) && runInvoice('deposit', () => confirmInvoiceDeposit(invoice._id))}>
+          Xác nhận đã nhận cọc
+        </button>
+      )}
 
       {invoice.status === 'Pending' && (
         <div className="admin-invoice__work">
@@ -233,7 +243,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
               <input type="number" min="1" max="99" value={quantity}
                 onChange={(event) => setQuantity(event.target.value)} required />
             </label>
-            <button type="submit" className="admin-btn admin-btn--primary" disabled={busy === 'add'}>
+            <button type="submit" className="admin-btn admin-btn--primary" disabled={Boolean(busy)}>
               {busy === 'add' ? 'Đang thêm...' : 'Thêm món'}
             </button>
           </form>
@@ -243,7 +253,7 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
                 && runInvoice('finalize', () => finalizeInvoice(invoice._id))}>
               Chốt hóa đơn
             </button>
-            {invoice.depositAmount > 0 && (
+            {invoice.depositAmount > 0 && invoice.depositPaymentStatus !== 'Succeeded' && (
               <button type="button" className="admin-btn" disabled={Boolean(busy)} onClick={() => loadTransferQr('deposit')}>
                 Tạo QR tiền cọc
               </button>
@@ -279,21 +289,22 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
               </label>
             )}
             {paymentMethod === 'BankTransfer' && (
-              <button type="button" className="admin-btn" onClick={loadTransferQr} disabled={busy === 'qr'}>
+              <button type="button" className="admin-btn" onClick={() => loadTransferQr('final')} disabled={Boolean(busy)}>
                 {busy === 'qr' ? 'Đang tạo QR...' : 'Tạo QR chuyển khoản'}
               </button>
             )}
-            <button type="button" className="admin-btn admin-btn--primary" onClick={pay} disabled={busy === 'pay'}>
+            <button type="button" className="admin-btn admin-btn--primary" onClick={pay} disabled={Boolean(busy)}>
               {busy === 'pay' ? 'Đang thanh toán...' : `Thanh toán ${formatMoney(invoice.finalAmount)}`}
             </button>
           </div>
-          {transferQr && (paymentMethod === 'BankTransfer' || invoice.status === 'Pending') && (
-            <div className="invoice-transfer-qr">
-              <strong>Số tiền chuyển: {formatMoney(transferQr.amount)}</strong>
-              <img src={transferQr.qrCode} alt="QR chuyển khoản hóa đơn" width="260" height="260" />
-              <p>Chuyển đúng {formatMoney(transferQr.amount)} với nội dung <strong>{transferQr.transferContent}</strong>.</p>
-            </div>
-          )}
+        </div>
+      )}
+
+      {transferQr && (invoice.status === 'Pending' || (invoice.status === 'Finalized' && paymentMethod === 'BankTransfer')) && (
+        <div className="invoice-transfer-qr">
+          <strong>Số tiền chuyển: {formatMoney(transferQr.amount)}</strong>
+          <img src={transferQr.qrCode} alt="QR chuyển khoản hóa đơn" width="260" height="260" />
+          <p>Chuyển đúng {formatMoney(transferQr.amount)} với nội dung <strong>{transferQr.transferContent}</strong>.</p>
         </div>
       )}
 
@@ -321,6 +332,8 @@ export default function OperationsPanel() {
     try {
       const updated = await action(id)
       reservations.setItems((current) => current.map((item) => (item._id === id ? { ...item, ...updated } : item)))
+      // Hủy/no-show cũng cập nhật hóa đơn ở backend.
+      invoices.retry()
       setErrors((current) => ({ ...current, [id]: '' }))
     } catch (requestError) {
       setErrors((current) => ({ ...current, [id]: requestError.message }))

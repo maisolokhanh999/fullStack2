@@ -1,7 +1,10 @@
+import { editAssignment } from "../../services/tableManagement.js";
 import ReservationTable from "../../model/reservationTable.js"; // chỉnh lại path cho đúng
 import Reservation from "../../model/reservation.js";
 import Table from "../../model/table.js";
 import handleError from "../../middlewares/handleError/handleError.js";
+import mongoose from "mongoose";
+import { reject } from "../../services/bookingService.js";
 
 // @desc    Gán bàn cho một đặt bàn
 // @route   POST /api/reservation-tables
@@ -9,57 +12,24 @@ export const assignTableToReservation = async (req, res) => {
   try {
     const { reservationId, tableId } = req.body;
 
-    // Kiểm tra reservation và table có tồn tại không
-    const reservation = await Reservation.findById(reservationId);
-    if (!reservation) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy đặt bàn",
-      });
-    }
-
-    const table = await Table.findById(tableId);
-    if (!table) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy bàn",
-      });
-    }
-
-    if (table.status !== "Available") {
-      return res.status(400).json({
-        success: false,
-        message: "Bàn này không còn khả dụng",
-      });
-    }
-
-    if (table.capacity < reservation.numberOfGuests) {
-      return res.status(400).json({
-        success: false,
-        message: "Bàn không đủ chỗ cho số khách",
-      });
-    }
-
-    // Kiểm tra bàn đã được gán (Active) cho reservation khác chưa
-    const existingActive = await ReservationTable.findOne({
-      tableId,
-      status: "Active",
+    const reservationTable = await mongoose.connection.transaction(async (session) => {
+      // Write to the reservation as well so assignment conflicts with cancellation.
+      const reservation = await Reservation.findOneAndUpdate(
+        { _id: reservationId, status: { $in: ["Pending", "Confirmed", "CheckedIn"] } },
+        { $inc: { __v: 1 } }, { returnDocument: 'after', session },
+      );
+      if (!reservation) reject("Đặt bàn không tồn tại hoặc đã kết thúc", 409);
+      const existing = await ReservationTable.exists({ tableId, status: "Active" }).session(session);
+      if (existing) reject("Bàn đã được gán cho một đặt bàn khác", 409);
+      const table = await Table.findOneAndUpdate(
+        { _id: tableId, status: "Available", capacity: { $gte: reservation.numberOfGuests } },
+        { status: reservation.status === "CheckedIn" ? "Occupied" : "Reserved" },
+        { returnDocument: 'after', session },
+      );
+      if (!table) reject("Bàn không còn khả dụng hoặc không đủ chỗ", 409);
+      const [assignment] = await ReservationTable.create([{ reservationId, tableId }], { session });
+      return assignment;
     });
-    if (existingActive) {
-      return res.status(400).json({
-        success: false,
-        message: "Bàn này đang được gán cho một đặt bàn khác",
-      });
-    }
-
-    const reservationTable = await ReservationTable.create({
-      reservationId,
-      tableId,
-    });
-
-    // Cập nhật trạng thái bàn thành Reserved
-    table.status = "Reserved";
-    await table.save();
 
     res.status(201).json({
       success: true,
@@ -81,6 +51,14 @@ export const getReservationTables = async (req, res) => {
     if (reservationId) filter.reservationId = reservationId;
     if (tableId) filter.tableId = tableId;
     if (status) filter.status = status;
+    if (!["admin", "staff"].includes(req.user.role)) {
+      const owned = await Reservation.find({ bookedBy: req.user._id }).select("_id");
+      const ids = owned.map((item) => item._id);
+      if (reservationId && !ids.some((id) => String(id) === reservationId)) {
+        return res.status(403).json({ success: false, message: "Bạn không có quyền xem đặt bàn này" });
+      }
+      filter.reservationId = reservationId || { $in: ids };
+    }
 
     const reservationTables = await ReservationTable.find(filter)
       .populate("reservationId")
@@ -140,96 +118,12 @@ export const getTablesByReservation = async (req, res) => {
   }
 };
 
-// @desc    Bỏ gán bàn (Active -> Inactive), đưa bàn về Available
-// @route   PATCH /api/reservation-tables/:id/release
-export const releaseTable = async (req, res) => {
+const edit = (action) => async (req, res) => {
   try {
-    const reservationTable = await ReservationTable.findById(req.params.id);
-
-    if (!reservationTable) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy bản ghi gán bàn",
-      });
-    }
-
-    if (reservationTable.status !== "Active") {
-      return res.status(400).json({
-        success: false,
-        message: `Không thể huỷ gán vì trạng thái hiện tại là "${reservationTable.status}"`,
-      });
-    }
-
-    reservationTable.status = "Inactive";
-    await reservationTable.save();
-
-    // Đưa bàn về trạng thái Available
-    await Table.findByIdAndUpdate(reservationTable.tableId, {
-      status: "Available",
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Bỏ gán bàn thành công",
-      data: reservationTable,
-    });
-  } catch (error) {
-    handleError(res, error);
-  }
+    const assignment = await editAssignment(req.params.id, action);
+    res.json({ success: true, data: assignment, message: "Cập nhật gán bàn thành công" });
+  } catch (error) { handleError(res, error); }
 };
-
-// @desc    Chặn bản ghi gán bàn (dùng khi có sự cố, ví dụ đặt trùng)
-// @route   PATCH /api/reservation-tables/:id/block
-export const blockReservationTable = async (req, res) => {
-  try {
-    const reservationTable = await ReservationTable.findByIdAndUpdate(
-      req.params.id,
-      { status: "Blocked" },
-      { new: true, runValidators: true }
-    );
-
-    if (!reservationTable) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy bản ghi gán bàn",
-      });
-    }
-
-    res.status(200).json({
-      success: true,
-      message: "Đã chặn bản ghi gán bàn",
-      data: reservationTable,
-    });
-  } catch (error) {
-    handleError(res, error);
-  }
-};
-
-// @desc    Xoá bản ghi gán bàn
-// @route   DELETE /api/reservation-tables/:id
-export const deleteReservationTable = async (req, res) => {
-  try {
-    const reservationTable = await ReservationTable.findById(req.params.id);
-
-    if (!reservationTable) {
-      return res.status(404).json({
-        success: false,
-        message: "Không tìm thấy bản ghi gán bàn",
-      });
-    }
-
-    if (reservationTable.status === "Active") {
-      await Table.findByIdAndUpdate(reservationTable.tableId, {
-        status: "Available",
-      });
-    }
-    await ReservationTable.findByIdAndDelete(req.params.id);
-
-    res.status(200).json({
-      success: true,
-      message: "Xoá bản ghi gán bàn thành công",
-    });
-  } catch (error) {
-    handleError(res, error);
-  }
-};
+export const releaseTable = edit('release');
+export const blockReservationTable = edit('block');
+export const deleteReservationTable = edit('delete');

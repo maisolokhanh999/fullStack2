@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { BrandMark } from '../components/AuthIcons.jsx'
 import UiIcon from '../components/UiIcon.jsx'
 import { useAuth } from '../hooks/useAuth.js'
-import { finalizeInvoice, getInvoiceById, getInvoices, getInvoiceTransferQr, payInvoice } from '../services/invoiceService.js'
+import { finalizeInvoice, getInvoiceById, getInvoices, getInvoiceTransferQr, payInvoice, confirmInvoiceDeposit } from '../services/invoiceService.js'
 import { createInvoiceDetail, deleteInvoiceDetail, getInvoiceDetailsByInvoice, updateInvoiceDetail } from '../services/invoiceDetailService.js'
 import { getDishes } from '../services/dishService.js'
 import { formatMoney, labelFor, INVOICE_STATUS_LABELS } from '../components/admin/adminUtils.js'
@@ -22,24 +22,35 @@ function StaffPaymentsPage() {
   const [selectedDishes, setSelectedDishes] = useState({})
   const [quantities, setQuantities] = useState({})
   const [invoiceDetails, setInvoiceDetails] = useState({})
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    setTransferQr({})
+  }, [invoices])
+
+  useEffect(() => {
+    const controller = new AbortController()
     const load = async () => {
       try {
-        const result = await getInvoices()
+        const result = await getInvoices({}, controller.signal)
         const invoiceList = result.invoices || []
         setInvoices(invoiceList)
         const detailEntries = await Promise.all(invoiceList.map(async (invoice) => {
-          const detailResult = await getInvoiceDetailsByInvoice(invoice._id)
+          const detailResult = await getInvoiceDetailsByInvoice(invoice._id, controller.signal)
           return [invoice._id, detailResult.invoiceDetails || []]
         }))
         setInvoiceDetails(Object.fromEntries(detailEntries))
       } catch (requestError) {
-        setError(requestError.message)
+        if (!controller.signal.aborted) setError(requestError.message)
+      } finally {
+        if (!controller.signal.aborted) setIsLoading(false)
       }
     }
     load()
-    getDishes({ status: 'Available' }).then((result) => setDishes(result.dishes || [])).catch(() => {})
+    getDishes({ status: 'Available' }, controller.signal).then((result) => setDishes(result.dishes || [])).catch((requestError) => {
+      if (!controller.signal.aborted) setError(requestError.message)
+    })
+    return () => controller.abort()
   }, [])
 
   const logout = () => {
@@ -84,6 +95,20 @@ function StaffPaymentsPage() {
       setBusyId(invoice._id)
       setError('')
       const updated = await finalizeInvoice(invoice._id)
+      setInvoices((current) => current.map((item) => item._id === invoice._id ? updated : item))
+    } catch (requestError) {
+      setError(requestError.message)
+    } finally {
+      setBusyId('')
+    }
+  }
+
+  const confirmDeposit = async (invoice) => {
+    if (busyId || !window.confirm(`Đã kiểm tra tài khoản ngân hàng và nhận đủ ${formatMoney(invoice.depositAmount)} tiền cọc?`)) return
+    try {
+      setBusyId(invoice._id)
+      setError('')
+      const updated = await confirmInvoiceDeposit(invoice._id)
       setInvoices((current) => current.map((item) => item._id === invoice._id ? updated : item))
     } catch (requestError) {
       setError(requestError.message)
@@ -177,7 +202,8 @@ function StaffPaymentsPage() {
         <section className="staff-hero"><div><span className="customer-kicker">Cổng nhân viên</span><h1>Thanh toán hóa đơn</h1><p>Xin chào {user?.name || 'nhân viên'}. Chọn hóa đơn đã chốt để hoàn tất thanh toán.</p></div></section>
         {error && <p className="staff-local-note" role="alert">{error}</p>}
         {!error && invoices.length > 0 && <div className="staff-invoice-search"><UiIcon name="search" /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm theo mã đặt bàn, tên hoặc số điện thoại khách" aria-label="Tìm hóa đơn của khách" /></div>}
-        {!error && invoices.length === 0 && <div className="menu-state"><strong>Chưa có hóa đơn</strong><p>Không có hóa đơn nào cần xử lý.</p></div>}
+        {isLoading && <div className="menu-state" role="status">Đang tải hóa đơn...</div>}
+        {!isLoading && !error && invoices.length === 0 && <div className="menu-state"><strong>Chưa có hóa đơn</strong><p>Không có hóa đơn nào cần xử lý.</p></div>}
         {!error && invoices.length > 0 && visibleInvoices.length === 0 && <div className="menu-state"><strong>Không tìm thấy hóa đơn</strong><p>Thử lại với mã đặt bàn, tên hoặc số điện thoại khác.</p></div>}
         <div className="staff-invoice-list">
           {visibleInvoices.map((invoice) => (
@@ -185,10 +211,12 @@ function StaffPaymentsPage() {
               <div><span className="customer-kicker">Hóa đơn</span><h2>{invoice.reservationId?.reservationCode || invoice._id}</h2><p>{invoice.payerName} · {invoice.phoneNumber}</p></div>
               <span className="admin-status-badge" data-status={invoice.status}>{labelFor(INVOICE_STATUS_LABELS, invoice.status)}</span>
               <strong className="staff-invoice-card__amount">{formatMoney(invoice.finalAmount)}</strong>
+              {invoice.depositAmount > 0 && <p>{invoice.depositPaymentStatus === 'Succeeded' ? 'Cọc đã nhận' : 'Cọc chưa xác nhận'}: {formatMoney(invoice.depositAmount)}</p>}
+              {['Pending', 'Finalized'].includes(invoice.status) && invoice.depositAmount > 0 && invoice.depositPaymentStatus !== 'Succeeded' && <button type="button" className="customer-secondary-button" onClick={() => confirmDeposit(invoice)} disabled={Boolean(busyId)}>Xác nhận đã nhận cọc</button>}
               {invoice.paidBy && <p className="staff-invoice-card__paid-by">Nhân viên thanh toán: {invoice.paidBy.name || invoice.paidBy._id} ({invoice.paidBy._id})</p>}
-              {(invoiceDetails[invoice._id] || []).length > 0 && <div className="staff-invoice-card__details"><strong>Món đã đặt trước</strong><ul>{invoiceDetails[invoice._id].map((detail) => <li key={detail._id}><span>{detail.itemName} x {detail.quantity}</span><span>{formatMoney(detail.totalAmount)}{invoice.status === 'Pending' && <><button type="button" onClick={() => decreaseDish(invoice, detail)} disabled={busyId === invoice._id || detail.quantity <= 1} aria-label={`Giảm một ${detail.itemName}`}>-1</button><button type="button" onClick={() => removeDish(invoice, detail._id)} disabled={busyId === invoice._id} aria-label={`Bỏ hết ${detail.itemName}`}>Bỏ hết</button></>}</span></li>)}</ul></div>}
-              {invoice.status === 'Pending' && <div className="staff-invoice-card__action staff-invoice-card__action--pending"><label>Thêm món<select value={selectedDishes[invoice._id] || ''} onChange={(event) => setSelectedDishes((current) => ({ ...current, [invoice._id]: event.target.value }))}><option value="">Chọn món</option>{dishes.map((dish) => { const discount = Number(dish.discount) || 0; const currentPrice = dish.price * (1 - discount / 100); return <option key={dish._id} value={dish._id}>{dish.name} - {formatMoney(currentPrice)}{discount > 0 ? ` (giảm ${discount}%)` : ''}</option> })}</select></label><label>Số lượng<input type="number" min="1" max="99" value={quantities[invoice._id] || 1} onChange={(event) => setQuantities((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label><button type="button" className="customer-secondary-button" onClick={() => addDish(invoice)} disabled={busyId === invoice._id}>Thêm món</button>{invoice.depositAmount > 0 && <button type="button" className="customer-secondary-button" onClick={() => showTransferQr(invoice, 'deposit')} disabled={busyId === invoice._id}>Tạo QR tiền cọc</button>}<button type="button" className="customer-primary-button" onClick={() => finalize(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang xử lý...' : 'Chốt hóa đơn để thanh toán'}</button>{transferQr[invoice._id] && <div className="invoice-transfer-qr"><img src={transferQr[invoice._id].qrCode} alt="QR tiền cọc" width="240" height="240" /><p>Chuyển {formatMoney(transferQr[invoice._id].amount)} với nội dung <strong>{transferQr[invoice._id].transferContent}</strong>.</p></div>}</div>}
-              {invoice.status === 'Finalized' && <div className="staff-invoice-card__action"><label>Phương thức<select value={paymentMethod[invoice._id] || 'Cash'} onChange={(event) => setPaymentMethod((current) => ({ ...current, [invoice._id]: event.target.value }))}><option value="Cash">Tiền mặt</option><option value="BankTransfer">Chuyển khoản</option></select></label>{(paymentMethod[invoice._id] || 'Cash') === 'Cash' && <label>Tiền khách đưa<input type="number" min={invoice.finalAmount} value={cashReceived[invoice._id] || ''} onChange={(event) => setCashReceived((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label>}{paymentMethod[invoice._id] === 'BankTransfer' && <button type="button" className="customer-secondary-button" onClick={() => showTransferQr(invoice)} disabled={busyId === invoice._id}>Tạo QR chuyển khoản</button>}<button type="button" className="customer-primary-button" onClick={() => pay(invoice)} disabled={busyId === invoice._id}>{busyId === invoice._id ? 'Đang thanh toán...' : 'Xác nhận thanh toán'}</button>{transferQr[invoice._id] && paymentMethod[invoice._id] === 'BankTransfer' && <div className="invoice-transfer-qr"><strong>Số tiền chuyển: {formatMoney(transferQr[invoice._id].amount)}</strong><img src={transferQr[invoice._id].qrCode} alt="QR chuyển khoản hóa đơn" width="240" height="240" /><p>Chuyển {formatMoney(transferQr[invoice._id].amount)} với nội dung <strong>{transferQr[invoice._id].transferContent}</strong>.</p></div>}</div>}
+              {(invoiceDetails[invoice._id] || []).length > 0 && <div className="staff-invoice-card__details"><strong>Món đã đặt trước</strong><ul>{invoiceDetails[invoice._id].map((detail) => <li key={detail._id}><span>{detail.itemName} x {detail.quantity}</span><span>{formatMoney(detail.totalAmount)}{invoice.status === 'Pending' && <><button type="button" onClick={() => decreaseDish(invoice, detail)} disabled={Boolean(busyId) || detail.quantity <= 1} aria-label={`Giảm một ${detail.itemName}`}>-1</button><button type="button" onClick={() => removeDish(invoice, detail._id)} disabled={Boolean(busyId)} aria-label={`Bỏ hết ${detail.itemName}`}>Bỏ hết</button></>}</span></li>)}</ul></div>}
+              {invoice.status === 'Pending' && <div className="staff-invoice-card__action staff-invoice-card__action--pending"><label>Thêm món<select value={selectedDishes[invoice._id] || ''} onChange={(event) => setSelectedDishes((current) => ({ ...current, [invoice._id]: event.target.value }))}><option value="">Chọn món</option>{dishes.map((dish) => { const discount = Number(dish.discount) || 0; const currentPrice = dish.price * (1 - discount / 100); return <option key={dish._id} value={dish._id}>{dish.name} - {formatMoney(currentPrice)}{discount > 0 ? ` (giảm ${discount}%)` : ''}</option> })}</select></label><label>Số lượng<input type="number" min="1" max="99" value={quantities[invoice._id] || 1} onChange={(event) => setQuantities((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label><button type="button" className="customer-secondary-button" onClick={() => addDish(invoice)} disabled={Boolean(busyId)}>Thêm món</button>{invoice.depositAmount > 0 && invoice.depositPaymentStatus !== 'Succeeded' && <button type="button" className="customer-secondary-button" onClick={() => showTransferQr(invoice, 'deposit')} disabled={Boolean(busyId)}>Tạo QR tiền cọc</button>}<button type="button" className="customer-primary-button" onClick={() => finalize(invoice)} disabled={Boolean(busyId)}>{busyId === invoice._id ? 'Đang xử lý...' : 'Chốt hóa đơn để thanh toán'}</button>{transferQr[invoice._id] && <div className="invoice-transfer-qr"><img src={transferQr[invoice._id].qrCode} alt="QR tiền cọc" width="240" height="240" /><p>Chuyển {formatMoney(transferQr[invoice._id].amount)} với nội dung <strong>{transferQr[invoice._id].transferContent}</strong>.</p></div>}</div>}
+              {invoice.status === 'Finalized' && <div className="staff-invoice-card__action"><label>Phương thức<select value={paymentMethod[invoice._id] || 'Cash'} onChange={(event) => setPaymentMethod((current) => ({ ...current, [invoice._id]: event.target.value }))}><option value="Cash">Tiền mặt</option><option value="BankTransfer">Chuyển khoản</option></select></label>{(paymentMethod[invoice._id] || 'Cash') === 'Cash' && <label>Tiền khách đưa<input type="number" min={invoice.finalAmount} value={cashReceived[invoice._id] || ''} onChange={(event) => setCashReceived((current) => ({ ...current, [invoice._id]: event.target.value }))} /></label>}{paymentMethod[invoice._id] === 'BankTransfer' && <button type="button" className="customer-secondary-button" onClick={() => showTransferQr(invoice)} disabled={Boolean(busyId)}>Tạo QR chuyển khoản</button>}<button type="button" className="customer-primary-button" onClick={() => pay(invoice)} disabled={Boolean(busyId)}>{busyId === invoice._id ? 'Đang thanh toán...' : 'Xác nhận thanh toán'}</button>{transferQr[invoice._id] && paymentMethod[invoice._id] === 'BankTransfer' && <div className="invoice-transfer-qr"><strong>Số tiền chuyển: {formatMoney(transferQr[invoice._id].amount)}</strong><img src={transferQr[invoice._id].qrCode} alt="QR chuyển khoản hóa đơn" width="240" height="240" /><p>Chuyển {formatMoney(transferQr[invoice._id].amount)} với nội dung <strong>{transferQr[invoice._id].transferContent}</strong>.</p></div>}</div>}
             </article>
           ))}
         </div>

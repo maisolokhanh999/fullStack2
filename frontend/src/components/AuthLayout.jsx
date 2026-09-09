@@ -21,12 +21,15 @@ function AuthLayout({ children, ariaLabel, portalLabel = 'Cổng tài khoản', 
           <div className="ambient__glow ambient__glow--two" />
         </div>
 
+        <div className={`bv-account-layout${wide ? ' bv-account-layout--wide' : ''}`}>
+          <aside className="bv-account-intro"><p className="bv-eyebrow">Một chỗ ngồi thân quen</p><h2 className="bv-display">Hẹn nhau<br />bên bàn.</h2><p>Lưu những cuộc hẹn, chọn món yêu thích và chuẩn bị cho bữa ăn tiếp theo.</p><Link to="/#stories" className="bv-text-link">Chuyện quanh bàn ăn ↗</Link></aside>
         <section
           className={`auth-shell${wide ? ' auth-shell--wide' : ''}`}
           aria-label={ariaLabel}
         >
           {children}
         </section>
+        </div>
       </main>
 
       <p className="page-footnote">Bàn Việt · Trải nghiệm nhà hàng thuận tiện hơn</p>

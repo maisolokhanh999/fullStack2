@@ -13,6 +13,7 @@ const tableSchema = new mongoose.Schema(
       type: Number,
       required: [true, "Capacity is required"],
       min: 1,
+      validate: { validator: Number.isInteger, message: 'Sức chứa phải là số nguyên' },
     },
 
     location: {
