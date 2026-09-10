@@ -1,0 +1,56 @@
+[
+  {
+    "code": "BVDR-001",
+    "name": "Cà phê sữa đá",
+    "price": 30000,
+    "description": "Cà phê đậm vị hòa sữa đặc béo nhẹ, dùng cùng đá mát lạnh.",
+    "source": "https://vietchallenge.com/Post/459/coffee-in-lam-dong-central-highlands-vietnam",
+    "originalImage": "https://vietchallenge.com/images/uploads/p2.jpg",
+    "image": "/media/menu/drinks/bvdr-001.webp"
+  },
+  {
+    "code": "BVDR-002",
+    "name": "Trà đào cam sả",
+    "price": 40000,
+    "description": "Trà thơm vị đào, thêm lát cam và sả, chua ngọt dịu mát.",
+    "source": "https://shinbettacoffee.com/thuc-don.php",
+    "originalImage": "https://shinbettacoffee.com/uploads/products/21102020/News/201021104712-tra-dao-cam-sa.jpg",
+    "image": "/media/menu/drinks/bvdr-002.webp"
+  },
+  {
+    "code": "BVDR-003",
+    "name": "Trà chanh",
+    "price": 25000,
+    "description": "Trà thanh nhẹ pha chanh tươi, thêm đá, vị chua ngọt dễ uống.",
+    "source": "https://www.grasshopperadventures.com/article/must-try-foods-vietnam",
+    "originalImage": "https://www.grasshopperadventures.com/sites/default/files/styles/wysiwyg_large/public/2025-07/Tra-Chanh-Lemon-Tea.jpg.jpg?itok=aIiZTmR5",
+    "image": "/media/menu/drinks/bvdr-003.webp"
+  },
+  {
+    "code": "BVDR-004",
+    "name": "Nước cam ép",
+    "price": 40000,
+    "description": "Cam tươi ép nguyên vị, chua ngọt tự nhiên, phục vụ mát.",
+    "source": "https://medlatec.vn/tin-tuc/ba-bau-uong-nuoc-cam-co-tot-khong-can-luu-y-nhung-gi-s74-n31174",
+    "originalImage": "https://medlatec.vn/media/3419/content/20221130_ba-bau-uong-nuoc-cam-co-tot-khong-2.jpeg",
+    "image": "/media/menu/drinks/bvdr-004.webp"
+  },
+  {
+    "code": "BVDR-005",
+    "name": "Nước dừa tươi",
+    "price": 35000,
+    "description": "Nước dừa ngọt thanh cùng cơm dừa non, dùng lạnh nhẹ nhàng.",
+    "source": "https://phovietnam.vn/dua-tuoi",
+    "originalImage": "https://phovietnam.vn/upload/sanpham/dua-toi-70072307_485x610.jpeg",
+    "image": "/media/menu/drinks/bvdr-005.webp"
+  },
+  {
+    "code": "BVDR-006",
+    "name": "Sinh tố bơ",
+    "price": 45000,
+    "description": "Bơ chín xay cùng sữa và đá, béo mịn, thơm dịu từng ngụm.",
+    "source": "https://www.bluestone.com.vn/blogs/vao-bep/sinh-to-bo",
+    "originalImage": "https://file.hstatic.net/200000700229/file/sinh-to-bo.jpg",
+    "image": "/media/menu/drinks/bvdr-006.webp"
+  }
+]

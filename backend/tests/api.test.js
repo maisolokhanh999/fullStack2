@@ -15,6 +15,7 @@ import Table from '../model/table.js';
 import Dish from '../model/dish.js';
 import { completeMenuContent } from '../services/menuContent.js';
 import { expandMenu50, expansionDishes } from '../services/menuExpansion.js';
+import { expandDrinkMenu, drinkDishes } from '../services/menuDrinks.js';
 import { completeExpansionPhotos, expansionPhotos } from '../services/menuPhotos.js';
 import { existsSync } from 'node:fs';
 import '../model/category.js';
@@ -51,9 +52,27 @@ after(async () => { await mongoose.disconnect(); await mongo?.stop(); });
 beforeEach(async () => {
   await Promise.all(Object.values(mongoose.models).map((model) => model.deleteMany({})));
   const password = await bcrypt.hash('test-password', 4);
-  [owner, other, staff, admin] = await User.create(['user', 'user', 'staff', 'admin'].map((role, index) => ({ name: `Test ${index}`, email: `test${index}@example.invalid`, phone: 901234567, address: 'Test only', password, role })));
+  [owner, other, staff, admin] = await User.create(['user', 'user', 'staff', 'admin'].map((role, index) => ({ name: `Test ${index}`, email: `test${index}@example.invalid`, phone: '0901234567', address: 'Test only', password, role })));
   table = await Table.create({ tableNumber: 'A1', capacity: 4 });
   dish = await Dish.create({ categoryId: new mongoose.Types.ObjectId(), code: 'TEST', name: 'Test dish', type: 'MainCourse', servingUnit: 'Phần', price: 100000, discount: 10, stock: 100 });
+});
+
+test('drink release includes six photos and never resets edits or resurrects deleted drinks', async () => {
+  assert.equal(drinkDishes.length, 6);
+  assert.equal(new Set(drinkDishes.map(item => item.code)).size, 6);
+  for (const item of drinkDishes) {
+    assert.ok(item.description.length > 20);
+    assert.ok(existsSync(new URL(`../public/${item.image.replace('/media/', '')}`, import.meta.url)));
+  }
+  assert.equal(await expandDrinkMenu(), 6);
+  const drinks = await Dish.find({ type: 'Drink' });
+  assert.equal(drinks.length, 6);
+  assert.ok(drinks.every(item => item.servingUnit === 'Ly' && item.image && item.price > 0));
+  await Dish.updateOne({ code: drinkDishes[0].code }, { $set: { price: 12345 } });
+  await Dish.updateOne({ code: drinkDishes[1].code }, { $set: { isDeleted: true } });
+  assert.equal(await expandDrinkMenu(), 0);
+  assert.equal((await Dish.findOne({ code: drinkDishes[0].code })).price, 12345);
+  assert.equal(await Dish.countDocuments({ type: 'Drink', isDeleted: false }), 5);
 });
 
 test('50 photo assets exist and backfill preserves custom images and deleted dishes', async () => {

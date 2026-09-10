@@ -1,6 +1,7 @@
 import express from "express";
 import { fileURLToPath } from 'node:url';
 import { completeMenuContent } from './services/menuContent.js';
+import { expandDrinkMenu } from './services/menuDrinks.js';
 import { expandMenu50 } from './services/menuExpansion.js';
 import { completeExpansionPhotos } from './services/menuPhotos.js';
 import dotenv from "dotenv";
@@ -23,6 +24,7 @@ await cloudinary.config();
 await connectDB();
 await completeMenuContent();
 await expandMenu50();
+await expandDrinkMenu();
 await completeExpansionPhotos();
 app.use('/media', express.static(fileURLToPath(new URL('./public', import.meta.url))));
 // Quét lượt đặt quá giờ. Lượt quét không bao giờ được phép làm chết tiến trình:
