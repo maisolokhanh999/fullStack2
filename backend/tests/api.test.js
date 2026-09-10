@@ -249,6 +249,17 @@ test('cancellation releases the table and cancels invoice without claiming money
   await request(app).post('/reservation-tables').set('Authorization', token(owner)).send({ reservationId: r._id, tableId: table._id }).expect(409);
 });
 
+test('cancelled invoice is locked against every payment path and excluded from monthly revenue', async () => {
+  await book().expect(201);
+  const i = await Invoice.findOne();
+  await request(app).patch(`/invoices/${i._id}/cancel`).set('Authorization', token(staff)).expect(200);
+  await request(app).patch(`/invoices/${i._id}/pay`).set('Authorization', token(staff)).send({ paymentMethod: 'Cash', cashReceived: 200000 }).expect(400);
+  await request(app).post(`/invoices/${i._id}/deposit-payment`).set('Authorization', token(owner)).expect(400);
+  const stats = await request(app).get('/invoices/stats').set('Authorization', token(staff)).expect(200);
+  assert.equal(stats.body.data.some((item) => item.month === new Date().toISOString().slice(0, 7)), false);
+  assert.equal((await Invoice.findById(i._id)).status, 'Cancelled');
+});
+
 test('checkin and cancellation racing cannot leave an occupied table with a cancelled reservation', async () => {
   await book().expect(201);
   const r = await Reservation.findOne();

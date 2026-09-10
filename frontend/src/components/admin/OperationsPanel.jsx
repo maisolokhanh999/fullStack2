@@ -3,7 +3,7 @@ import {
   getReservations, confirmReservation, checkInReservation,
   completeReservation, cancelReservation, markReservationNoShow,
 } from '../../services/reservationService.js'
-import { getInvoices, getInvoiceById, finalizeInvoice, getInvoiceTransferQr, payInvoice, cancelInvoice, refundInvoice, confirmInvoiceDeposit } from '../../services/invoiceService.js'
+import { getInvoices, getInvoiceStats, getInvoiceById, finalizeInvoice, getInvoiceTransferQr, payInvoice, cancelInvoice, refundInvoice, confirmInvoiceDeposit } from '../../services/invoiceService.js'
 import { createInvoiceDetail, deleteInvoiceDetail, getInvoiceDetailsByInvoice, updateInvoiceDetail } from '../../services/invoiceDetailService.js'
 import { getReservationTables } from '../../services/reservationTableService.js'
 import { getDishes } from '../../services/dishService.js'
@@ -45,6 +45,30 @@ const newestOrderFirst = (reservations) => [...reservations].sort((a, b) => (
 const reservationStatusLabel = (reservation, invoice) => {
   if (['Completed', 'Cancelled', 'NoShow'].includes(reservation.status)) return labelFor(RESERVATION_STATUS_LABELS, reservation.status)
   return invoice?.status === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'
+}
+
+function InvoiceStatsTable({ stats, isLoading, error }) {
+  if (isLoading) return <div className="admin-stats__state">Đang tải thống kê hóa đơn...</div>
+  if (error) return <div className="admin-stats__state admin-stats__state--error">{error}</div>
+  if (!stats.length) return <div className="admin-stats__state">Chưa có hóa đơn đã thanh toán để thống kê.</div>
+
+  const totalInvoices = stats.reduce((sum, item) => sum + item.invoiceCount, 0)
+  const totalRevenue = stats.reduce((sum, item) => sum + item.revenue, 0)
+
+  return (
+    <section className="admin-stats" aria-labelledby="invoice-stats-title">
+      <div className="admin-stats__heading">
+        <div><span className="admin-invoice__label">Báo cáo doanh thu</span><h2 id="invoice-stats-title">Hóa đơn theo tháng</h2></div>
+        <div className="admin-stats__totals"><span>{totalInvoices} hóa đơn</span><strong>{formatMoney(totalRevenue)}</strong></div>
+      </div>
+      <div className="admin-table-wrap">
+        <table className="admin-table admin-stats__table">
+          <thead><tr><th>Tháng</th><th>Số hóa đơn đã thanh toán</th><th>Doanh thu</th></tr></thead>
+          <tbody>{stats.map((item) => <tr key={item.month}><td>{item.month}</td><td>{item.invoiceCount}</td><td><strong>{formatMoney(item.revenue)}</strong></td></tr>)}</tbody>
+        </table>
+      </div>
+    </section>
+  )
 }
 
 /* Hoá đơn của một lượt đặt: phiếu, thêm món khi còn Pending, chốt rồi thanh toán. */
@@ -324,9 +348,21 @@ function InvoiceForReservation({ invoice, onInvoiceChange }) {
 export default function OperationsPanel() {
   const reservations = useAdminCollection(getReservations, 'reservations')
   const invoices = useAdminCollection(getInvoices, 'invoices')
+  const [stats, setStats] = useState([])
+  const [statsLoading, setStatsLoading] = useState(true)
+  const [statsError, setStatsError] = useState('')
   const [openId, setOpenId] = useState('')
   const [errors, setErrors] = useState({})
   const orderedReservations = useMemo(() => newestOrderFirst(reservations.items), [reservations.items])
+
+  useEffect(() => {
+    const controller = new AbortController()
+    getInvoiceStats(controller.signal)
+      .then((result) => setStats(result.stats))
+      .catch((requestError) => { if (requestError.name !== 'AbortError') setStatsError(requestError.message) })
+      .finally(() => { if (!controller.signal.aborted) setStatsLoading(false) })
+    return () => controller.abort()
+  }, [invoices.items])
 
   const runReservation = async (id, action) => {
     try {
@@ -349,10 +385,12 @@ export default function OperationsPanel() {
   }
   if (reservations.error) return <AdminPanelError message={reservations.error} onRetry={reservations.retry} />
   if (invoices.error) return <AdminPanelError message={invoices.error} onRetry={invoices.retry} />
-  if (!reservations.items.length) return <AdminPanelEmpty message="Chưa có lượt đặt bàn nào." />
 
   return (
     <div className="admin-ops">
+      <InvoiceStatsTable stats={stats} isLoading={statsLoading} error={statsError} />
+      {!reservations.items.length && <AdminPanelEmpty message="Chưa có lượt đặt bàn nào." />}
+      {reservations.items.length > 0 && <>
       <p className="admin-ops__hint">
         Mỗi lượt đặt bàn sinh sẵn một hóa đơn. Bấm vào một dòng để mở hóa đơn của lượt đó,
         thêm món khách gọi thêm, rồi chốt và thanh toán.
@@ -411,6 +449,7 @@ export default function OperationsPanel() {
           </tbody>
         </table>
       </div>
+      </>}
     </div>
   )
 }

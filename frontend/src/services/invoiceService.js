@@ -17,6 +17,15 @@ export async function getInvoices(query = {}, signal) {
   return unwrapCollection(response, 'invoices')
 }
 
+export async function getInvoiceStats(signal) {
+  const response = await apiRequest(
+    '/invoices/stats',
+    { auth: true, signal },
+    'Không thể tải thống kê hóa đơn.',
+  )
+  return { stats: Array.isArray(response?.data) ? response.data : [] }
+}
+
 export async function getInvoiceById(id, signal) {
   const response = await apiRequest(
     `/invoices/${encodePathSegment(id, 'invoiceId')}`,

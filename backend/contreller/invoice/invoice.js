@@ -160,6 +160,35 @@ export const getInvoices = async (req, res) => {
   }
 };
 
+// Doanh thu chỉ phát sinh khi hóa đơn đã thanh toán thành công. Hóa đơn hủy
+// vẫn được giữ trong danh sách để đối soát nhưng không đi vào báo cáo này.
+export const getInvoiceStats = async (req, res) => {
+  try {
+    const stats = await Invoice.aggregate([
+      { $match: { status: "Paid", paymentDate: { $type: "date" } } },
+      {
+        $group: {
+          _id: {
+            $dateToString: {
+              format: "%Y-%m",
+              date: "$paymentDate",
+              timezone: "Asia/Ho_Chi_Minh",
+            },
+          },
+          invoiceCount: { $sum: 1 },
+          revenue: { $sum: "$finalAmount" },
+        },
+      },
+      { $sort: { _id: -1 } },
+      { $project: { _id: 0, month: "$_id", invoiceCount: 1, revenue: 1 } },
+    ]);
+
+    res.status(200).json({ success: true, data: stats });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
 // @desc    Lấy chi tiết 1 hoá đơn
 // @route   GET /api/invoices/:id
 export const getInvoiceById = async (req, res) => {
@@ -567,7 +596,7 @@ export const finalizeInvoice = async (req, res) => {
 // @route   GET /api/invoices/reservation/:reservationId
 export const getInvoiceByReservation = async (req, res) => {
   try {
-    const invoice = await Invoice.findOne({ reservationId: req.params.reservationId })
+    const invoice = await Invoice.findOne({ reservationId: req.params.reservationId, status: { $ne: "Cancelled" } })
       .populate("reservationId")
       .populate("userId", "name")
       .populate("paidBy", "name role");
