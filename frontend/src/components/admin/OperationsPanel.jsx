@@ -53,6 +53,8 @@ function InvoiceStatsTable({ stats, year, month, onYearChange, onMonthChange, is
 
   const totalInvoices = stats.reduce((sum, item) => sum + item.invoiceCount, 0)
   const totalRevenue = stats.reduce((sum, item) => sum + item.revenue, 0)
+  const methodLabels = { Cash: 'Tiền mặt', BankTransfer: 'Chuyển khoản', Card: 'Thẻ', EWallet: 'Ví điện tử', Other: 'Khác' }
+  const methodValue = (item, method, field) => item.methods?.find((entry) => entry.paymentMethod === method)?.[field] || 0
 
   return (
     <section className="admin-stats" aria-labelledby="invoice-stats-title">
@@ -66,8 +68,8 @@ function InvoiceStatsTable({ stats, year, month, onYearChange, onMonthChange, is
       </div>
       <div className="admin-table-wrap">
         <table className="admin-table admin-stats__table">
-          <thead><tr><th>Tháng</th><th>Số hóa đơn đã thanh toán</th><th>Doanh thu</th></tr></thead>
-          <tbody>{stats.length ? stats.map((item) => <tr key={`${item.year}-${item.month}`}><td>Tháng {item.month}/{item.year}</td><td>{item.invoiceCount}</td><td><strong>{formatMoney(item.revenue)}</strong></td></tr>) : <tr><td colSpan="3">Chưa có hóa đơn đã thanh toán trong thời gian này.</td></tr>}</tbody>
+          <thead><tr><th rowSpan="2">Tháng</th><th rowSpan="2">Tổng hóa đơn</th><th rowSpan="2">Tổng doanh thu</th><th colSpan="5">Theo phương thức thanh toán</th></tr><tr>{Object.entries(methodLabels).map(([method, label]) => <th key={method}>{label}</th>)}</tr></thead>
+          <tbody>{stats.length ? stats.map((item) => <tr key={`${item.year}-${item.month}`}><td>Tháng {item.month}/{item.year}</td><td>{item.invoiceCount}</td><td><strong>{formatMoney(item.revenue)}</strong></td>{Object.keys(methodLabels).map((method) => <td key={method}>{methodValue(item, method, 'invoiceCount')} / {formatMoney(methodValue(item, method, 'revenue'))}</td>)}</tr>) : <tr><td colSpan="8">Chưa có hóa đơn đã thanh toán trong thời gian này.</td></tr>}</tbody>
         </table>
       </div>
     </section>

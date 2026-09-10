@@ -534,7 +534,7 @@
 }
 
 .admin-stats__table {
-  min-width: 480px;
+  min-width: 1120px;
 }
 
 .admin-table tr.is-open > td {

@@ -172,24 +172,35 @@ export const getInvoiceStats = async (req, res) => {
 
     const dateParts = {
       $and: [
-        { $eq: [{ $year: { date: "$paymentDate", timezone: "Asia/Ho_Chi_Minh" } }, year] },
-        ...(month === null ? [] : [{ $eq: [{ $month: { date: "$paymentDate", timezone: "Asia/Ho_Chi_Minh" } }, month] }]),
+        { $eq: [{ $year: { date: "$statsDate", timezone: "Asia/Ho_Chi_Minh" } }, year] },
+        ...(month === null ? [] : [{ $eq: [{ $month: { date: "$statsDate", timezone: "Asia/Ho_Chi_Minh" } }, month] }]),
       ],
     };
     const stats = await Invoice.aggregate([
-      { $match: { status: "Paid", paymentDate: { $type: "date" }, $expr: dateParts } },
+      { $match: { status: "Paid" } },
+      { $set: { statsDate: { $ifNull: ["$paymentDate", { $ifNull: ["$updatedAt", "$createdAt"] }] } } },
+      { $match: { statsDate: { $type: "date" }, $expr: dateParts } },
       {
         $group: {
           _id: {
-            year: { $year: { date: "$paymentDate", timezone: "Asia/Ho_Chi_Minh" } },
-            month: { $month: { date: "$paymentDate", timezone: "Asia/Ho_Chi_Minh" } },
+            year: { $year: { date: "$statsDate", timezone: "Asia/Ho_Chi_Minh" } },
+            month: { $month: { date: "$statsDate", timezone: "Asia/Ho_Chi_Minh" } },
+            paymentMethod: { $ifNull: ["$paymentMethod", "Other"] },
           },
           invoiceCount: { $sum: 1 },
           revenue: { $sum: "$finalAmount" },
         },
       },
+      {
+        $group: {
+          _id: { year: "$_id.year", month: "$_id.month" },
+          invoiceCount: { $sum: "$invoiceCount" },
+          revenue: { $sum: "$revenue" },
+          methods: { $push: { paymentMethod: "$_id.paymentMethod", invoiceCount: "$invoiceCount", revenue: "$revenue" } },
+        },
+      },
       { $sort: { "_id.year": -1, "_id.month": -1 } },
-      { $project: { _id: 0, year: "$_id.year", month: "$_id.month", invoiceCount: 1, revenue: 1 } },
+      { $project: { _id: 0, year: "$_id.year", month: "$_id.month", invoiceCount: 1, revenue: 1, methods: 1 } },
     ]);
 
     res.status(200).json({ success: true, year, month, data: stats });
