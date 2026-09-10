@@ -1,0 +1,49 @@
+.bv-gallery { background: #281b16; color: #f6edde; padding: 84px 0 32px; scroll-margin-top: 24px; }
+.bv-gallery-heading { display: flex; justify-content: space-between; align-items: end; gap: 32px; margin-bottom: 38px; }
+.bv-gallery-kicker { font-size: 10px; text-transform: uppercase; letter-spacing: .2em; color: #d6b48b; }
+.bv-gallery-heading h2 { font-size: clamp(44px,6vw,80px); line-height: 1.08; letter-spacing: -.045em; margin: 20px 0 0; }
+.bv-gallery-heading h2 em { color: #dda581; font-weight: inherit; }
+.bv-gallery-heading > div:last-child { font-size: 13px; line-height: 1.9; color: #d2bfb1; max-width: 300px; }
+.bv-gallery-heading a, .bv-gallery-caption a { display: inline-block; color: #f6edde; margin-top: 18px; text-decoration: underline; text-underline-offset: 6px; }
+.bv-gallery-rows { display: grid; gap: 12px; }
+.bv-gallery-row { display: flex; gap: 12px; height: 330px; }
+.bv-gallery-tile { position: relative; flex: 1; min-width: 0; padding: 0; border: 0; border-radius: 8px; overflow: hidden; cursor: zoom-in; background: #49372c; color: white; text-align: left; transition: flex .65s cubic-bezier(.22,1,.36,1); }
+.bv-gallery-tile:nth-child(2) { flex: 1.4; }
+.bv-gallery-tile img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s cubic-bezier(.22,1,.36,1); }
+.bv-gallery-tile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, #0003, transparent 35%, #160b06cc); pointer-events: none; }
+.bv-gallery-number { position: absolute; top: 18px; left: 18px; z-index: 1; font-size: 11px; letter-spacing: .1em; }
+.bv-gallery-label { position: absolute; bottom: 20px; left: 18px; right: 18px; z-index: 1; display: grid; gap: 6px; }
+.bv-gallery-label small { font-size: 9px; color: #eee0d0; }
+.bv-gallery-label strong { font-family: 'Fraunces Variable', serif; font-size: 22px; line-height: 1.15; font-weight: 500; }
+.bv-gallery-label > span { font-size: 20px; }
+.bv-gallery-tile:focus-visible { outline: 3px solid #f2bc82; outline-offset: 3px; }
+@media (hover: hover) and (min-width: 761px) {
+  .bv-gallery-tile:hover, .bv-gallery-tile:focus-visible { flex: 2.8; }
+  .bv-gallery-tile:hover img { transform: scale(1.045); }
+}
+.bv-gallery-foot { display: flex; justify-content: space-between; gap: 16px; padding-top: 24px; font-size: 10px; color: #bfa897; }
+.bv-gallery-dialog { padding: 0; border: 1px solid #72513c; border-radius: 14px; width: min(1000px,92vw); max-height: 90dvh; margin: auto; color: #f6edde; background: #281b16; }
+.bv-gallery-dialog::backdrop { background: #120b08e8; backdrop-filter: blur(8px); }
+.bv-gallery-view { position: relative; }
+.bv-gallery-large { display: block; width: 100%; height: min(55dvh,560px); object-fit: contain; background: #1d1410; }
+.bv-gallery-close { position: absolute; z-index: 2; top: 12px; right: 12px; width: 44px; height: 44px; border: 1px solid #fff6; border-radius: 50%; background: #281b16; color: white; font-size: 28px; cursor: pointer; }
+.bv-gallery-caption { padding: 24px 100px 28px 28px; }
+.bv-gallery-caption h3 { font-size: clamp(24px,4vw,36px); margin: 8px 0; }
+.bv-gallery-caption > p:not(.bv-gallery-kicker) { font-size: 13px; color: #d2bfb1; line-height: 1.7; }
+.bv-gallery-controls { position: absolute; bottom: 26px; right: 20px; display: flex; gap: 8px; }
+.bv-gallery-controls button { width: 36px; height: 44px; border: 1px solid #876751; border-radius: 8px; color: #f6edde; background: transparent; cursor: pointer; }
+.bv-gallery-dialog button:focus-visible, .bv-gallery-dialog a:focus-visible { outline: 2px solid #f2bc82; outline-offset: 3px; }
+@media (max-width: 760px) {
+  .bv-gallery { padding-top: 48px; }
+  .bv-gallery-heading { display: block; }
+  .bv-gallery-heading > div:last-child { margin-top: 24px; }
+  .bv-gallery-row { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); height: auto; }
+  .bv-gallery-tile { height: 240px; }
+  .bv-gallery-tile:last-child:nth-child(odd) { grid-column: 1 / -1; height: 260px; }
+  .bv-gallery-label strong { font-size: 20px; }
+  .bv-gallery-foot { flex-direction: column; line-height: 1.6; }
+  .bv-gallery-caption { padding: 22px 22px 80px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bv-gallery-tile, .bv-gallery-tile img { transition: none; }
+}

@@ -4,6 +4,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { BrandMark } from '../components/AuthIcons.jsx'
 import LandingHero from '../components/customer/LandingHero.jsx'
 import GatheringTable from '../components/customer/GatheringTable.jsx'
+import FoodGallery from '../components/customer/FoodGallery.jsx'
 import Reveal from '../components/Reveal.jsx'
 import DishCard from '../components/customer/DishCard.jsx'
 import DishGridState from '../components/customer/DishGridState.jsx'
@@ -33,6 +34,7 @@ export default function HomePage() {
             <a href="#menu" className="bv-nav-link">Thực đơn</a>
             <a href="#about" className="bv-nav-link hidden sm:inline">Về Bàn Việt</a>
             <a href="#stories" className="bv-nav-link">Câu chuyện</a>
+            <a href="#gallery" className="bv-nav-link">Bộ sưu tập</a>
             {isStaffRole(user?.role) && <Link className="bv-nav-link" to={getLandingPath(user)}>Khu làm việc</Link>}
             {user ? <><Link className="bv-nav-link max-w-28 truncate" to="/dashboard">{user.name}</Link><button type="button" className="bv-nav-link" onClick={endSession}>Đăng xuất</button></> : <Link className="bv-nav-link" to="/login">Đăng nhập</Link>}
           </nav>
@@ -55,7 +57,8 @@ export default function HomePage() {
           <DishGridState isLoading={isLoading} error={error} isEmpty={!isLoading && !error && !dishes.length} onRetry={retry} />
           {!isLoading && !error && <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">{featured.map((dish) => <DishCard key={getDishId(dish)} dish={dish} />)}</div>}
         </section>
-        <Reveal><section id="about" className="bv-shell pb-16" aria-labelledby="about-heading">
+        <FoodGallery dishes={dishes} isLoading={isLoading} error={error} onRetry={retry} />
+        <Reveal><section id="about" className="bv-shell py-16" aria-labelledby="about-heading">
           <div className="grid gap-8 rounded-[24px] bg-[#e9ecdf] px-7 py-10 sm:px-12 lg:grid-cols-[1.2fr_1fr] lg:py-14">
             <div><p className="bv-eyebrow mb-4 text-[#697655]">Những cuộc hẹn giản dị</p><h2 id="about-heading" className="bv-display max-w-lg text-4xl leading-tight tracking-[-0.025em]">Có những điều,<br />ngồi lại mới thấy ngon.</h2></div>
             <div className="max-w-md self-center"><p className="text-sm leading-7 text-[#68705d]">Bữa trưa cùng đồng nghiệp, buổi tối với gia đình hay một cuộc hẹn lâu ngày. Bàn Việt dành chỗ cho những khoảnh khắc ấy, bên hương vị Việt thân quen.</p><Link to={`/booking/${DEFAULT_RESTAURANT.id}`} className="bv-text-link mt-6">Hẹn một bữa tại Bàn Việt <UiIcon name="arrow-up-right" /></Link></div>
