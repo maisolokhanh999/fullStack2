@@ -362,12 +362,15 @@ export default function OperationsPanel() {
 
   useEffect(() => {
     const controller = new AbortController()
+    const timer = setTimeout(() => {
+      getInvoiceStats({ year: statsYear, ...(statsMonth ? { month: statsMonth } : {}) }, controller.signal)
+        .then((result) => setStats(result.stats))
+        .catch((requestError) => { if (requestError.name !== 'AbortError') setStatsError(requestError.message) })
+        .finally(() => { if (!controller.signal.aborted) setStatsLoading(false) })
+    }, 220)
+    setStatsLoading(true)
     setStatsError('')
-    getInvoiceStats({ year: statsYear, ...(statsMonth ? { month: statsMonth } : {}) }, controller.signal)
-      .then((result) => setStats(result.stats))
-      .catch((requestError) => { if (requestError.name !== 'AbortError') setStatsError(requestError.message) })
-      .finally(() => { if (!controller.signal.aborted) setStatsLoading(false) })
-    return () => controller.abort()
+    return () => { clearTimeout(timer); controller.abort() }
   }, [invoices.items, statsYear, statsMonth])
 
   const runReservation = async (id, action) => {
