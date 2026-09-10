@@ -164,26 +164,35 @@ export const getInvoices = async (req, res) => {
 // vẫn được giữ trong danh sách để đối soát nhưng không đi vào báo cáo này.
 export const getInvoiceStats = async (req, res) => {
   try {
+    const year = req.query.year ? Number(req.query.year) : new Date().getFullYear();
+    const month = req.query.month ? Number(req.query.month) : null;
+    if (!Number.isInteger(year) || year < 2000 || year > 2100 || (month !== null && (!Number.isInteger(month) || month < 1 || month > 12))) {
+      return res.status(400).json({ success: false, message: "Tháng hoặc năm thống kê không hợp lệ" });
+    }
+
+    const dateParts = {
+      $and: [
+        { $eq: [{ $year: { date: "$paymentDate", timezone: "Asia/Ho_Chi_Minh" } }, year] },
+        ...(month === null ? [] : [{ $eq: [{ $month: { date: "$paymentDate", timezone: "Asia/Ho_Chi_Minh" } }, month] }]),
+      ],
+    };
     const stats = await Invoice.aggregate([
-      { $match: { status: "Paid", paymentDate: { $type: "date" } } },
+      { $match: { status: "Paid", paymentDate: { $type: "date" }, $expr: dateParts } },
       {
         $group: {
           _id: {
-            $dateToString: {
-              format: "%Y-%m",
-              date: "$paymentDate",
-              timezone: "Asia/Ho_Chi_Minh",
-            },
+            year: { $year: { date: "$paymentDate", timezone: "Asia/Ho_Chi_Minh" } },
+            month: { $month: { date: "$paymentDate", timezone: "Asia/Ho_Chi_Minh" } },
           },
           invoiceCount: { $sum: 1 },
           revenue: { $sum: "$finalAmount" },
         },
       },
-      { $sort: { _id: -1 } },
-      { $project: { _id: 0, month: "$_id", invoiceCount: 1, revenue: 1 } },
+      { $sort: { "_id.year": -1, "_id.month": -1 } },
+      { $project: { _id: 0, year: "$_id.year", month: "$_id.month", invoiceCount: 1, revenue: 1 } },
     ]);
 
-    res.status(200).json({ success: true, data: stats });
+    res.status(200).json({ success: true, year, month, data: stats });
   } catch (error) {
     handleError(res, error);
   }

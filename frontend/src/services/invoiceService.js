@@ -17,9 +17,9 @@ export async function getInvoices(query = {}, signal) {
   return unwrapCollection(response, 'invoices')
 }
 
-export async function getInvoiceStats(signal) {
+export async function getInvoiceStats(query = {}, signal) {
   const response = await apiRequest(
-    '/invoices/stats',
+    withQuery('/invoices/stats', query),
     { auth: true, signal },
     'Không thể tải thống kê hóa đơn.',
   )

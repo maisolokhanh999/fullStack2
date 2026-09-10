@@ -47,10 +47,9 @@ const reservationStatusLabel = (reservation, invoice) => {
   return invoice?.status === 'Paid' ? 'Đã thanh toán' : 'Chưa thanh toán'
 }
 
-function InvoiceStatsTable({ stats, isLoading, error }) {
+function InvoiceStatsTable({ stats, year, month, onYearChange, onMonthChange, isLoading, error }) {
   if (isLoading) return <div className="admin-stats__state">Đang tải thống kê hóa đơn...</div>
   if (error) return <div className="admin-stats__state admin-stats__state--error">{error}</div>
-  if (!stats.length) return <div className="admin-stats__state">Chưa có hóa đơn đã thanh toán để thống kê.</div>
 
   const totalInvoices = stats.reduce((sum, item) => sum + item.invoiceCount, 0)
   const totalRevenue = stats.reduce((sum, item) => sum + item.revenue, 0)
@@ -61,10 +60,14 @@ function InvoiceStatsTable({ stats, isLoading, error }) {
         <div><span className="admin-invoice__label">Báo cáo doanh thu</span><h2 id="invoice-stats-title">Hóa đơn theo tháng</h2></div>
         <div className="admin-stats__totals"><span>{totalInvoices} hóa đơn</span><strong>{formatMoney(totalRevenue)}</strong></div>
       </div>
+      <div className="admin-stats__filters">
+        <label>Năm<input type="number" min="2000" max="2100" value={year} onChange={(event) => onYearChange(event.target.value)} /></label>
+        <label>Tháng<select value={month} onChange={(event) => onMonthChange(event.target.value)}><option value="">Tất cả tháng</option>{Array.from({ length: 12 }, (_, index) => <option key={index + 1} value={index + 1}>Tháng {index + 1}</option>)}</select></label>
+      </div>
       <div className="admin-table-wrap">
         <table className="admin-table admin-stats__table">
           <thead><tr><th>Tháng</th><th>Số hóa đơn đã thanh toán</th><th>Doanh thu</th></tr></thead>
-          <tbody>{stats.map((item) => <tr key={item.month}><td>{item.month}</td><td>{item.invoiceCount}</td><td><strong>{formatMoney(item.revenue)}</strong></td></tr>)}</tbody>
+          <tbody>{stats.length ? stats.map((item) => <tr key={`${item.year}-${item.month}`}><td>Tháng {item.month}/{item.year}</td><td>{item.invoiceCount}</td><td><strong>{formatMoney(item.revenue)}</strong></td></tr>) : <tr><td colSpan="3">Chưa có hóa đơn đã thanh toán trong thời gian này.</td></tr>}</tbody>
         </table>
       </div>
     </section>
@@ -349,6 +352,8 @@ export default function OperationsPanel() {
   const reservations = useAdminCollection(getReservations, 'reservations')
   const invoices = useAdminCollection(getInvoices, 'invoices')
   const [stats, setStats] = useState([])
+  const [statsYear, setStatsYear] = useState(String(new Date().getFullYear()))
+  const [statsMonth, setStatsMonth] = useState('')
   const [statsLoading, setStatsLoading] = useState(true)
   const [statsError, setStatsError] = useState('')
   const [openId, setOpenId] = useState('')
@@ -357,12 +362,13 @@ export default function OperationsPanel() {
 
   useEffect(() => {
     const controller = new AbortController()
-    getInvoiceStats(controller.signal)
+    setStatsError('')
+    getInvoiceStats({ year: statsYear, ...(statsMonth ? { month: statsMonth } : {}) }, controller.signal)
       .then((result) => setStats(result.stats))
       .catch((requestError) => { if (requestError.name !== 'AbortError') setStatsError(requestError.message) })
       .finally(() => { if (!controller.signal.aborted) setStatsLoading(false) })
     return () => controller.abort()
-  }, [invoices.items])
+  }, [invoices.items, statsYear, statsMonth])
 
   const runReservation = async (id, action) => {
     try {
@@ -388,7 +394,10 @@ export default function OperationsPanel() {
 
   return (
     <div className="admin-ops">
-      <InvoiceStatsTable stats={stats} isLoading={statsLoading} error={statsError} />
+      <InvoiceStatsTable stats={stats} year={statsYear} month={statsMonth}
+        onYearChange={(value) => { setStatsYear(value); setStatsLoading(true) }}
+        onMonthChange={(value) => { setStatsMonth(value); setStatsLoading(true) }}
+        isLoading={statsLoading} error={statsError} />
       {!reservations.items.length && <AdminPanelEmpty message="Chưa có lượt đặt bàn nào." />}
       {reservations.items.length > 0 && <>
       <p className="admin-ops__hint">
